@@ -30,7 +30,18 @@ interface DashboardData {
   group: string;
   hasData: boolean;
   summary: DashboardSummary;
-  feedingPlan: any[]; // Or define ForecastData interface if needed
+  feedingPlan: ForecastData[];
+}
+
+interface ForecastData {
+  date: string;
+  meanTemperatureC: number;
+  highTemperatureC: number;
+  lowTemperatureC: number;
+  weatherCode?: number;
+  conditionText?: string;
+  feedAdjustmentPct: number;
+  feedingRecommendation: string;
 }
 
 export default function FeedingSmallPage() {
