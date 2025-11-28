@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+@import 'leaflet/dist/leaflet.css';
+
+/* Custom Leaflet map styles */
+.leaflet-container {
+  height: 256px;
+  width: 100%;
+  border-radius: 0.5rem;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.leaflet-popup-tip {
+  background: white;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.temperature-marker {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Custom control styling */
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  border-radius: 0.375rem !important;
+}
+
+.leaflet-control-zoom a {
+  border-radius: 0.375rem !important;
+  font-weight: 600 !important;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --primary: #093832;
+  --secondary: #72B544;
+  --accent: #f59e0b;
+  --muted: #f3f4f6;
+  --border: #e5e7eb;
+  --card: #ffffff;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --text: #111827;
+  --text-muted: #6b7280;
+  --text-accent: #f59e0b;
+  --text-secondary: #374151;
+  --text-primary: #0ea5e9;
+  --text-error: #dc2626;
+  --text-success: #16a34a;  
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Prompt', sans-serif;
+  line-height: 1.4;
+}

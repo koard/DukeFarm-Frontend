@@ -1,0 +1,424 @@
+"use client";
+
+import Image from "next/image";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useLineUser } from "@/hooks/useLineUser";
+import { useRouter } from "next/navigation";
+
+interface GraphDataPoint {
+  month: string;
+  value: number;
+}
+
+interface HoverData {
+  x: number;
+  y: number;
+  value: number;
+  month?: string;
+}
+
+interface Coordinate {
+  x: number;
+  y: number;
+}
+
+interface ForecastData {
+  date: string;
+  tempHigh: number;
+  tempLow: number;
+  recommendedFeed: number;
+  weatherCondition: string;
+}
+
+interface DashboardData {
+  currentDate: string;
+  currentTemperature: number;
+  temperatureReport: {
+    message: string;
+    recommendation: string;
+    details: string;
+  };
+  fishAgeRange: string;
+  averageWeight: number;
+  monthlyFeedingData: GraphDataPoint[];
+  averageFishWeight: number;
+  weightChange: number;
+  forecast: ForecastData[];
+}
+
+export default function MarketGrowerPage() {
+  const lineUser = useLineUser();
+  const router = useRouter();
+  const [hoverData, setHoverData] = useState<HoverData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          router.push("/login");
+          return;
+        }
+
+        // ตาม API spec: GET /dashboard/groups/:groupType
+        const response = await fetch("https://dukefarm-backend.onrender.com/api/dashboard/groups/GROWOUT", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error("ไม่สามารถดึงข้อมูลได้");
+        }
+
+        const result = await response.json();
+        setDashboardData(result.data);
+      } catch (err) {
+        console.error("Dashboard error:", err);
+        setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [router]);
+
+  const graphData: GraphDataPoint[] = dashboardData?.monthlyFeedingData || [
+    { month: "Jan", value: 0.25 },
+    { month: "Feb", value: 0.5 },
+    { month: "Mar", value: 0.65 },
+    { month: "Apr", value: 0.95 },
+    { month: "May", value: 0.8 },
+    { month: "Jun", value: 2.0 },
+    { month: "Jul", value: 1.2 },
+    { month: "Aug", value: 1.4 },
+    { month: "Sep", value: 1.6 },
+    { month: "Oct", value: 1.8 },
+    { month: "Nov", value: 1.5 },
+    { month: "Dec", value: 1.3 },
+  ];
+
+  const getY = (val: number): number => 130 - (val / 2) * 110;
+  const getX = (index: number): number => 35 + index * 25; 
+
+  const generateSmoothPath = (data: Coordinate[], tension: number = 0.4): string => {
+    if (data.length < 2) return "";
+    let path = `M${data[0].x},${data[0].y}`;
+    for (let i = 0; i < data.length - 1; i++) {
+      const p0 = i > 0 ? data[i - 1] : data[i];
+      const p1 = data[i];
+      const p2 = data[i + 1];
+      const p3 = i < data.length - 2 ? data[i + 2] : p2;
+      
+      const cp1x = p1.x + (p2.x - p0.x) / 6 * tension;
+      const cp1y = p1.y + (p2.y - p0.y) / 6 * tension;
+      const cp2x = p2.x - (p3.x - p1.x) / 6 * tension;
+      const cp2y = p2.y - (p3.y - p1.y) / 6 * tension;
+      
+      path += `C${cp1x},${cp1y},${cp2x},${cp2y},${p2.x},${p2.y}`;
+    }
+    return path;
+  };
+
+  const smoothPathD = generateSmoothPath(
+    graphData.map((d, i) => ({ x: getX(i), y: getY(d.value) }))
+  );
+
+  const forecastData: ForecastData[] = dashboardData?.forecast || [
+    { date: "17/05/25", tempHigh: 31, tempLow: 26, recommendedFeed: 4.5, weatherCondition: "rainy" },
+    { date: "18/05/25", tempHigh: 31, tempLow: 30, recommendedFeed: 5.5, weatherCondition: "sunny" },
+    { date: "19/05/25", tempHigh: 31, tempLow: 27, recommendedFeed: 4.5, weatherCondition: "rainy" },
+    { date: "20/05/25", tempHigh: 31, tempLow: 26, recommendedFeed: 4.5, weatherCondition: "sunny" },
+    { date: "21/05/25", tempHigh: 31, tempLow: 35, recommendedFeed: 5.5, weatherCondition: "sunny" },
+    { date: "22/05/25", tempHigh: 31, tempLow: 30, recommendedFeed: 5.0, weatherCondition: "sunny" },
+    { date: "23/05/25", tempHigh: 31, tempLow: 28, recommendedFeed: 4.5, weatherCondition: "rainy" },
+  ];
+
+  return (
+    <div className="min-h-screen bg-white pb-10">
+      
+      <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10">
+              <div className="max-w-7xl mx-auto flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <Image src="/nursery-large/Group.svg" alt="Overview" width={24} height={24} />
+                  <h1 className="text-2xl font-bold">ภาพรวมฟาร์ม</h1>
+                </div>
+                
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="text-sm text-gray-300">ยินดีต้อนรับ</p>
+                    <p className="text-sm font-bold">{lineUser.displayName}</p>
+                  </div>
+                  <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-gray-200">
+                     <img src={lineUser.pictureUrl} alt="Profile" className="w-full h-full object-cover" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+      <div className="px-5 mt-4 relative z-10 max-w-7xl mx-auto space-y-5">
+        
+        <div className="">
+          <span className="inline-flex items-center gap-2 bg-[#9DFFEB] text-[#007066] px-4 py-1.5 rounded-full text-sm font-bold shadow-sm border border-blue-200">
+              <Image src="/nursery-large/famicons_fish-mg.svg" alt="fish" width={20} height={20}/> 
+              กลุ่มผู้เลี้ยงขนาดตลาด
+          </span>
+        </div>
+
+        {/* 1. ข้อมูลวันที่ & อุณหภูมิ */}
+        <div className="bg-[#F4FFFC] rounded-2xl p-4 shadow-sm border border-emerald-50 flex items-center justify-center h-full">
+            <div className="flex-1 flex flex-col items-center justify-center">
+                <div className="flex items-center gap-2 mb-3">
+                    <Image src="/nursery-large/solar_calendar-outline.svg" alt="date" width={20} height={20} />
+                    <span className="text-[#0F614E] text-lg font-medium">ข้อมูล ณ วันที่</span>
+                </div>
+                <p className="text-2xl font-bold text-[#0F614E]">
+                  {loading ? "..." : (dashboardData?.currentDate || "17/05/25")}
+                </p>
+            </div>
+            <div className="w-px h-16 bg-gray-300 mx-2"></div>
+            <div className="flex-1 flex flex-col items-center justify-center">
+                <div className="flex items-center gap-2 mb-3">
+                    <Image src="/nursery-large/fluent_temperature.svg" alt="temp" width={20} height={20} />
+                    <span className="text-[#0F614E] text-lg font-medium">อุณหภูมิ</span>
+                </div>
+                <p className="text-2xl font-bold text-[#0F614E]">
+                  {loading ? "..." : `${(dashboardData?.currentTemperature || 37.5).toFixed(1)} °C`}
+                </p>
+            </div>
+        </div>
+
+        {/* 2. รายงานอุณหภูมิ */}
+        <div className="bg-[#E0F5FF] rounded-2xl p-5 shadow-sm border border-blue-100">
+            <h3 className="text-base font-bold text-black mb-2">รายงานอุณหภูมิ</h3>
+            {loading ? (
+              <div className="text-center py-4">
+                <p className="text-gray-500">กำลังโหลด...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-4">
+                <p className="text-red-500">{error}</p>
+              </div>
+            ) : (
+              <>
+                <div className="text-center mb-4">
+                    <p className="text-xl font-medium text-[#054DD3]">
+                        {dashboardData?.temperatureReport?.message || "วันนี้อุณหภูมิลดลงจากเมื่อวาน 2°C"}
+                    </p>
+                    <p className="text-xl font-medium text-[#054DD3]">
+                        {dashboardData?.temperatureReport?.recommendation || "แนะนำให้ลดอาหารลง"}
+                    </p>
+                </div>
+                <div>
+                    <h4 className="text-base font-bold text-black mb-1">คำแนะนำ :</h4>
+                    <p className="text-base text-black leading-relaxed">
+                        {dashboardData?.temperatureReport?.details || "ให้ 2 มื้อใหญ่ต่อวัน (เช้า-เย็น) เพิ่มสัดส่วนพลังงาน (ข้าวโพด, รำ) ลดโปรตีนลงเล็กน้อย อัตราโปรตีน 28-32% ก็เพียงพอติดตาม FCR เพื่อควบคุมต้นทุนอาหาร"}
+                    </p>
+                </div>
+              </>
+            )}
+        </div>
+
+        {/* 3. อายุปลา & น้ำหนักเฉลี่ย */}
+        <div className="flex items-center bg-[#FFEFBC] rounded-2xl overflow-hidden shadow-sm min-h-[100px]">
+            <div className="flex-1 p-4 flex flex-col items-center justify-center">
+                <div className="flex items-center gap-2 mb-1 text-black">
+                    <Image src="/nursery-large/famicons_fish-outline.svg" alt="age" width={20} height={20} />
+                    <span className="text-base font-medium">อายุปลา (วัน)</span>
+                </div>
+                <p className="text-xl font-bold text-black text-center">
+                  {loading ? "..." : (dashboardData?.fishAgeRange || "16-30")}
+                </p>
+            </div>
+            
+            <div className="w-px h-16 bg-gray-300 mx-2"></div>
+
+            <div className="flex-1 p-4 flex flex-col items-center justify-center">
+                <div className="flex items-center justify-center gap-2 mb-1 text-black">
+                    <Image src="/nursery-large/hugeicons_weight.svg" alt="weight" width={20} height={20} className="shrink-0" />
+                    <span className="text-base font-medium text-center leading-tight">น้ำหนักเฉลี่ย</span>
+                </div>
+                <p className="text-xl font-bold text-black">
+                  {loading ? "..." : (dashboardData?.averageWeight || 1.5)}
+                </p> 
+            </div>
+        </div>
+
+        {/* 4. กราฟ (เหมือนเดิม) */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <div className="w-full h-40 relative">
+                {hoverData && (
+                    <div 
+                        className="absolute bg-white rounded-lg px-3 py-2 shadow-lg border border-gray-100 pointer-events-none transform -translate-x-1/2 -translate-y-full z-30 transition-all duration-100"
+                        style={{ 
+                            left: `${(hoverData.x / 320) * 100}%`, 
+                            top: `${(hoverData.y / 150) * 100}%`,
+                            marginTop: '-12px',
+                        }}
+                    >
+                        <div className="text-xs text-gray-600 font-medium">ค่าเฉลี่ย</div>
+                        <div className="text-sm font-bold text-[#10B981]">{hoverData.value.toFixed(2)} Kg.</div>
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white drop-shadow-sm"></div>
+                    </div>
+                )}
+
+                <svg viewBox="0 0 320 150" className="w-full h-full overflow-visible">
+                    {[2.0, 1.5, 1.0, 0.5, 0.0].map((val) => (
+                        <g key={val}>
+                            <line x1="35" y1={getY(val)} x2="310" y2={getY(val)} stroke="#f0f0f0" strokeWidth="1" />
+                            <text x="25" y={getY(val) + 3} fontSize="10" fill="#999" textAnchor="end">{val}</text>
+                        </g>
+                    ))}
+                    <path 
+                        d={smoothPathD}
+                        fill="none" 
+                        stroke="#179678" 
+                        strokeWidth="3" 
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                    />
+                    {graphData.map((item, index) => {
+                        const xCenter = getX(index);
+                        return (
+                            <g key={index}>
+                                <rect
+                                    x={xCenter - 12}
+                                    y="0"
+                                    width="24"
+                                    height="150"
+                                    fill="transparent"
+                                    className="cursor-pointer"
+                                    onMouseEnter={() => setHoverData({ 
+                                        x: xCenter, 
+                                        y: getY(item.value), 
+                                        value: item.value,
+                                        month: item.month
+                                    })}
+                                    onMouseLeave={() => setHoverData(null)}
+                                />
+                                <text 
+                                    x={xCenter} 
+                                    y="145" 
+                                    fontSize="9" 
+                                    fill="#999" 
+                                    textAnchor="middle"
+                                    className={`transition-colors ${hoverData?.x === xCenter ? 'fill-[#179678] font-bold' : ''}`}
+                                >
+                                    {item.month}
+                                </text>
+                            </g>
+                        );
+                    })}
+                </svg>
+            </div>
+        </div>
+
+        {/* 5. รูปปลา & น้ำหนักเฉลี่ย (ส่วนล่าง) */}
+        <div className="grid grid-cols-2 gap-4 items-stretch">
+            <div className="bg-[#EEF8FF] rounded-2xl p-2 flex items-center justify-center h-full min-h-[120px]">
+                <Image 
+                    src="/nursery-large/duke.png" 
+                    alt="Catfish" 
+                    width={160} 
+                    height={100} 
+                    className="object-contain drop-shadow-sm"
+                />
+            </div>
+            <div className="bg-[#FFE3E3] rounded-2xl p-5 flex flex-col justify-center h-full">
+                {/* Header */}
+                <div className="flex items-center gap-2 mb-2">
+                  <Image src="/nursery-large/famicons_fish-outline.svg" alt="weight" width={20} height={20} />
+                  <span className="text-black text-sm font-medium">น้ำหนักเฉลี่ยของปลา (Kg.)</span>
+                </div>
+                                
+                {/* Numbers Row */}
+                <div className="flex items-baseline justify-center gap-4 mt-1">
+                  <span className="text-3xl font-bold text-[#FF2424]">
+                    {loading ? "..." : (dashboardData?.averageFishWeight || 0.3)}
+                  </span>
+                  <span className="text-[#FF2424] text-xs font-bold">
+                    ▼ ({loading ? "..." : `${dashboardData?.weightChange || -2}%`})
+                  </span>
+              </div>
+          </div>
+        </div>
+
+        {/* 6. ตารางพยากรณ์ */}
+        <div>
+            <div className="flex items-center gap-2 mb-3">
+                <Image src="/nursery-large/fluent_weather-hail-day.svg" alt="forecast" width={24} height={24} />
+                <h3 className="text-base font-bold text-[#093832]">คาดการณ์สภาพอากาศและการให้อาหาร 7 วันล่วงหน้า</h3>
+            </div>
+            <div className="bg-[#F4FFFC] rounded-2xl pt-5 pb-6 p-2 shadow-sm">
+                <div className="grid grid-cols-3 mb-4 border-b border-[#D0EBE5] pb-3">
+                    <div className="text-sm font-bold text-[#75CFB6] text-center">วันที่</div>
+                    <div className="text-sm font-bold text-[#75CFB6] text-center">สภาพอากาศ</div>
+                    <div className="text-sm font-bold text-[#75CFB6] text-center">ปริมาณอาหารที่แนะนำ</div>
+                </div>
+                <div className="space-y-5">
+                    {forecastData.map((item, index) => {
+                      const weatherIcon = item.weatherCondition === 'rainy' ? 'fluent_weather-rain-snow.svg' : 
+                                         item.weatherCondition === 'sunny' ? 'fluent_weather-sunny.svg' : 
+                                         'fluent-color_weather-sunny.svg';
+                      
+                      const displayDate = item.date;
+                      const displayTemp = `${Math.round(item.tempLow)} / ${Math.round(item.tempHigh)} °C`;
+                      const displayFeed = `${item.recommendedFeed} Kg.`;
+                      
+                      return (
+                        <div key={index} className="grid grid-cols-3 items-center hover:bg-[#E0F7FA] rounded transition-colors duration-200 -mx-2 px-2 py-1">
+                            <div className="text-xs font-medium text-[#0F614E] text-center">{displayDate}</div>
+                            <div className="flex items-center justify-center gap-3">
+                                <Image src={`/nursery-large/${weatherIcon}`} alt="weather" width={20} height={20} />
+                                <span className="text-xs font-medium text-[#0F614E]">{displayTemp}</span>
+                            </div>
+                            <div className="text-xs font-medium text-[#0F614E] text-center">{displayFeed}</div>
+                        </div>
+                      );
+                    })}
+                </div>
+            </div>
+        </div> 
+
+        {/* 7. Action Buttons */}
+        <div className="pt-2 space-y-3 md:space-y-0 md:grid md:grid-cols-3 md:gap-4 md:col-span-2 lg:col-span-4">
+            <Link href="/market-grower/weather-market" className="block w-full">
+                <button className="w-full bg-[#0084FF] hover:bg-blue-700 text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
+                    <Image src="/nursery-large/fluent_weather-hail-day-w.svg" alt="icon" width={24} height={24} />
+                    สภาพอากาศ
+                </button>
+            </Link>
+
+            <Link href="/market-grower/price-market" className="block w-full">
+                <button className="w-full bg-[#FF4242] hover:bg-[#e03535] text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
+                    <Image src="/nursery-large/healthicons_money-bag.svg" alt="icon" width={24} height={24} />
+                    ตรวจสอบราคาตลาด
+                </button>
+            </Link>
+
+            <Link href="/market-grower/feeding-market" className="block w-full">
+                <button className="w-full bg-[#EF6E11] hover:bg-orange-700 text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
+                    <Image src="/nursery-large/fluent_food-grains-w.svg" alt="icon" width={24} height={24} />
+                    การให้อาหาร
+                </button>
+            </Link>
+
+            <Link href="/market-grower/record-market" className="block w-full">
+                <button className="w-full bg-[#72B544] hover:bg-green-700 text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
+                    <Image src="/nursery-large/uil_plus.svg" alt="icon" width={24} height={24} />
+                    บันทึกข้อมูล
+                </button>
+            </Link>
+        </div>
+
+      </div>
+    </div>
+  );
+}
