@@ -44,6 +44,25 @@ interface ForecastData {
   feedingRecommendation: string;
 }
 
+interface FeedFormula {
+  id: string;
+  name: string;
+  targetStage: string;
+  description: string;
+  recommendations: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+interface FeedingInfo {
+  name: string;
+  targetStage: string;
+  description?: string;
+  feedCharacteristics: string[];
+  advice: string[];
+  weightRange: string;
+}
+
 export default function FeedingSmallPage() {
   const router = useRouter();
   const lineUser = useLineUser();
@@ -55,6 +74,7 @@ export default function FeedingSmallPage() {
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [feedingInfo, setFeedingInfo] = useState<FeedingInfo | null>(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -90,37 +110,78 @@ export default function FeedingSmallPage() {
     fetchDashboardData();
   }, [router]);
 
-  const ageOptions = [
-    "0–15 วัน (ระยะลูกปลา)",
-    "16–30 วัน (ลูกปลาขนาดกลาง)",
-    "31–60 วัน (ปลาขุนระยะต้น)",
-    "61–90 วัน (ปลาขุนระยะกลาง)",
-    "91–120 วัน (ปลาขุนระยะสุดท้าย)",
-    ">120 วัน (ขนาดตลาด)"
-  ];
+  const [feedFormulas, setFeedFormulas] = useState<FeedFormula[]>([]);
 
-  const feedingInfo = {
-    weightRange: "0.01-0.02",
-    feedCharacteristics: [
-       "อาหารเม็ดเล็ก ขนาด 0.5–1.0 มม.",
-       "โปรตีน 35–40%"
-    ],
-    advice: [
-       "ให้ 2 มื้อใหญ่ต่อวัน (เช้า-เย็น)",
-       "เพิ่มสัดส่วนพลังงาน (ข้าวโพด, รำ) ลดโปรตีนลงเล็กน้อย",
-       "อัตราโปรตีน 28-32% ก็เพียงพอ",
-       "ติดตาม FCR เพื่อควบคุมต้นทุนอาหาร"
-    ]
-  };
+  // Generate age options from feed formulas
+  const ageOptions = feedFormulas
+    .filter(formula => formula.targetStage)
+    .map(formula => formula.targetStage)
+    .filter((value, index, self) => self.indexOf(value) === index); // Remove duplicates
+
+  // Fetch feed formulas from API
+  useEffect(() => {
+    const fetchFeedFormulas = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) return;
+
+        const response = await fetch("https://dukefarm-backend.onrender.com/api/feed-formulas?limit=100", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          setFeedFormulas(result.data?.data || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch feed formulas:", err);
+      }
+    };
+
+    fetchFeedFormulas();
+  }, []);
 
   const handleViewData = () => {
       if (!selectedAge) return;
+      
+      // Find matching feed formula based on selected targetStage
+      const matchedFormula = feedFormulas.find(formula => 
+        formula.targetStage === selectedAge
+      );
+
+      if (matchedFormula) {
+        // Parse recommendations into array
+        const recommendations = matchedFormula.recommendations 
+          ? matchedFormula.recommendations.split('\n').filter((line: string) => line.trim())
+          : [];
+
+        setFeedingInfo({
+          name: matchedFormula.name,
+          targetStage: matchedFormula.targetStage,
+          description: matchedFormula.description,
+          feedCharacteristics: matchedFormula.description 
+            ? matchedFormula.description.split('\n').filter((line: string) => line.trim())
+            : [],
+          advice: recommendations,
+          weightRange: "N/A" // API doesn't provide weight range
+        });
+      } else {
+        // Fallback to default data if no match found
+        setFeedingInfo({
+          name: "ข้อมูลทั่วไป",
+          targetStage: selectedAge,
+          weightRange: "N/A",
+          feedCharacteristics: ["ไม่พบข้อมูลสูตรอาหารสำหรับช่วงอายุนี้"],
+          advice: ["กรุณาติดต่อผู้ดูแลระบบเพื่อเพิ่มข้อมูลสูตรอาหาร"]
+        });
+      }
+
       setShowResult(true);
       setIsDropdownOpen(false);
-  };
-
-  const getDisplayAge = (fullString: string) => {
-      return fullString.split(" (")[0];
   };
   
   const getFeedingRecommendationText = () => {
@@ -154,6 +215,7 @@ export default function FeedingSmallPage() {
               <p className="text-sm font-bold">{lineUser.displayName}</p>
             </div>
             <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-gray-200">
+               {/* eslint-disable-next-line @next/next/no-img-element */}
                <img src={lineUser.pictureUrl} alt="Profile" className="w-full h-full object-cover" />
             </div>
         </div>
@@ -212,7 +274,7 @@ export default function FeedingSmallPage() {
                 className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 flex items-center justify-between text-lg text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#093832]"
             >
                 <span className={selectedAge ? "text-black" : "text-gray-400"}>
-                    {selectedAge ? getDisplayAge(selectedAge) : "เลือกข้อมูลช่วงอายุ"}
+                    {selectedAge || "เลือกข้อมูลช่วงอายุ"}
                 </span>
                 <ChevronDown className={`w-6 h-6 text-gray-400 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`} />
             </button>
@@ -229,7 +291,7 @@ export default function FeedingSmallPage() {
                             }}
                             className="px-4 py-3 text-lg text-black hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-none"
                         >
-                            {getDisplayAge(option)}
+                            {option}
                         </div>
                     ))}
                 </div>
@@ -266,7 +328,7 @@ export default function FeedingSmallPage() {
                             <span className="text-base font-medium text-center">อายุปลา</span>
                         </div>
                         <p className="text-xl font-bold text-black text-center">
-                            {getDisplayAge(selectedAge)}
+                            {selectedAge}
                         </p>
                     </div>
 
@@ -274,11 +336,11 @@ export default function FeedingSmallPage() {
 
                     <div className="flex-1 p-5 flex flex-col items-center justify-center">
                         <div className="flex items-center gap-2 mb-1 text-black">
-                            <Image src="/nursery-large/hugeicons_weight.svg" alt="weight" width={20} height={20} />
-                            <span className="text-base font-medium text-center">น้ำหนักเฉลี่ย (Kg.)</span>
+                            <Image src="/nursery-large/fluent_food-grains.svg" alt="formula" width={20} height={20} />
+                            <span className="text-base font-medium text-center">สูตรอาหาร</span>
                         </div>
-                        <p className="text-xl font-bold text-black">
-                            {feedingInfo.weightRange}
+                        <p className="text-lg font-bold text-black text-center">
+                            {feedingInfo?.name || 'N/A'}
                         </p>
                     </div>
                 </div>
@@ -310,29 +372,32 @@ export default function FeedingSmallPage() {
                     
                     
                     {/* Block 1: ลักษณะอาหาร */}
-                    <div className="w-full">
-                        <h3 className="text-sm font-bold text-black mb-2 pl-1">ลักษณะอาหารที่เหมาะสม</h3>
-                        <div className="bg-[#F4FFFC] rounded-xl p-4 w-full shadow-sm border border-emerald-50/50">
-                            <div className="space-y-1">
-                                {feedingInfo.feedCharacteristics.map((text, i) => (
-                                    <p key={i} className="text-sm text-black">{text}</p>
-                                ))}
+                    {feedingInfo?.feedCharacteristics && feedingInfo.feedCharacteristics.length > 0 && (
+                        <div className="w-full">
+                            <h3 className="text-sm font-bold text-black mb-2 pl-1">ลักษณะอาหารที่เหมาะสม</h3>
+                            <div className="bg-[#F4FFFC] rounded-xl p-4 w-full shadow-sm border border-emerald-50/50">
+                                <div className="space-y-1">
+                                    {feedingInfo.feedCharacteristics.map((text: string, i: number) => (
+                                        <p key={i} className="text-sm text-black">{text}</p>
+                                    ))}
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Block 2: คำแนะนำ */}
-                    <div className="w-full">
-                        <h3 className="text-sm font-bold text-black mb-2 pl-1">คำแนะนำเพิ่มเติม</h3>
-                        <div className="bg-[#F4FFFC] rounded-xl p-4 w-full shadow-sm border border-emerald-50/50">
-                            <ul className="list-disc pl-5 space-y-1">
-                                {feedingInfo.advice.map((text, i) => (
-                                    <li key={i} className="text-sm text-black pl-1">{text}</li>
-
-                                ))}
-                            </ul>
+                    {feedingInfo?.advice && feedingInfo.advice.length > 0 && (
+                        <div className="w-full">
+                            <h3 className="text-sm font-bold text-black mb-2 pl-1">คำแนะนำเพิ่มเติม</h3>
+                            <div className="bg-[#F4FFFC] rounded-xl p-4 w-full shadow-sm border border-emerald-50/50">
+                                <ul className="list-disc pl-5 space-y-1">
+                                    {feedingInfo.advice.map((text: string, i: number) => (
+                                        <li key={i} className="text-sm text-black pl-1">{text}</li>
+                                    ))}
+                                </ul>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                 </div>
 
