@@ -25,26 +25,52 @@ interface Coordinate {
 
 interface ForecastData {
   date: string;
-  tempHigh: number;
-  tempLow: number;
-  recommendedFeed: number;
-  weatherCondition: string;
-  icon?: string;
+  highTemperatureC: number;
+  lowTemperatureC: number;
+  feedAdjustmentPct: number;
+  feedingRecommendation: "increase" | "decrease" | "normal";
+  weatherCode: number;
 }
 
-interface DashboardData {
-  currentDate: string;
-  currentTemperature: number;
-  foodConsumption: number;
-  foodConsumptionChange: number;
-  feedingRecommendation: string;
+interface WeatherData {
+  time: string;
+  temperatureC: number;
+  humidityPct: number;
+  windSpeedKph: number;
+  rainMm: number;
+  conditionText: string;
+}
+
+interface DashboardSummary {
+  asOf: string;
+  airTemperatureC: number | null;
+  temperatureDeltaC: number | null;
+  comfortRangeC: { min: number; max: number };
+  recommendedFeedAdjustmentPct: number | null;
+  weather: WeatherData | null;
   averageFishWeight: number;
   weightChange: number;
   pelletFoodCost: number;
   freshFoodCost: number;
   monthlyFeedingData: GraphDataPoint[];
-  forecast: ForecastData[];
 }
+
+interface DashboardData {
+  group: string;
+  hasData: boolean;
+  summary: DashboardSummary;
+  feedingPlan: ForecastData[];
+}
+
+// Map weather code to icon file name based on WMO standard
+const getWeatherIconFromCode = (code: number): string => {
+  if (code <= 1) return 'fluent_weather-sunny.svg';
+  if (code <= 3) return 'fluent-color_weather-sunny.svg';
+  if (code >= 51 && code <= 67) return 'fluent_weather-rain-snow.svg';
+  if (code >= 80 && code <= 82) return 'fluent_weather-rain-snow.svg';
+  if (code >= 95 && code <= 99) return 'fluent_weather-hail-day.svg';
+  return 'fluent-color_weather-sunny.svg';
+};
 
 export default function NurseryLargePage() {
   const lineUser = useLineUser();
@@ -90,7 +116,7 @@ export default function NurseryLargePage() {
   }, [router]);
 
   // ใช้ข้อมูลจาก API หรือ fallback ถ้ายังไม่มี
-  const graphData: GraphDataPoint[] = dashboardData?.monthlyFeedingData || [
+  const graphData: GraphDataPoint[] = dashboardData?.summary?.monthlyFeedingData || [
     { month: "Jan", value: 0.25 },
     { month: "Feb", value: 0.5 },
     { month: "Mar", value: 0.65 },
@@ -104,6 +130,8 @@ export default function NurseryLargePage() {
     { month: "Nov", value: 1.5 },
     { month: "Dec", value: 1.3 },
   ];
+
+  const forecastData: ForecastData[] = dashboardData?.feedingPlan || [];
 
   const getY = (val: number): number => 130 - (val / 2) * 110;
   
@@ -132,15 +160,7 @@ export default function NurseryLargePage() {
     graphData.map((d, i) => ({ x: getX(i), y: getY(d.value) }))
   );
 
-  const forecastData: ForecastData[] = dashboardData?.forecast || [
-    { date: "17/05/25", tempHigh: 31, tempLow: 26, recommendedFeed: 4.5, weatherCondition: "rainy" },
-    { date: "18/05/25", tempHigh: 31, tempLow: 30, recommendedFeed: 5.5, weatherCondition: "sunny" },
-    { date: "19/05/25", tempHigh: 31, tempLow: 27, recommendedFeed: 4.5, weatherCondition: "rainy" },
-    { date: "20/05/25", tempHigh: 31, tempLow: 26, recommendedFeed: 4.5, weatherCondition: "sunny" },
-    { date: "21/05/25", tempHigh: 31, tempLow: 35, recommendedFeed: 5.5, weatherCondition: "sunny" },
-    { date: "22/05/25", tempHigh: 31, tempLow: 30, recommendedFeed: 5.0, weatherCondition: "sunny" },
-    { date: "23/05/25", tempHigh: 31, tempLow: 28, recommendedFeed: 4.5, weatherCondition: "rainy" },
-  ];
+
 
   return (
     <div className="min-h-screen bg-white pb-10">
@@ -180,7 +200,9 @@ export default function NurseryLargePage() {
                             <Image src="/nursery-large/solar_calendar-outline.svg" alt="date" width={20} height={20} />
                             <span className="text-[#0F614E] text-lg font-medium">ข้อมูล ณ วันที่</span>
                         </div>
-                        <p className="text-2xl font-bold text-[#0F614E]">17/05/25</p>
+                        <p className="text-2xl font-bold text-[#0F614E]">
+                          {loading ? "..." : new Date(dashboardData?.summary?.asOf || "").toLocaleDateString('th-TH') || "17/05/25"}
+                        </p>
                     </div>
                     <div className="w-px h-16 bg-gray-300 mx-2"></div>
                     <div className="flex-1 flex flex-col items-center justify-center">
@@ -188,27 +210,53 @@ export default function NurseryLargePage() {
                             <Image src="/nursery-large/fluent_temperature.svg" alt="temp" width={20} height={20} />
                             <span className="text-[#0F614E] text-lg font-medium">อุณหภูมิ</span>
                         </div>
-                        <p className="text-2xl font-bold text-[#0F614E]">{loading ? "..." : "37.5"} °C</p>
+                        <p className="text-2xl font-bold text-[#0F614E]">
+                          {loading ? "..." : `${(dashboardData?.summary?.airTemperatureC ?? 37.5).toFixed(1)} °C`}
+                        </p>
                     </div>
                 </div>
         
                 {/* 2. รายงานอุณหภูมิ */}
                 <div className="bg-[#E0F5FF] rounded-2xl p-5 shadow-sm border border-blue-100">
                     <h3 className="text-base font-bold text-black mb-2">รายงานอุณหภูมิ</h3>
-                    <div className="text-center mb-4">
-                        <p className="text-xl font-medium text-[#054DD3]">
-                            วันนี้อุณหภูมิลดลงจากเมื่อวาน 2°C
-                        </p>
-                        <p className="text-xl font-medium text-[#054DD3]">
-                            แนะนำให้ลดอาหารลง
-                        </p>
-                    </div>
-                    <div>
-                        <h4 className="text-base font-bold text-black mb-1">คำแนะนำ :</h4>
-                        <p className="text-base text-black leading-relaxed">
-                            ให้ 2 มื้อใหญ่ต่อวัน (เช้า-เย็น) เพิ่มสัดส่วนพลังงาน (ข้าวโพด, รำ) ลดโปรตีนลงเล็กน้อย อัตราโปรตีน 28-32% ก็เพียงพอติดตาม FCR เพื่อควบคุมต้นทุนอาหาร
-                        </p>
-                    </div>
+                    {loading ? (
+                      <div className="text-center py-4">
+                        <p className="text-gray-500">กำลังโหลด...</p>
+                      </div>
+                    ) : error ? (
+                      <div className="text-center py-4">
+                        <p className="text-red-500">{error}</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="text-center mb-4">
+                            <p className="text-xl font-medium text-[#054DD3]">
+                                {
+                                  dashboardData?.summary?.temperatureDeltaC !== null && dashboardData?.summary?.temperatureDeltaC !== undefined
+                                    ? `อุณหภูมิ${dashboardData?.summary?.temperatureDeltaC > 0 ? 'สูง' : 'ต่ำ'}กว่าปกติ ${Math.abs(dashboardData.summary.temperatureDeltaC).toFixed(1)}°C`
+                                    : "วันนี้อุณหภูมิลดลงจากเมื่อวาน 2°C"
+                                }
+                            </p>
+                            <p className="text-xl font-medium text-[#054DD3]">
+                                {
+                                  dashboardData?.summary?.recommendedFeedAdjustmentPct !== null && dashboardData?.summary?.recommendedFeedAdjustmentPct !== undefined
+                                    ? dashboardData?.summary?.recommendedFeedAdjustmentPct > 0
+                                      ? `แนะนำให้เพิ่มอาหารขึ้น ${dashboardData.summary.recommendedFeedAdjustmentPct}%`
+                                      : dashboardData?.summary?.recommendedFeedAdjustmentPct < 0
+                                        ? `แนะนำให้ลดอาหารลง ${Math.abs(dashboardData.summary.recommendedFeedAdjustmentPct)}%`
+                                        : "ให้อาหารตามปกติ"
+                                    : "แนะนำให้ลดอาหารลง"
+                                }
+                            </p>
+                        </div>
+                        <div>
+                            <h4 className="text-base font-bold text-black mb-1">คำแนะนำ :</h4>
+                            <p className="text-base text-black leading-relaxed">
+                                ให้ 2 มื้อใหญ่ต่อวัน (เช้า-เย็น) เพิ่มสัดส่วนพลังงาน (ข้าวโพด, รำ) ลดโปรตีนลงเล็กน้อย อัตราโปรตีน 28-32% ก็เพียงพอติดตาม FCR เพื่อควบคุมต้นทุนอาหาร
+                            </p>
+                        </div>
+                      </>
+                    )}
                 </div>
         
                 {/* 3. อายุปลา & น้ำหนักเฉลี่ย */}
@@ -321,8 +369,12 @@ export default function NurseryLargePage() {
                                         
                         {/* Numbers Row */}
                         <div className="flex items-baseline justify-center gap-4 mt-1">
-                          <span className="text-3xl font-bold text-[#FF2424]">0.3</span>
-                          <span className="text-[#FF2424] text-xs font-bold">▼ (-2%)</span>
+                          <span className="text-3xl font-bold text-[#FF2424]">
+                            {loading ? "..." : (dashboardData?.summary?.averageFishWeight || 0.3)}
+                          </span>
+                          <span className="text-[#FF2424] text-xs font-bold">
+                            {loading ? "..." : `▼ (${dashboardData?.summary?.weightChange || -2}%)`}
+                          </span>
                       </div>
                   </div>
                 </div>
@@ -339,26 +391,35 @@ export default function NurseryLargePage() {
                             <div className="text-sm font-bold text-[#75CFB6] text-center">สภาพอากาศ</div>
                             <div className="text-sm font-bold text-[#75CFB6] text-center">ปริมาณอาหารที่แนะนำ</div>
                         </div>
-                        <div className="space-y-5">
-                            {forecastData.map((item, index) => {
-                                const weatherIcon = item.weatherCondition === 'rainy' ? 'fluent_weather-rain-snow.svg' : 
-                                                   item.weatherCondition === 'sunny' ? 'fluent_weather-sunny.svg' : 
-                                                   'fluent-color_weather-sunny.svg';
-                                const displayTemp = `${Math.round(item.tempLow)} / ${Math.round(item.tempHigh)} °C`;
-                                const displayFeed = `${item.recommendedFeed} Kg.`;
-                                
-                                return (
-                                    <div key={index} className="grid grid-cols-3 items-center hover:bg-[#E0F7FA] rounded transition-colors duration-200 -mx-2 px-2 py-1">
-                                        <div className="text-xs font-medium text-[#0F614E] text-center">{item.date}</div>
-                                        <div className="flex items-center justify-center gap-3">
-                                            <Image src={`/nursery-large/${weatherIcon}`} alt="weather" width={20} height={20} />
-                                            <span className="text-xs font-medium text-[#0F614E]">{displayTemp}</span>
-                                        </div>
-                                        <div className="text-xs font-medium text-[#0F614E] text-center">{displayFeed}</div>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                        {loading || forecastData.length === 0 ? (
+                          <div className="text-center py-8">
+                            <p className="text-gray-500">กำลังโหลด...</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-5">
+                              {forecastData.map((item, index) => {
+                                  const displayDate = new Date(item.date).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: '2-digit' });
+                                  const displayTemp = `${Math.round(item.lowTemperatureC)} / ${Math.round(item.highTemperatureC)} °C`;
+                                  const displayFeed = item.feedAdjustmentPct > 0 
+                                    ? `เพิ่มขึ้น ${item.feedAdjustmentPct}%`
+                                    : item.feedAdjustmentPct < 0
+                                      ? `ลดลง ${Math.abs(item.feedAdjustmentPct)}%`
+                                      : "ปกติ";
+                                  const weatherIcon = getWeatherIconFromCode(item.weatherCode);
+                                  
+                                  return (
+                                      <div key={index} className="grid grid-cols-3 items-center hover:bg-[#E0F7FA] rounded transition-colors duration-200 -mx-2 px-2 py-1">
+                                          <div className="text-xs font-medium text-[#0F614E] text-center">{displayDate}</div>
+                                          <div className="flex items-center justify-center gap-3">
+                                              <Image src={`/nursery-large/${weatherIcon}`} alt="weather" width={20} height={20} />
+                                              <span className="text-xs font-medium text-[#0F614E]">{displayTemp}</span>
+                                          </div>
+                                          <div className="text-xs font-medium text-[#0F614E] text-center">{displayFeed}</div>
+                                      </div>
+                                  );
+                              })}
+                          </div>
+                        )}
                     </div>
                 </div>
 
