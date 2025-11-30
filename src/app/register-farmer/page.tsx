@@ -34,9 +34,51 @@ export default function RegisterFarmerPage() {
 
   const [isFormValid, setIsFormValid] = useState(false);
   const [showMap, setShowMap] = useState(false);
-  const [tempCoords, setTempCoords] = useState({ lat: 0, lng: 0 });
   
+  const [initialCoords, setInitialCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [tempCoords, setTempCoords] = useState({ lat: 0, lng: 0 });
+   
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    
+    if (storedUser) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        
+        const profile = parsedUser.farmerProfile;
+        
+        if (profile) {
+            let newLocation = formData.location;
+            let newInitialCoords = null;
+
+            if (profile.farmLatitude && profile.farmLongitude) {
+                const lat = parseFloat(profile.farmLatitude);
+                const lng = parseFloat(profile.farmLongitude);
+                
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    newLocation = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                    newInitialCoords = { lat, lng };
+                    
+                    setInitialCoords(newInitialCoords);
+                    setTempCoords(newInitialCoords);
+                }
+            }
+
+            setFormData(prev => ({
+                ...prev,
+                firstName: profile.firstName || prev.firstName,
+                lastName: profile.lastName || prev.lastName,
+                phone: profile.phone || prev.phone,
+                location: newLocation
+            }));
+        }
+      } catch (error) {
+        console.error("Failed to parse user data from localStorage", error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const { firstName, lastName, phone, farmType, pondCount, location } = formData;
@@ -81,6 +123,8 @@ export default function RegisterFarmerPage() {
           ...prev, 
           location: `${tempCoords.lat.toFixed(6)}, ${tempCoords.lng.toFixed(6)}`
       }));
+      // อัปเดต initialCoords ด้วย เผื่อผู้ใช้กดเปิดแผนที่อีกรอบ จะได้อยู่ที่ล่าสุดที่เลือก
+      setInitialCoords({ lat: tempCoords.lat, lng: tempCoords.lng });
       setShowMap(false);
   };
 
@@ -100,10 +144,8 @@ export default function RegisterFarmerPage() {
         return;
       }
 
-      // แยก lat, lng จาก location string
       const [lat, lng] = formData.location.split(", ").map(Number);
 
-      // แปลง farmType จาก kebab-case เป็น UPPER_SNAKE_CASE ตาม API spec
       const farmTypeMap: Record<string, string> = {
         "nursery-small": "NURSERY_SMALL",
         "nursery-large": "NURSERY_LARGE",
@@ -113,16 +155,15 @@ export default function RegisterFarmerPage() {
       const requestBody = {
         firstName: formData.firstName,
         lastName: formData.lastName,
-        phone: formData.phone, // ✅ ใช้ "phone" ตาม API spec
-        primaryFarmType: farmTypeMap[formData.farmType] || "NURSERY_SMALL", // ✅ ใช้ "primaryFarmType" และแปลงเป็น uppercase
-        declaredPondCount: parseInt(formData.pondCount), // ✅ ใช้ "declaredPondCount"
-        farmLatitude: lat, // ✅ แยก latitude
-        farmLongitude: lng // ✅ แยก longitude
+        phone: formData.phone, 
+        primaryFarmType: farmTypeMap[formData.farmType] || "NURSERY_SMALL", 
+        declaredPondCount: parseInt(formData.pondCount), 
+        farmLatitude: lat, 
+        farmLongitude: lng 
       };
 
       console.log("Sending farmer registration:", requestBody);
 
-      // ตาม API spec: POST /register/farmer
       const response = await fetch("https://dukefarm-backend.onrender.com/api/register/farmer", {
         method: "POST",
         headers: {
@@ -141,11 +182,9 @@ export default function RegisterFarmerPage() {
       const result = await response.json();
       console.log("✅ Registration successful:", result);
 
-      // ตาม API spec response: { data: { profile: {...}, user: {...} } }
       if (result.data) {
         const { user, profile } = result.data;
         
-        // อัพเดท user object ด้วยข้อมูลจาก backend
         const currentUserStr = localStorage.getItem("user");
         const currentUser = currentUserStr ? JSON.parse(currentUserStr) : {};
         
@@ -153,7 +192,7 @@ export default function RegisterFarmerPage() {
           ...currentUser,
           role: user.role,
           registrationStatus: user.registrationStatus,
-          farmerProfile: profile // เก็บ profile เต็มจาก backend
+          farmerProfile: profile 
         };
         
         localStorage.setItem("user", JSON.stringify(updatedUser));
@@ -164,7 +203,6 @@ export default function RegisterFarmerPage() {
       setSubmitStatus('success');
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // ลงทะเบียนสำเร็จแล้ว ไปหน้าฟาร์มตามขนาดที่เลือก
       router.push(`/${formData.farmType}`);
       
     } catch (error) {
@@ -215,7 +253,8 @@ export default function RegisterFarmerPage() {
                     </div>
                 </div>
                 <div className="flex-1 relative z-10">
-                    <MapPicker onLocationSelect={handleLocationSelect} />
+                    {/* ✅ ส่ง initialPosition ไปให้ MapPicker */}
+                    <MapPicker onLocationSelect={handleLocationSelect} initialPosition={initialCoords} />
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 p-6 pointer-events-none flex justify-center z-30">
                       <button 
@@ -246,7 +285,7 @@ export default function RegisterFarmerPage() {
 
         <div className="px-6 relative z-20">
           <div className="mt-4 mb-6">
-             <p className="text-red-500 text-sm font-medium">เจ้าของบ่อหรือเจ้าของพื้นที่เท่านั้น</p>
+              <p className="text-red-500 text-sm font-medium">เจ้าของบ่อหรือเจ้าของพื้นที่เท่านั้น</p>
           </div>
 
           <div className="flex items-center gap-4 mb-6">
@@ -264,7 +303,7 @@ export default function RegisterFarmerPage() {
           </div>
 
           <form className="space-y-5" onSubmit={handleRegister}>
-             
+              
              <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-base font-bold text-black">ชื่อ</label>

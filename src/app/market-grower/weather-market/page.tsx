@@ -7,16 +7,11 @@ import { useLineUser } from "@/hooks/useLineUser";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
-// Import CSS
 import "leaflet/dist/leaflet.css";
 
-// Dynamic Imports (Map)
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
-  { 
-    ssr: false,
-    loading: () => <div className="w-full h-full bg-slate-100 animate-pulse rounded flex items-center justify-center text-gray-400 text-xs">Loading Map...</div>
-  }
+  { ssr: false }
 );
 const TileLayer = dynamic(
   () => import("react-leaflet").then((mod) => mod.TileLayer),
@@ -80,39 +75,41 @@ export default function WeatherLargePage() {
   const router = useRouter();
   const lineUser = useLineUser();
 
+  // ตั้งค่าเริ่มต้นเป็น กทม. ก่อน (กันเหนียว)
   const [coords, setCoords] = useState({ lat: 13.7563, lon: 100.5018 });
-  const [locationName, setLocationName] = useState("กำลังค้นหาพิกัด...");
+  const [locationName, setLocationName] = useState("กำลังโหลดข้อมูลฟาร์ม...");
   
   const [current, setCurrent] = useState<CurrentWeather | null>(null);
   const [daily, setDaily] = useState<DailyForecast[]>([]);
   const [hourly, setHourly] = useState<HourlyForecast[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 1. หาพิกัด GPS ผู้ใช้
   useEffect(() => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCoords({
-            lat: position.coords.latitude,
-            lon: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-          setLocationName("กรุงเทพมหานคร (ค่าเริ่มต้น)");
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+        try {
+            const parsedUser = JSON.parse(storedUser);
+            if (parsedUser.farmerProfile?.farmLatitude && parsedUser.farmerProfile?.farmLongitude) {
+                setCoords({
+                    lat: parsedUser.farmerProfile.farmLatitude,
+                    lon: parsedUser.farmerProfile.farmLongitude
+                });
+                console.log("📍 ใช้พิกัดจากฟาร์ม:", parsedUser.farmerProfile.farmLatitude, parsedUser.farmerProfile.farmLongitude);
+            } else {
+                console.warn("⚠️ ไม่พบพิกัดฟาร์มใน LocalStorage ใช้ค่าเริ่มต้น");
+                setLocationName("ไม่พบพิกัดฟาร์ม");
+            }
+        } catch (error) {
+            console.error("Error parsing user data:", error);
         }
-      );
     }
   }, []);
 
-  // 2. ดึงข้อมูล API
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
-        // Reverse Geocoding
+
         try {
             const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lon}&accept-language=th`);
             const geoData = await geoRes.json();
@@ -123,14 +120,13 @@ export default function WeatherLargePage() {
             if (district && city) {
                  setLocationName(`${district}, ${city}`);
             } else {
-                 setLocationName(city || district || "ตำแหน่งปัจจุบัน");
+                 setLocationName(city || district || "ตำแหน่งฟาร์ม");
             }
 
         } catch (e) {
             setLocationName(`พิกัด: ${coords.lat.toFixed(2)}, ${coords.lon.toFixed(2)}`);
         }
 
-        // Weather API
         const res = await fetch(
           `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,rain,weather_code&hourly=temperature_2m,precipitation_probability,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Asia%2FBangkok`
         );
@@ -180,7 +176,6 @@ export default function WeatherLargePage() {
     fetchData();
   }, [coords]);
 
-  // Fix Leaflet Icon
   useEffect(() => {
     import("leaflet").then((L) => {
         // @ts-ignore
@@ -223,7 +218,6 @@ export default function WeatherLargePage() {
       <div className="px-4 mt-5 pb-10 space-y-4">
         
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            
             <div className="mb-3 flex justify-between items-start">
                 <div className="max-w-[70%]"> 
                     <p className="text-[#D66D58] text-xs font-medium">{current?.time || "กำลังโหลด..."}</p>
@@ -245,7 +239,6 @@ export default function WeatherLargePage() {
             <div className="relative w-full h-[280px] bg-slate-100 rounded border border-gray-200 overflow-hidden mb-3 z-0">
                <MapContainer 
                   key={`${coords.lat}-${coords.lon}`} 
-                  
                   center={[coords.lat, coords.lon]} 
                   zoom={13} 
                   style={{ height: "100%", width: "100%" }}
@@ -257,7 +250,7 @@ export default function WeatherLargePage() {
                     />
                     <Marker position={[coords.lat, coords.lon]}>
                         <Popup>
-                            ตำแหน่งของคุณ
+                            ตำแหน่งฟาร์มของคุณ
                         </Popup>
                     </Marker>
                     <RecenterAutomatically lat={coords.lat} lon={coords.lon} />
@@ -265,14 +258,14 @@ export default function WeatherLargePage() {
                
                <button 
                 onClick={() => {
-                   setLocationName("กำลังค้นหา...");
-                   navigator.geolocation.getCurrentPosition((pos) => {
-                       setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
-                   });
+
+                   const mapEvent = new CustomEvent('reset-map-view');
+                   window.dispatchEvent(mapEvent); 
                 }}
                 className="absolute top-2 right-2 z-[1000] bg-white p-2 rounded shadow-md text-gray-600 hover:text-blue-600"
+                title="กลับไปที่ตั้งฟาร์ม"
                >
-                   <Navigation className="w-5 h-5" />
+                   <MapPin className="w-5 h-5" />
                </button>
             </div>
 
@@ -362,7 +355,7 @@ export default function WeatherLargePage() {
              </div>
         </div>
 
-        {/* --- Footer เพื่อความถูกต้องตามลิขสิทธิ์ (Attribution) --- */}
+        {/* --- Footer --- */}
         <div className="mt-6 mb-10 text-center">
             <p className="text-[10px] text-gray-400">
                 ข้อมูลสภาพอากาศโดย <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">Open-Meteo.com</a>

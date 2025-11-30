@@ -20,7 +20,6 @@ const customIcon = new L.Icon({
     shadowSize: [41, 41]
 });
 
-// 1. สร้าง Interface เพื่อกำหนด Type ให้ถูกต้อง (แทนการใช้ any)
 interface LocationMarkerProps {
     position: { lat: number; lng: number } | null;
     setPosition: (pos: { lat: number; lng: number }) => void;
@@ -38,20 +37,32 @@ function LocationMarker({ position, setPosition, onLocationSelect }: LocationMar
     return position === null ? null : <Marker position={position} icon={customIcon}></Marker>;
 }
 
-function MapController({ setMap }: { setMap: (map: L.Map) => void }) {
+function MapController({ setMap, initialPosition }: { setMap: (map: L.Map) => void, initialPosition?: { lat: number, lng: number } | null }) {
     const map = useMap();
+    
     useEffect(() => {
         setMap(map);
     }, [map, setMap]);
+
+    useEffect(() => {
+        if (initialPosition) {
+            map.flyTo([initialPosition.lat, initialPosition.lng], 16, { animate: false }); // animate: false เพื่อให้วาร์ปไปเลย ไม่ต้องบิน
+        }
+    }, [initialPosition, map]);
+
     return null;
 }
 
-export default function MapPicker({ onLocationSelect }: { onLocationSelect: (lat: number, lng: number) => void }) {
+interface MapPickerProps {
+    onLocationSelect: (lat: number, lng: number) => void;
+    initialPosition?: { lat: number; lng: number } | null;
+}
+
+export default function MapPicker({ onLocationSelect, initialPosition }: MapPickerProps) {
     const defaultPos = { lat: 13.7563, lng: 100.5018 };
-    const [position, setPosition] = useState<{ lat: number, lng: number }>(defaultPos);
-    const [map, setMap] = useState<L.Map | null>(null);
     
-    // เพิ่ม State เก็บค่าความแม่นยำ (หน่วยเป็นเมตร)
+    const [position, setPosition] = useState<{ lat: number, lng: number }>(initialPosition || defaultPos);
+    const [map, setMap] = useState<L.Map | null>(null);
     const [accuracy, setAccuracy] = useState<number>(0);
 
     const handleLocate = () => {
@@ -64,7 +75,7 @@ export default function MapPicker({ onLocationSelect }: { onLocationSelect: (lat
                 const newPos = { lat: latitude, lng: longitude };
                 
                 setPosition(newPos);
-                setAccuracy(accuracy); // เก็บค่าความคลาดเคลื่อน
+                setAccuracy(accuracy); 
                 onLocationSelect(latitude, longitude);
 
                 requestAnimationFrame(() => {
@@ -82,7 +93,7 @@ export default function MapPicker({ onLocationSelect }: { onLocationSelect: (lat
                 console.warn(error.message);
             },
             {
-                enableHighAccuracy: true, // ขอพิกัดแบบแม่นยำสูงสุด
+                enableHighAccuracy: true, 
                 timeout: 10000,
                 maximumAge: 0
             }
@@ -96,7 +107,10 @@ export default function MapPicker({ onLocationSelect }: { onLocationSelect: (lat
                     if (map && map.getContainer()) {
                         try {
                             map.invalidateSize();
-                            handleLocate();
+                            
+                            if (!initialPosition) {
+                                handleLocate();
+                            }
                         } catch (e) {
                         }
                     }
@@ -104,14 +118,12 @@ export default function MapPicker({ onLocationSelect }: { onLocationSelect: (lat
             }, 500);
             return () => clearTimeout(timer);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [map]);
 
     return (
         <div className="relative w-full h-full">
-            {/* 1. ตัวแผนที่ */}
             <MapContainer 
-                center={[defaultPos.lat, defaultPos.lng]} 
+                center={[position.lat, position.lng]} 
                 zoom={13} 
                 scrollWheelZoom={true}
                 maxZoom={25}
@@ -124,11 +136,10 @@ export default function MapPicker({ onLocationSelect }: { onLocationSelect: (lat
                     maxNativeZoom={19}
                 />
                 
-                <MapController setMap={setMap} />
+                <MapController setMap={setMap} initialPosition={initialPosition} />
+                
                 <LocationMarker position={position} setPosition={setPosition} onLocationSelect={onLocationSelect} />
 
-                
-                {/* วงกลมแสดงความคลาดเคลื่อนของ GPS (สีฟ้าจางๆ) - แสดงเฉพาะตอนกด GPS */}
                 {accuracy > 0 && (
                     <Circle 
                         center={position} 
@@ -139,7 +150,6 @@ export default function MapPicker({ onLocationSelect }: { onLocationSelect: (lat
 
             </MapContainer>
 
-            {/* 2. ปุ่ม GPS */}
             <div className="absolute bottom-28 right-4 z-[1000]">
                 <button 
                     onClick={handleLocate}
@@ -151,7 +161,6 @@ export default function MapPicker({ onLocationSelect }: { onLocationSelect: (lat
                 </button>
             </div>
             
-            {/* Badge บอกความแม่นยำ */}
             {accuracy > 0 && (
                 <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-white/90 backdrop-blur px-3 py-1 rounded-full shadow-md border border-gray-200">
                     <span className="text-xs text-gray-600">ความแม่นยำ: ±{Math.round(accuracy)} เมตร</span>
