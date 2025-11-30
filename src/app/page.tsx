@@ -19,14 +19,10 @@ export default function Home() {
 
     try {
       const user = JSON.parse(userStr);
-      
-      // Debug: ดูว่า user data เป็นอะไร
-      console.log('User data:', user);
-      console.log('User role:', user.role);
-      console.log('User farmerProfile:', user.farmerProfile);
+      console.log('User data from localStorage:', user);
 
       // ถ้าเป็น researcher -> ไปหน้า dashboard นักวิจัย
-      if (user.role === 'RESEARCHER' || user.role === 'researcher') {
+      if (user.role === 'RESEARCHER') {
         router.push('/dashboard-researcher');
         return;
       }
@@ -42,13 +38,13 @@ export default function Home() {
         } else if (farmType === 'GROWOUT') {
           router.push('/market-grower');
         } else {
-          // ถ้าไม่รู้จัก farm type -> กลับไปหน้า login
-          router.push('/login');
+          // ถ้าไม่รู้จัก farm type -> default ไป nursery-small
+          router.push('/nursery-small');
         }
       } 
-      // ถ้าไม่มี farm profile และไม่ใช่ researcher -> กลับไปหน้า login
+      // ถ้าไม่มี farm profile -> default ไป nursery-small
       else {
-        router.push('/login');
+        router.push('/nursery-small');
       }
     } catch (error) {
       console.error("Error parsing user data:", error);

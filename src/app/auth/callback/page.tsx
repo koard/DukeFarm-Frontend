@@ -9,13 +9,12 @@ function CallbackContent() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const handleCallback = () => {
+    const handleCallback = async () => {
       try {
         // รับข้อมูลจาก query parameters ที่ backend ส่งมา
         const token = searchParams.get("token");
-        const userParam = searchParams.get("user");
-        const registrationStatus = searchParams.get("registrationStatus"); // ต้องเป็น PENDING หรือ COMPLETED
-        const role = searchParams.get("role"); // ต้องเป็น farmer หรือ researcher
+        const registrationStatus = searchParams.get("registrationStatus");
+        const role = searchParams.get("role");
         
         console.log("=== LINE Login Callback ===");
         console.log("Token:", token ? "✓ Received" : "✗ Missing");
@@ -30,34 +29,28 @@ function CallbackContent() {
           return;
         }
 
-        // เก็บ token และสถานะ login
+        // เก็บ token
         localStorage.setItem("authToken", token);
         localStorage.setItem("isLoggedIn", "true");
         console.log("✓ Token saved to localStorage");
         
-        // เก็บข้อมูล user
+        // เก็บข้อมูล user เต็มจาก query parameter (backend ส่งมาครบแล้ว)
+        const userParam = searchParams.get("user");
         if (userParam) {
           try {
-            const userData = JSON.parse(decodeURIComponent(userParam));
-            localStorage.setItem("user", JSON.stringify(userData));
-            console.log("✓ User data saved:", userData.displayName);
+            const fullUserData = JSON.parse(decodeURIComponent(userParam));
+            localStorage.setItem("user", JSON.stringify(fullUserData));
+            console.log("✓ Full user data saved:", fullUserData);
           } catch (e) {
             console.error("✗ Error parsing user data:", e);
           }
         }
 
-        // เก็บสถานะการลงทะเบียน
-        if (registrationStatus) {
-          localStorage.setItem("registrationStatus", registrationStatus);
-          console.log("✓ Registration status saved:", registrationStatus);
-        }
-
-        // เก็บ role
-        if (role) {
-          localStorage.setItem("userRole", role.toLowerCase());
-          console.log("✓ Role saved:", role);
-        }
-
+        // Redirect ไปหน้า root ให้ logic ที่นั่นจัดการ redirect ต่อ
+        console.log("→ Redirecting to root for routing logic");
+        router.push("/");
+        
+        /* Old logic - ไม่ใช้แล้ว
         // เช็คสถานะการลงทะเบียนและ redirect
         if (registrationStatus?.toUpperCase() === "PENDING") {
           // ยังไม่ได้ลงทะเบียน - ต้องไปหน้าลงทะเบียนก่อน
@@ -118,6 +111,7 @@ function CallbackContent() {
             router.push("/register-farmer");
           }
         }
+        */
         
       } catch (error) {
         console.error("✗ Callback error:", error);
