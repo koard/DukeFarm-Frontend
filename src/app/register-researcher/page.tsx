@@ -90,18 +90,19 @@ export default function RegisterPage() {
       if (result.data) {
         const { user, profile } = result.data;
         
-        const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+        const currentUserStr = localStorage.getItem("user");
+        const currentUser = currentUserStr ? JSON.parse(currentUserStr) : {};
+        
         const updatedUser = {
           ...currentUser,
-          ...user,
-          researcherProfile: profile
+          role: user.role,
+          registrationStatus: user.registrationStatus,
+          researcherProfile: profile // เก็บ profile เต็มจาก backend
         };
         
         localStorage.setItem("user", JSON.stringify(updatedUser));
-        localStorage.setItem("registrationStatus", user.registrationStatus || "COMPLETED");
-        localStorage.setItem("isLoggedIn", "true");
         
-        console.log("✅ User data updated from backend:", updatedUser);
+        console.log("✅ User data updated in localStorage:", updatedUser);
       }
       
       setShowModal(false);

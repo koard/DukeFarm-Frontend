@@ -146,17 +146,19 @@ export default function RegisterFarmerPage() {
         const { user, profile } = result.data;
         
         // อัพเดท user object ด้วยข้อมูลจาก backend
-        const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+        const currentUserStr = localStorage.getItem("user");
+        const currentUser = currentUserStr ? JSON.parse(currentUserStr) : {};
+        
         const updatedUser = {
           ...currentUser,
-          ...user,
-          farmerProfile: profile
+          role: user.role,
+          registrationStatus: user.registrationStatus,
+          farmerProfile: profile // เก็บ profile เต็มจาก backend
         };
         
         localStorage.setItem("user", JSON.stringify(updatedUser));
-        localStorage.setItem("registrationStatus", user.registrationStatus || "COMPLETED");
         
-        console.log("✅ User data updated from backend:", updatedUser);
+        console.log("✅ User data updated in localStorage:", updatedUser);
       }
       
       setSubmitStatus('success');
