@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useLineUser } from "@/hooks/useLineUser";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 // ตาม API spec response structure
@@ -58,6 +58,8 @@ export default function NurserySmallPage() {
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -94,6 +96,25 @@ export default function NurserySmallPage() {
     fetchDashboardData();
   }, [router]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("authToken");
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("user");
+    router.push("/login");
+  };
+
   const forecastData: ForecastData[] = dashboardData?.feedingPlan || [];
 
   return (
@@ -111,8 +132,27 @@ export default function NurserySmallPage() {
                     <p className="text-sm text-gray-300">ยินดีต้อนรับ</p>
                     <p className="text-sm font-bold">{lineUser.displayName}</p>
                   </div>
-                  <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-gray-200">
-                     <img src={lineUser.pictureUrl} alt="Profile" className="w-full h-full object-cover" />
+                  <div className="relative" ref={dropdownRef}>
+                    <button
+                      onClick={() => setShowDropdown(!showDropdown)}
+                      className="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-gray-200 hover:border-gray-300 transition-colors cursor-pointer"
+                    >
+                      <img src={lineUser.pictureUrl} alt="Profile" className="w-full h-full object-cover" />
+                    </button>
+                    
+                    {showDropdown && (
+                      <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                          ออกจากระบบ
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
