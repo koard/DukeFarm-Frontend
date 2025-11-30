@@ -19,6 +19,11 @@ export default function Home() {
 
     try {
       const user = JSON.parse(userStr);
+      
+      // Debug: ดูว่า user data เป็นอะไร
+      console.log('User data:', user);
+      console.log('User role:', user.role);
+      console.log('User farmerProfile:', user.farmerProfile);
 
       // ถ้าเป็น researcher -> ไปหน้า dashboard นักวิจัย
       if (user.role === 'RESEARCHER' || user.role === 'researcher') {
