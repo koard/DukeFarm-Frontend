@@ -29,10 +29,10 @@ const POND_TYPE_MAP: Record<string, 'EARTHEN' | 'CONCRETE'> = {
 };
 
 const formatInputDate = (value: Date) => {
-  const year = `${value.getFullYear()}`.slice(-2);
+  const year = value.getFullYear();
   const month = `${value.getMonth() + 1}`.padStart(2, '0');
   const day = `${value.getDate()}`.padStart(2, '0');
-  return `${day}/${month}/${year}`;
+  return `${year}-${month}-${day}`;
 };
 
 const formatInputTime = (value: Date) => {
@@ -42,10 +42,9 @@ const formatInputTime = (value: Date) => {
 };
 
 const combineDateAndTime = (dateStr: string, timeStr: string): string => {
-  const [day, month, year2] = dateStr.split('/').map(Number);
-  const fullYear = 2000 + (year2 ?? 0);
+  const [year, month, day] = dateStr.split('-').map(Number);
   const [hours, minutes] = timeStr.split(':').map(Number);
-  const composedDate = new Date(fullYear, (month ?? 1) - 1, day ?? 1, hours ?? 0, minutes ?? 0, 0);
+  const composedDate = new Date(year!, (month ?? 1) - 1, day ?? 1, hours ?? 0, minutes ?? 0, 0);
   return composedDate.toISOString();
 };
 
@@ -323,10 +322,9 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             <span className="text-xs text-[#0F614E]/70">วันที่บันทึก</span>
             <div className="flex items-center">
               <input
-                type="text"
+                type="date"
                 value={recordDate}
                 onChange={(event) => setRecordDate(event.target.value)}
-                placeholder="เช่น 02/12/68"
                 lang="th-TH"
                 className="bg-transparent text-[#093832] text-lg font-bold flex-1 focus:outline-none pr-6"
               />
@@ -334,17 +332,18 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
           </label>
           <label className="bg-[#E4F5E7] rounded-xl py-3 px-4 flex flex-col gap-1 shadow-sm border border-[#6CCF9C]/30">
             <span className="text-xs text-[#0F614E]/70">เวลา</span>
-            <div className="flex items-center">
+            <div className="flex items-center gap-1">
               <input
                 type="text"
                 value={recordTime}
-                onChange={(event) => setRecordTime(sanitizeTimeInput(event.target.value))}
+                onChange={(event) => setRecordTime(sanitizeTimeInput(event.target.value.replace('น.', '')))}
                 onBlur={() => setRecordTime((prev) => normalizeTimeValue(prev, formatInputTime(now)))}
                 placeholder="เช่น 14:30"
                 inputMode="numeric"
                 pattern="^\d{2}:\d{2}$"
                 className="bg-transparent text-[#093832] text-lg font-bold flex-1 focus:outline-none pr-2"
               />
+              <span className="text-[#093832] text-base font-bold">น.</span>
             </div>
           </label>
         </div>
