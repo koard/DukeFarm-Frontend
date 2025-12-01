@@ -1,12 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Cloud, CloudRain, CloudSun, Sun, Droplets, Wind, MapPin, Navigation, ArrowUp, ArrowDown } from "lucide-react";
+import { ChevronLeft, Cloud, CloudRain, CloudSun, Sun, Droplets, Wind, MapPin, ArrowUp, ArrowDown } from "lucide-react";
 import Link from "next/link";
 import { useLineUser } from "@/hooks/useLineUser";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { CacheManager } from "@/utils/cache";
 import "leaflet/dist/leaflet.css";
 
 const MapContainer = dynamic(
@@ -84,25 +83,23 @@ interface DashboardData {
       humidityPct: number;
       rainMm: number;
       weatherCode: number;
-    };
-    hourlyForecast?: Array<{
+    } | null;
+    hourlyForecast: Array<{
       time: string;
       temperatureC: number;
-      precipitationProbabilityPct: number;
+      precipitationProbability: number;
       weatherCode: number;
     }>;
   };
-  feedingPlan: {
-    forecast: Array<{
-      date: string;
-      highTemperatureC: number;
-      lowTemperatureC: number;
-      weatherCode: number;
-    }>;
-  };
+  feedingPlan: Array<{
+    date: string;
+    highTemperatureC: number;
+    lowTemperatureC: number;
+    weatherCode: number;
+  }>;
 }
 
-const DASHBOARD_CACHE_KEY = "nurseryLargeDashboard";
+const API_BASE_URL = "https://dukefarm-backend.onrender.com/api";
 
 export default function WeatherLargePage() {
   const router = useRouter();
@@ -115,7 +112,6 @@ export default function WeatherLargePage() {
   const [current, setCurrent] = useState<CurrentWeather | null>(null);
   const [daily, setDaily] = useState<DailyForecast[]>([]);
   const [hourly, setHourly] = useState<HourlyForecast[]>([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -139,31 +135,47 @@ export default function WeatherLargePage() {
   }, []);
 
   useEffect(() => {
-    const loadWeatherData = () => {
+    const loadWeatherData = async () => {
       try {
-        setLoading(true);
-        const dashboardData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
-        
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          router.push("/login");
+          return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/dashboard/groups/NURSERY_LARGE`, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch dashboard data");
+        }
+
+        const result = await response.json();
+        const dashboardData: DashboardData | null = result.data ?? null;
+
         if (!dashboardData) {
-          console.warn("ไม่พบข้อมูลใน cache หรือข้อมูลหมดอายุ");
-          setLocationName("ไม่พบข้อมูล - กรุณากลับไปหน้าหลัก");
+          setLocationName("ไม่พบข้อมูล");
+          setCurrent(null);
+          setDaily([]);
+          setHourly([]);
           return;
         }
 
         const { summary, feedingPlan } = dashboardData;
-
-        // Set location
-        setLocationName("ตำแหน่งฟาร์ม");
-
-        // Set current weather
         const now = new Date();
-        const thaiDate = now.toLocaleDateString('th-TH', { 
-            weekday: 'long', 
-            day: 'numeric', 
-            month: 'long', 
-            year: 'numeric' 
+        const thaiDate = now.toLocaleDateString('th-TH', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
         });
         const thaiTime = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+
+        setLocationName("ตำแหน่งฟาร์ม");
 
         if (summary.weather) {
           setCurrent({
@@ -173,45 +185,40 @@ export default function WeatherLargePage() {
             weatherCode: summary.weather.weatherCode || 0,
             time: `${thaiDate} ${thaiTime}`
           });
-
+        } else {
+          setCurrent(null);
         }
 
-        // Set daily forecast
-        if (feedingPlan?.forecast) {
-          const dailyData = feedingPlan.forecast.map(day => ({
-            date: new Date(day.date).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' }),
-            tempMax: day.highTemperatureC,
-            tempMin: day.lowTemperatureC,
-            weatherCode: day.weatherCode
-          }));
-          setDaily(dailyData);
-        }
+        const dailyData = (feedingPlan || []).map((day) => ({
+          date: new Date(day.date).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' }),
+          tempMax: day.highTemperatureC,
+          tempMin: day.lowTemperatureC,
+          weatherCode: day.weatherCode
+        }));
+        setDaily(dailyData);
 
-        // Set hourly forecast
-        if (summary.hourlyForecast) {
-          const next24Hours = summary.hourlyForecast.slice(0, 24).map(hour => ({
-            time: new Date(hour.time).toLocaleTimeString('th-TH', { hour: 'numeric', minute: '2-digit' }),
-            temp: hour.temperatureC,
-            rainProb: hour.precipitationProbabilityPct || 0,
-            weatherCode: hour.weatherCode
-          }));
-          setHourly(next24Hours);
-        }
-
+        const hourlyData = (summary.hourlyForecast || []).slice(0, 24).map((hour) => ({
+          time: new Date(hour.time).toLocaleTimeString('th-TH', { hour: 'numeric', minute: '2-digit' }),
+          temp: hour.temperatureC,
+          rainProb: hour.precipitationProbability,
+          weatherCode: hour.weatherCode
+        }));
+        setHourly(hourlyData);
       } catch (error) {
-        console.error("Error loading weather from cache:", error);
+        console.error("Error loading weather data:", error);
         setLocationName("ไม่สามารถโหลดข้อมูลสภาพอากาศได้");
-      } finally {
-        setLoading(false);
+        setCurrent(null);
+        setDaily([]);
+        setHourly([]);
       }
     };
 
     loadWeatherData();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     import("leaflet").then((L) => {
-        // @ts-ignore
+      // @ts-expect-error Leaflet's default icon typings are incomplete in this environment
         delete L.Icon.Default.prototype._getIconUrl;
         L.Icon.Default.mergeOptions({
             iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",

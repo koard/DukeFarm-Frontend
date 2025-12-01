@@ -293,55 +293,55 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="bg-[#E4F5E7] rounded-xl py-3 px-4 flex flex-col gap-1 shadow-sm border border-[#6CCF9C]/30">
             <span className="text-xs text-[#0F614E]/70">วันที่บันทึก</span>
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
               <input
                 type="date"
                 value={recordDate}
                 onChange={(event) => setRecordDate(event.target.value)}
                 className="bg-transparent text-[#093832] text-lg font-bold flex-1 focus:outline-none"
               />
-              <Image src="/nursery-large/solar_calendar-outline.svg" alt="calendar" width={24} height={24} />
             </div>
           </label>
           <label className="bg-[#E4F5E7] rounded-xl py-3 px-4 flex flex-col gap-1 shadow-sm border border-[#6CCF9C]/30">
             <span className="text-xs text-[#0F614E]/70">เวลา</span>
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
               <input
                 type="time"
                 value={recordTime}
                 onChange={(event) => setRecordTime(event.target.value)}
                 className="bg-transparent text-[#093832] text-lg font-bold flex-1 focus:outline-none"
               />
-              <Image src="/nursery-large/formkit_time.svg" alt="time" width={24} height={24} />
             </div>
           </label>
         </div>
 
         <div>
-          <h2 className="text-base text-black mb-2">สภาพอากาศ Auto</h2>
-          <div className="flex flex-col md:flex-row items-stretch bg-[#D8EFFF] rounded-xl overflow-hidden shadow-sm">
-            <div className="flex-1 py-4 flex flex-col items-center justify-center gap-1">
-              <div className="flex items-center gap-1">
-                <Image src="/nursery-large/fluent_temperature-b.svg" alt="temp" width={20} height={20} />
-                <span className="text-sm text-black">อุณหภูมิ</span>
+          <h2 className="text-lg font-bold text-black mb-2">สภาพอากาศปัจจุบัน</h2>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
+            <div className="flex items-center bg-[#D8EFFF] rounded-xl overflow-hidden shadow-sm flex-1">
+              <div className="flex-1 py-4 flex flex-col items-center justify-center">
+                <div className="flex items-center gap-1 mb-1">
+                  <Image src="/nursery-large/fluent_temperature-b.svg" alt="temp" width={20} height={20} />
+                  <span className="text-sm text-black">อุณหภูมิ</span>
+                </div>
+                <p className="text-xl font-bold text-black">{safeNumber(weatherSnapshot?.temperatureC, ' °C')}</p>
               </div>
-              <p className="text-xl font-bold text-black">{safeNumber(weatherSnapshot?.temperatureC, ' °C')}</p>
-            </div>
-            <div className="w-full h-px md:w-[2px] md:h-[40px] bg-white" />
-            <div className="flex-1 py-4 flex flex-col items-center justify-center gap-1">
-              <div className="flex items-center gap-1">
-                <Image src="/nursery-large/fluent_weather-rain-snow-b.svg" alt="rain" width={20} height={20} />
-                <span className="text-sm text-black">ปริมาณน้ำฝน</span>
+              <div className="w-[2px] h-[40px] bg-white" />
+              <div className="flex-1 py-4 flex flex-col items-center justify-center">
+                <div className="flex items-center gap-1 mb-1">
+                  <Image src="/nursery-large/fluent_weather-rain-snow-b.svg" alt="rain" width={20} height={20} />
+                  <span className="text-sm text-black">ปริมาณน้ำฝน</span>
+                </div>
+                <p className="text-xl font-bold text-black">{safeNumber(weatherSnapshot?.rainMm, ' มม.')}</p>
               </div>
-              <p className="text-xl font-bold text-black">{safeNumber(weatherSnapshot?.rainMm, ' มม.')}</p>
-            </div>
-            <div className="w-full h-px md:w-[2px] md:h-[40px] bg-white" />
-            <div className="flex-1 py-4 flex flex-col items-center justify-center gap-1">
-              <div className="flex items-center gap-1">
-                <Image src="/nursery-large/mdi_dots-triangle.svg" alt="humidity" width={20} height={20} />
-                <span className="text-sm text-black">ความชื้นสัมพัทธ์</span>
+              <div className="w-[2px] h-[40px] bg-white" />
+              <div className="flex-1 py-4 flex flex-col items-center justify-center">
+                <div className="flex items-center gap-1 mb-1">
+                  <Image src="/nursery-large/mdi_dots-triangle.svg" alt="humidity" width={20} height={20} />
+                  <span className="text-sm text-black">ความชื้นสัมพัทธ์</span>
+                </div>
+                <p className="text-xl font-bold text-black">{safeNumber(weatherSnapshot?.humidityPct, ' %')}</p>
               </div>
-              <p className="text-xl font-bold text-black">{safeNumber(weatherSnapshot?.humidityPct, ' %')}</p>
             </div>
           </div>
           {!locationAvailable && (

@@ -6,9 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronDown } from "lucide-react";
 import { useLineUser } from "@/hooks/useLineUser";
-import { CacheManager } from "@/utils/cache";
-
-const DASHBOARD_CACHE_KEY = 'nurserySmallDashboard';
+const API_BASE_URL = "https://dukefarm-backend.onrender.com/api";
 
 // Interfaces based on API specification
 interface WeatherData {
@@ -80,26 +78,38 @@ export default function FeedingSmallPage() {
   const [feedingInfo, setFeedingInfo] = useState<FeedingInfo | null>(null);
 
   useEffect(() => {
-    const loadDashboardData = () => {
+    const loadDashboardData = async () => {
+      setLoading(true);
       try {
-        const cachedData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
-        
-        if (cachedData) {
-          setDashboardData(cachedData);
-          console.log('✅ ใช้ข้อมูลจาก cache:', DASHBOARD_CACHE_KEY);
-        } else {
-          setError("ไม่พบข้อมูล - กรุณากลับไปหน้าหลัก");
-          console.warn('⚠️ ไม่พบข้อมูลใน cache');
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          router.push("/login");
+          return;
         }
-      } catch (err: unknown) {
+
+        const response = await fetch(`${API_BASE_URL}/dashboard/groups/NURSERY_SMALL`, {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch dashboard data");
+        }
+
+        const result = await response.json();
+        setDashboardData(result.data);
+      } catch (err) {
         console.error("Error loading dashboard data:", err);
-        setError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+        setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการโหลดข้อมูล");
       } finally {
         setLoading(false);
       }
     };
+
     loadDashboardData();
-  }, []);
+  }, [router]);
 
   const [feedFormulas, setFeedFormulas] = useState<FeedFormula[]>([]);
 
