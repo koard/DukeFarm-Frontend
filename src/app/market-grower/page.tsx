@@ -409,10 +409,10 @@ export default function MarketGrowerPage() {
                     </p>
                 </div>
                 <div>
-                    <h4 className="text-base font-bold text-black mb-1">คำแนะนำ :</h4>
-                    <p className="text-base text-black leading-relaxed">
-                        ให้ 2 มื้อใหญ่ต่อวัน (เช้า-เย็น) เพิ่มสัดส่วนพลังงาน (ข้าวโพด, รำ) ลดโปรตีนลงเล็กน้อย อัตราโปรตีน 28-32% ก็เพียงพอติดตาม FCR เพื่อควบคุมต้นทุนอาหาร
-                    </p>
+                  <h4 className="text-base font-bold text-black mb-1">คำแนะนำ :</h4>
+                  <p className="text-base text-black leading-relaxed">
+                    หากอุณหภูมิน้ำอยู่ในช่วงที่เหมาะสม ปลามักจะกินอาหารและเจริญเติบโตได้ดี ควรเฝ้าดูแนวโน้มอุณหภูมิทุกวัน และหลีกเลี่ยงการเปลี่ยนแปลงอุณหภูมิกะทันหันจากการเปลี่ยนน้ำหรือเติมน้ำปริมาณมาก
+                  </p>
                 </div>
               </>
             )}
