@@ -156,10 +156,13 @@ export default function NurseryLargePage() {
 
         // Check cache first (with TTL)
         const cachedData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
-        if (cachedData) {
+        if (cachedData?.hasData) {
           setDashboardData(cachedData);
           setLoading(false);
           return;
+        }
+        if (cachedData && !cachedData.hasData) {
+          CacheManager.remove(DASHBOARD_CACHE_KEY);
         }
 
         // Fetch from API
@@ -174,7 +177,12 @@ export default function NurseryLargePage() {
 
         const result = await response.json();
         setDashboardData(result.data);
-        CacheManager.set(DASHBOARD_CACHE_KEY, result.data, CACHE_TTL.DASHBOARD);
+
+        if (result.data?.hasData) {
+          CacheManager.set(DASHBOARD_CACHE_KEY, result.data, CACHE_TTL.DASHBOARD);
+        } else {
+          CacheManager.remove(DASHBOARD_CACHE_KEY);
+        }
       } catch (err) {
         console.error("Dashboard error:", err);
         setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
@@ -207,9 +215,16 @@ export default function NurseryLargePage() {
   }, [router]);
 
   // ใช้ข้อมูลจาก API หรือ fallback ถ้ายังไม่มี
-  const graphData: GraphDataPoint[] = dashboardData?.summary?.monthlyFeedingData ?? [];
+  const hasDashboardData = dashboardData?.hasData;
 
-  const forecastData: ForecastData[] = dashboardData?.feedingPlan || [];
+  const graphData: GraphDataPoint[] = hasDashboardData
+    ? dashboardData?.summary?.monthlyFeedingData ?? []
+    : [];
+
+  const forecastData: ForecastData[] = hasDashboardData ? dashboardData?.feedingPlan || [] : [];
+
+  const averageFishWeightValue = hasDashboardData ? dashboardData?.summary?.averageFishWeight : null;
+  const weightChangeValue = hasDashboardData ? dashboardData?.summary?.weightChange : null;
 
   const getY = (val: number): number => 130 - (val / 2) * 110;
   
@@ -470,10 +485,10 @@ export default function NurseryLargePage() {
                         {/* Numbers Row */}
                         <div className="flex items-baseline justify-center gap-4 mt-1">
                           <span className="text-3xl font-bold text-[#FF2424]">
-                            {loading ? "..." : formatAverageWeight(dashboardData?.summary?.averageFishWeight)}
+                            {loading ? "..." : formatAverageWeight(averageFishWeightValue)}
                           </span>
                           <span className="text-[#FF2424] text-xs font-bold">
-                            {loading ? "..." : formatWeightChange(dashboardData?.summary?.weightChange)}
+                            {loading ? "..." : formatWeightChange(weightChangeValue)}
                           </span>
                       </div>
                   </div>
