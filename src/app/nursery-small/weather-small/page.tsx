@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ChevronLeft, Cloud, CloudRain, CloudSun, Sun, Droplets, Wind, MapPin, ArrowUp, ArrowDown } from "lucide-react";
 import { useLineUser } from "@/hooks/useLineUser";
+import { CacheManager } from "@/utils/cache";
 import "leaflet/dist/leaflet.css";
 
 const MapContainer = dynamic(
@@ -104,7 +105,7 @@ interface WeatherInfo {
 
 // Constants
 const DEFAULT_COORDS: Coordinates = { lat: 13.7563, lon: 100.5018 }; // Bangkok
-const API_BASE_URL = "https://dukefarm-backend.onrender.com/api";
+const DASHBOARD_CACHE_KEY = "nurserySmallDashboard";
 const LOCALE_TH = 'th-TH';
 
 // Utility functions
@@ -223,43 +224,24 @@ export default function WeatherSmallPage() {
     }
   }, []);
 
-  // Load weather data directly from API
+  // Load weather data from sessionStorage
   useEffect(() => {
-    const loadWeatherData = async () => {
-      setLoading(true);
+    const loadWeatherData = () => {
       try {
-        const token = localStorage.getItem("authToken");
-        if (!token) {
-          router.push("/login");
-          return;
-        }
-
-        const response = await fetch(`${API_BASE_URL}/dashboard/groups/NURSERY_SMALL`, {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch dashboard data");
-        }
-
-        const result = await response.json();
-        const dashboardData: DashboardData | null = result.data ?? null;
-
+        setLoading(true);
+        const dashboardData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
+        
         if (!dashboardData) {
-          setLocationName("ไม่พบข้อมูล");
-          setCurrent(null);
-          setDaily([]);
-          setHourly([]);
+          console.warn("ไม่พบข้อมูลใน cache หรือข้อมูลหมดอายุ");
+          setLocationName("ไม่พบข้อมูล - กรุณากลับไปหน้าหลัก");
           return;
         }
-
         const { summary, feedingPlan } = dashboardData;
 
+        // Set location
         setLocationName("ตำแหน่งฟาร์ม");
 
+        // Set current weather
         if (summary.weather) {
           setCurrent({
             temp: summary.weather.temperatureC,
@@ -268,15 +250,14 @@ export default function WeatherSmallPage() {
             weatherCode: summary.weather.weatherCode || 0,
             time: formatThaiDateTime()
           });
-        } else {
-          setCurrent(null);
         }
 
-        const dailyData = (feedingPlan || []).map((item) => ({
-          date: new Date(item.date).toLocaleDateString(LOCALE_TH, {
-            weekday: 'short',
-            day: 'numeric',
-            month: 'short'
+        // Set daily forecast
+        const dailyData = feedingPlan.map((item) => ({
+          date: new Date(item.date).toLocaleDateString(LOCALE_TH, { 
+            weekday: 'short', 
+            day: 'numeric', 
+            month: 'short' 
           }),
           tempMax: item.highTemperatureC,
           tempMin: item.lowTemperatureC,
@@ -284,29 +265,28 @@ export default function WeatherSmallPage() {
         }));
         setDaily(dailyData);
 
-        const hourlyData = (summary.hourlyForecast || []).slice(0, 24).map((item) => ({
-          time: new Date(item.time).toLocaleTimeString(LOCALE_TH, {
-            hour: 'numeric',
-            minute: '2-digit'
+        // Set hourly forecast
+        const hourlyData = summary.hourlyForecast.slice(0, 24).map((item) => ({
+          time: new Date(item.time).toLocaleTimeString(LOCALE_TH, { 
+            hour: 'numeric', 
+            minute: '2-digit' 
           }),
           temp: item.temperatureC,
           rainProb: item.precipitationProbability,
           weatherCode: item.weatherCode
         }));
         setHourly(hourlyData);
+
       } catch (error) {
         console.error("ไม่สามารถโหลดข้อมูลสภาพอากาศ:", error);
         setLocationName("เกิดข้อผิดพลาด");
-        setCurrent(null);
-        setDaily([]);
-        setHourly([]);
       } finally {
         setLoading(false);
       }
     };
 
     loadWeatherData();
-  }, [router]);
+  }, []);
 
   // Memoized values
   const currentWeatherInfo = useMemo(

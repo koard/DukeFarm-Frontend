@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useLineUser } from "@/hooks/useLineUser";
+import { CacheManager, CACHE_TTL } from "@/utils/cache";
 
 // Types
 
@@ -66,6 +67,7 @@ interface DashboardData {
 
 // Constants
 const API_BASE_URL = "https://dukefarm-backend.onrender.com/api";
+const DASHBOARD_CACHE_KEY = "nurseryLargeDashboard";
 
 // Utility functions
 const getWeatherIconFromCode = (code: number): string => {
@@ -142,7 +144,7 @@ export default function NurseryLargePage() {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch dashboard data directly from API
+  // Fetch dashboard data with caching
   useEffect(() => {
     const loadDashboard = async () => {
       try {
@@ -152,6 +154,18 @@ export default function NurseryLargePage() {
           return;
         }
 
+        // Check cache first (with TTL)
+        const cachedData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
+        if (cachedData?.hasData) {
+          setDashboardData(cachedData);
+          setLoading(false);
+          return;
+        }
+        if (cachedData && !cachedData.hasData) {
+          CacheManager.remove(DASHBOARD_CACHE_KEY);
+        }
+
+        // Fetch from API
         const response = await fetch(`${API_BASE_URL}/dashboard/groups/NURSERY_LARGE`, {
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -163,6 +177,12 @@ export default function NurseryLargePage() {
 
         const result = await response.json();
         setDashboardData(result.data);
+
+        if (result.data?.hasData) {
+          CacheManager.set(DASHBOARD_CACHE_KEY, result.data, CACHE_TTL.DASHBOARD);
+        } else {
+          CacheManager.remove(DASHBOARD_CACHE_KEY);
+        }
       } catch (err) {
         console.error("Dashboard error:", err);
         setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useLineUser } from "@/hooks/useLineUser";
+import { CacheManager, CACHE_TTL } from "@/utils/cache";
 
 // Types
 interface ForecastData {
@@ -44,6 +45,7 @@ interface DashboardData {
 
 // Constants
 const API_BASE_URL = "https://dukefarm-backend.onrender.com/api";
+const DASHBOARD_CACHE_KEY = "nurserySmallDashboard";
 
 // Utility functions
 const getWeatherIconFromCode = (code: number): string => {
@@ -104,7 +106,7 @@ export default function NurserySmallPage() {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch dashboard data directly from API
+  // Fetch dashboard data with caching
   useEffect(() => {
     const loadDashboard = async () => {
       try {
@@ -114,6 +116,15 @@ export default function NurserySmallPage() {
           return;
         }
 
+        // Check cache first (with TTL)
+        const cachedData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
+        if (cachedData) {
+          setDashboardData(cachedData);
+          setLoading(false);
+          return;
+        }
+
+        // Fetch from API
         const response = await fetch(`${API_BASE_URL}/dashboard/groups/NURSERY_SMALL`, {
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -125,6 +136,7 @@ export default function NurserySmallPage() {
 
         const result = await response.json();
         setDashboardData(result.data);
+        CacheManager.set(DASHBOARD_CACHE_KEY, result.data, CACHE_TTL.DASHBOARD);
       } catch (err) {
         console.error("Dashboard error:", err);
         setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");

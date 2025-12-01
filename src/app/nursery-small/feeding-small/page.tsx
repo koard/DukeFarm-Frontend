@@ -6,7 +6,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronDown } from "lucide-react";
 import { useLineUser } from "@/hooks/useLineUser";
-const API_BASE_URL = "https://dukefarm-backend.onrender.com/api";
+import { CacheManager } from "@/utils/cache";
+
+const DASHBOARD_CACHE_KEY = 'nurserySmallDashboard';
 
 // Interfaces based on API specification
 interface WeatherData {
@@ -78,38 +80,26 @@ export default function FeedingSmallPage() {
   const [feedingInfo, setFeedingInfo] = useState<FeedingInfo | null>(null);
 
   useEffect(() => {
-    const loadDashboardData = async () => {
-      setLoading(true);
+    const loadDashboardData = () => {
       try {
-        const token = localStorage.getItem("authToken");
-        if (!token) {
-          router.push("/login");
-          return;
+        const cachedData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
+        
+        if (cachedData) {
+          setDashboardData(cachedData);
+          console.log('✅ ใช้ข้อมูลจาก cache:', DASHBOARD_CACHE_KEY);
+        } else {
+          setError("ไม่พบข้อมูล - กรุณากลับไปหน้าหลัก");
+          console.warn('⚠️ ไม่พบข้อมูลใน cache');
         }
-
-        const response = await fetch(`${API_BASE_URL}/dashboard/groups/NURSERY_SMALL`, {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch dashboard data");
-        }
-
-        const result = await response.json();
-        setDashboardData(result.data);
-      } catch (err) {
+      } catch (err: unknown) {
         console.error("Error loading dashboard data:", err);
-        setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาดในการโหลดข้อมูล");
+        setError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
       } finally {
         setLoading(false);
       }
     };
-
     loadDashboardData();
-  }, [router]);
+  }, []);
 
   const [feedFormulas, setFeedFormulas] = useState<FeedFormula[]>([]);
 
@@ -254,7 +244,7 @@ export default function FeedingSmallPage() {
                         <div className="flex-1 py-4 flex flex-col items-center justify-center">
                             <div className="flex items-center gap-1 mb-1">
                                 <Image src="/nursery-large/mdi_dots-triangle.svg" alt="humidity" width={20} height={20} />
-                                <span className="text-sm text-black">ความชื้นสัมพัทธ์</span>
+                                <span className="text-sm text-black">ความชื้น</span>
                             </div>
                             <p className="text-xl font-bold text-black">{dashboardData.summary.weather?.humidityPct !== undefined ? `${dashboardData.summary.weather.humidityPct}%` : 'N/A'}</p>
                         </div>

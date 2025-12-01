@@ -336,7 +336,7 @@ export default function AddFeedingPage() {
                 
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-2">
-                    ความชื้นสัมพัทธ์ (%)
+                    ความชื้น
                   </label>
                   <input
                     type="number"

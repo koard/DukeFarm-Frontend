@@ -293,7 +293,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="bg-[#E4F5E7] rounded-xl py-3 px-4 flex flex-col gap-1 shadow-sm border border-[#6CCF9C]/30">
             <span className="text-xs text-[#0F614E]/70">วันที่บันทึก</span>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center">
               <input
                 type="date"
                 value={recordDate}
@@ -304,7 +304,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
           </label>
           <label className="bg-[#E4F5E7] rounded-xl py-3 px-4 flex flex-col gap-1 shadow-sm border border-[#6CCF9C]/30">
             <span className="text-xs text-[#0F614E]/70">เวลา</span>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center">
               <input
                 type="time"
                 value={recordTime}
@@ -317,31 +317,29 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
         <div>
           <h2 className="text-lg font-bold text-black mb-2">สภาพอากาศปัจจุบัน</h2>
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            <div className="flex items-center bg-[#D8EFFF] rounded-xl overflow-hidden shadow-sm flex-1">
-              <div className="flex-1 py-4 flex flex-col items-center justify-center">
-                <div className="flex items-center gap-1 mb-1">
-                  <Image src="/nursery-large/fluent_temperature-b.svg" alt="temp" width={20} height={20} />
-                  <span className="text-sm text-black">อุณหภูมิ</span>
-                </div>
-                <p className="text-xl font-bold text-black">{safeNumber(weatherSnapshot?.temperatureC, ' °C')}</p>
+          <div className="flex items-center bg-[#D8EFFF] rounded-xl overflow-hidden shadow-sm">
+            <div className="flex-1 py-4 flex flex-col items-center justify-center">
+              <div className="flex items-center gap-1 mb-1">
+                <Image src="/nursery-large/fluent_temperature-b.svg" alt="temp" width={20} height={20} />
+                <span className="text-sm text-black">อุณหภูมิ</span>
               </div>
-              <div className="w-[2px] h-[40px] bg-white" />
-              <div className="flex-1 py-4 flex flex-col items-center justify-center">
-                <div className="flex items-center gap-1 mb-1">
-                  <Image src="/nursery-large/fluent_weather-rain-snow-b.svg" alt="rain" width={20} height={20} />
-                  <span className="text-sm text-black">ปริมาณน้ำฝน</span>
-                </div>
-                <p className="text-xl font-bold text-black">{safeNumber(weatherSnapshot?.rainMm, ' มม.')}</p>
+              <p className="text-xl font-bold text-black">{safeNumber(weatherSnapshot?.temperatureC, ' °C')}</p>
+            </div>
+            <div className="w-[2px] h-[40px] bg-white" />
+            <div className="flex-1 py-4 flex flex-col items-center justify-center">
+              <div className="flex items-center gap-1 mb-1">
+                <Image src="/nursery-large/fluent_weather-rain-snow-b.svg" alt="rain" width={20} height={20} />
+                <span className="text-sm text-black">ปริมาณน้ำฝน</span>
               </div>
-              <div className="w-[2px] h-[40px] bg-white" />
-              <div className="flex-1 py-4 flex flex-col items-center justify-center">
-                <div className="flex items-center gap-1 mb-1">
-                  <Image src="/nursery-large/mdi_dots-triangle.svg" alt="humidity" width={20} height={20} />
-                  <span className="text-sm text-black">ความชื้นสัมพัทธ์</span>
-                </div>
-                <p className="text-xl font-bold text-black">{safeNumber(weatherSnapshot?.humidityPct, ' %')}</p>
+              <p className="text-xl font-bold text-black">{safeNumber(weatherSnapshot?.rainMm, ' mm')}</p>
+            </div>
+            <div className="w-[2px] h-[40px] bg-white" />
+            <div className="flex-1 py-4 flex flex-col items-center justify-center">
+              <div className="flex items-center gap-1 mb-1">
+                <Image src="/nursery-large/mdi_dots-triangle.svg" alt="humidity" width={20} height={20} />
+                <span className="text-sm text-black">ความชื้น</span>
               </div>
+              <p className="text-xl font-bold text-black">{safeNumber(weatherSnapshot?.humidityPct, ' %')}</p>
             </div>
           </div>
           {!locationAvailable && (

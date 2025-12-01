@@ -6,13 +6,21 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronDown } from "lucide-react";
 import { useLineUser } from "@/hooks/useLineUser";
+import { CacheManager } from "@/utils/cache";
 
-const API_BASE_URL = "https://dukefarm-backend.onrender.com/api";
+const DASHBOARD_CACHE_KEY = 'marketGrowerDashboard';
 
 interface WeatherData {
   airTemperatureC: number | null;
   humidityPct: number | null;
   rainMm: number | null;
+}
+
+interface DashboardData {
+  summary: {
+    airTemperatureC: number | null;
+    weather: WeatherData | null;
+  };
 }
 
 export default function FeedingLargePage() {
@@ -21,38 +29,15 @@ export default function FeedingLargePage() {
   const [selectedAge, setSelectedAge] = useState<string>("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showResult, setShowResult] = useState(false);
-    const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
 
-    useEffect(() => {
-        const fetchWeather = async () => {
-            try {
-                const token = localStorage.getItem("authToken");
-                if (!token) {
-                    router.push("/login");
-                    return;
-                }
-
-                const response = await fetch(`${API_BASE_URL}/dashboard/groups/GROWOUT`, {
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Content-Type": "application/json"
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error("Failed to fetch dashboard data");
-                }
-
-                const result = await response.json();
-                setWeatherData(result.data?.summary?.weather ?? null);
-            } catch (err) {
-                console.error("ไม่สามารถโหลดข้อมูลสภาพอากาศ:", err);
-                setWeatherData(null);
-            }
-        };
-
-        fetchWeather();
-    }, [router]);
+  useEffect(() => {
+    const cachedData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
+    if (cachedData?.summary?.weather) {
+      setWeatherData(cachedData.summary.weather);
+      console.log('✅ โหลดข้อมูลสภาพอากาศจาก cache');
+    }
+  }, []);
 
   const ageOptions = [
     "0–15 วัน (ระยะลูกปลา)",
@@ -137,7 +122,7 @@ export default function FeedingLargePage() {
                             <div className="flex-1 py-4 flex flex-col items-center justify-center">
                                 <div className="flex items-center gap-1 mb-1">
                                     <Image src="/nursery-large/mdi_dots-triangle.svg" alt="humidity" width={20} height={20} />
-                                    <span className="text-sm text-black">ความชื้นสัมพัทธ์</span>
+                                    <span className="text-sm text-black">ความชื้น</span>
                                 </div>
                                 <p className="text-xl font-bold text-black">{weatherData?.humidityPct ?? '--'}%</p>
                             </div>
