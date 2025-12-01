@@ -550,7 +550,7 @@ export default function MarketGrowerPage() {
         <div>
             <div className="flex items-center gap-2 mb-3">
                 <Image src="/nursery-large/fluent_weather-hail-day.svg" alt="forecast" width={24} height={24} />
-                <h3 className="text-base font-bold text-[#093832]">คาดการณ์สภาพอากาศและการให้อาหาร 7 วันล่วงหน้า</h3>
+                <h3 className="text-base font-bold text-[#093832]">คาดการณ์สภาพอากาศและการให้อาหาร</h3>
             </div>
             <div className="bg-[#F4FFFC] rounded-2xl pt-5 pb-6 p-2 shadow-sm">
                 <div className="grid grid-cols-3 mb-4 border-b border-[#D0EBE5] pb-3">

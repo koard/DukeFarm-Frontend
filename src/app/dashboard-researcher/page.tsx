@@ -212,7 +212,7 @@ export default function Dashboard() {
           <div className="flex items-center space-x-2 mb-4">
             <FaCloudSun className="text-emerald-900 text-lg base:text-xl" />
             <h2 className="text-base base:text-lg font-semibold text-emerald-900">
-              คาดการณ์สภาพอากาศและการให้อาหาร 7 วันล่วงหน้า
+              คาดการณ์สภาพอากาศและการให้อาหาร
             </h2>
           </div>
           
