@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FaChartPie, FaCloudSun } from "react-icons/fa";
 import { IoWaterOutline } from "react-icons/io5";
@@ -18,19 +18,29 @@ import {
 
 export default function Dashboard() {
   const router = useRouter();
-  const [currentUser] = useState("นภัทร พงษ์ศิริ");
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  
-  // Mock data for feeding history (7 days)
-  const [feedingHistory] = useState([
-    { date: "17/05/25", weather: "31 / 26 °C", weatherIcon: "rain", amount: 4.5 },
-    { date: "18/05/25", weather: "31 / 30 °C", weatherIcon: "cloudy", amount: 5.5 },
-    { date: "19/05/25", weather: "31 / 27 °C", weatherIcon: "rain", amount: 4.5 },
-    { date: "20/05/25", weather: "31 / 26 °C", weatherIcon: "cloudy", amount: 4.5 },
-    { date: "21/05/25", weather: "31 / 35 °C", weatherIcon: "sunny", amount: 5.5 },
-    { date: "22/05/25", weather: "31 / 30 °C", weatherIcon: "cloudy", amount: 5.0 },
-    { date: "23/05/25", weather: "31 / 28 °C", weatherIcon: "rain", amount: 4.5 },
-  ]);
+
+  type FeedingRecord = {
+    date: string;
+    weather: string;
+    weatherIcon: string;
+    amountKg: number;
+  };
+
+  const feedingHistory: FeedingRecord[] = [];
+
+  const summaryMetrics = useMemo(
+    () => ({
+      pondCount: null as number | null,
+      fishCount: null as number | null,
+      eggCount: null as number | null,
+      pH: null as number | null,
+      feedKg: null as number | null,
+      feedDeltaPct: null as number | null,
+    }),
+    [],
+  );
 
   useEffect(() => {
     // Check if user is logged in and has token
@@ -39,6 +49,21 @@ export default function Dashboard() {
     if (!isLoggedIn || !token) {
       router.push("/login");
     }
+
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        if (typeof parsed?.name === "string" && parsed.name.trim()) {
+          setCurrentUser(parsed.name.trim());
+          return;
+        }
+      } catch (error) {
+        console.warn("Unable to parse stored user", error);
+      }
+    }
+
+    setCurrentUser(null);
   }, [router]);
 
   const handleLogout = () => {
@@ -71,7 +96,7 @@ export default function Dashboard() {
           <div className="flex items-center space-x-2 base:space-x-4">
             <div className="text-right">
               <p className="text-base base:text-base opacity-90">ยินดีต้อนรับ</p>
-              <p className="font-semibold text-base base:text-lg">{currentUser}</p>
+              <p className="font-semibold text-base base:text-lg">{currentUser || "-"}</p>
             </div>
             
             {/* User Dropdown */}
@@ -129,21 +154,27 @@ export default function Dashboard() {
                   <FiBox className="text-emerald-900 text-base" />
                   <p className="text-sm text-emerald-900">จำนวนบ่อ</p>
                 </div>
-                <p className="text-xl base:text-3xl font-bold text-emerald-900 text-center">12</p>
+                <p className="text-xl base:text-3xl font-bold text-emerald-900 text-center">
+                  {summaryMetrics.pondCount ?? "-"}
+                </p>
               </div>
               <div className="px-4 flex flex-col justify-center">
                 <div className="flex items-center space-x-1 mb-1">
                   <FiBox className="text-emerald-900 text-base" />
                   <p className="text-sm text-emerald-900">จำนวนปลาดุก</p>
                 </div>
-                <p className="text-xl base:text-3xl font-bold text-emerald-900 text-center">1,200</p>
+                <p className="text-xl base:text-3xl font-bold text-emerald-900 text-center">
+                  {summaryMetrics.fishCount ?? "-"}
+                </p>
               </div>
               <div className="pl-4 flex flex-col justify-center">
                 <div className="flex items-center space-x-1 mb-1">
                   <FiBox className="text-emerald-900 text-base" />
                   <p className="text-sm text-emerald-900">ไข่ปลา</p>
                 </div>
-                <p className="text-xl base:text-3xl font-bold text-emerald-900 text-center">201,908</p>
+                <p className="text-xl base:text-3xl font-bold text-emerald-900 text-center">
+                  {summaryMetrics.eggCount ?? "-"}
+                </p>
               </div>
             </div>
           </div>
@@ -155,7 +186,9 @@ export default function Dashboard() {
                 <IoWaterOutline className="text-blue-900" />
                 <span className="text-base text-emerald-900">ค่า (pH)</span>
               </div>
-              <p className="text-3xl font-bold text-blue-900 text-center">9</p>
+              <p className="text-3xl font-bold text-blue-900 text-center">
+                {summaryMetrics.pH ?? "-"}
+              </p>
             </div>
             <div className="bg-red-50 rounded-xl p-4 shadow-base">
               <div className="flex items-center space-x-2 mb-2">
@@ -163,9 +196,11 @@ export default function Dashboard() {
                 <span className="text-base text-red-900">การกินอาหาร (Kg.)</span>
               </div>
               <div className="flex items-center justify-center space-x-2">
-                <p className="text-3xl font-bold text-red-900">4.8</p>
+                <p className="text-3xl font-bold text-red-900">
+                  {summaryMetrics.feedKg ?? "-"}
+                </p>
                 <span className="text-base text-red-500 px-2 py-1 font-bold rounded">
-                  ▼ (-20%)
+                  {summaryMetrics.feedDeltaPct !== null ? `▼ (${summaryMetrics.feedDeltaPct}%)` : "ไม่มีข้อมูล"}
                 </span>
               </div>
             </div>
@@ -192,18 +227,26 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {feedingHistory.map((record, index) => (
-                    <tr key={index} className="border-t border-gray-100 text-emerald-900">
-                      <td className="py-3 text-base text-center">{record.date}</td>
-                      <td className="py-3 text-base text-center">
-                        <div className="flex items-center justify-center space-x-2">
-                          {getWeatherIcon(record.weatherIcon)}
-                          <span className="whitespace-nowrap">{record.weather}</span>
-                        </div>
+                  {feedingHistory.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="py-4 text-center text-gray-500 text-base">
+                        ไม่มีข้อมูล
                       </td>
-                      <td className="py-3 text-base font-medium text-center">{record.amount} Kg.</td>
                     </tr>
-                  ))}
+                  ) : (
+                    feedingHistory.map((record, index) => (
+                      <tr key={index} className="border-t border-gray-100 text-emerald-900">
+                        <td className="py-3 text-base text-center">{record.date}</td>
+                        <td className="py-3 text-base text-center">
+                          <div className="flex items-center justify-center space-x-2">
+                            {getWeatherIcon(record.weatherIcon)}
+                            <span className="whitespace-nowrap">{record.weather}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 text-base font-medium text-center">{record.amountKg} Kg.</td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

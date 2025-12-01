@@ -79,6 +79,61 @@ const getWeatherIconFromCode = (code: number): string => {
   return 'fluent-color_weather-sunny.svg';
 };
 
+const formatThaiDate = (isoDate?: string | null): string => {
+  if (!isoDate) return "-";
+  const parsed = new Date(isoDate);
+  if (Number.isNaN(parsed.getTime())) {
+    return "-";
+  }
+  return parsed.toLocaleDateString("th-TH");
+};
+
+const formatTemperature = (value?: number | null): string => {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "-";
+  }
+  return `${value.toFixed(1)} °C`;
+};
+
+const buildTemperatureDeltaText = (delta?: number | null): string => {
+  if (typeof delta !== "number" || Number.isNaN(delta)) {
+    return "ไม่มีข้อมูล";
+  }
+  if (delta === 0) {
+    return "อุณหภูมิคงที่เท่าเดิม";
+  }
+  const direction = delta > 0 ? "สูง" : "ต่ำ";
+  return `อุณหภูมิ${direction}กว่าปกติ ${Math.abs(delta).toFixed(1)}°C`;
+};
+
+const buildFeedAdviceText = (adjustmentPct?: number | null): string => {
+  if (typeof adjustmentPct !== "number" || Number.isNaN(adjustmentPct)) {
+    return "ไม่มีข้อมูล";
+  }
+  if (adjustmentPct > 0) {
+    return `แนะนำให้เพิ่มอาหารขึ้น ${adjustmentPct}%`;
+  }
+  if (adjustmentPct < 0) {
+    return `แนะนำให้ลดอาหารลง ${Math.abs(adjustmentPct)}%`;
+  }
+  return "ให้อาหารตามปกติ";
+};
+
+const formatAverageWeight = (value?: number | null): string => {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "-";
+  }
+  return value.toFixed(2);
+};
+
+const formatWeightChange = (value?: number | null): string => {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "ไม่มีข้อมูล";
+  }
+  const arrow = value >= 0 ? "▲" : "▼";
+  return `${arrow} (${Math.abs(value).toFixed(1)}%)`;
+};
+
 export default function MarketGrowerPage() {
   const lineUser = useLineUser();
   const router = useRouter();
@@ -151,20 +206,7 @@ export default function MarketGrowerPage() {
     router.push("/login");
   }, [router]);
 
-  const graphData: GraphDataPoint[] = dashboardData?.summary?.monthlyFeedingData || [
-    { month: "Jan", value: 0.25 },
-    { month: "Feb", value: 0.5 },
-    { month: "Mar", value: 0.65 },
-    { month: "Apr", value: 0.95 },
-    { month: "May", value: 0.8 },
-    { month: "Jun", value: 2.0 },
-    { month: "Jul", value: 1.2 },
-    { month: "Aug", value: 1.4 },
-    { month: "Sep", value: 1.6 },
-    { month: "Oct", value: 1.8 },
-    { month: "Nov", value: 1.5 },
-    { month: "Dec", value: 1.3 },
-  ];
+  const graphData: GraphDataPoint[] = dashboardData?.summary?.monthlyFeedingData ?? [];
 
   const forecastData: ForecastData[] = dashboardData?.feedingPlan || [];
 
@@ -264,7 +306,7 @@ export default function MarketGrowerPage() {
                     <span className="text-[#0F614E] text-lg font-medium">ข้อมูล ณ วันที่</span>
                 </div>
                 <p className="text-2xl font-bold text-[#0F614E]">
-                  {loading ? "..." : new Date(dashboardData?.summary?.asOf || "").toLocaleDateString('th-TH') || "17/05/25"}
+                  {loading ? "..." : formatThaiDate(dashboardData?.summary?.asOf)}
                 </p>
             </div>
             <div className="w-px h-16 bg-gray-300 mx-2"></div>
@@ -274,7 +316,7 @@ export default function MarketGrowerPage() {
                     <span className="text-[#0F614E] text-lg font-medium">อุณหภูมิ</span>
                 </div>
                 <p className="text-2xl font-bold text-[#0F614E]">
-                  {loading ? "..." : `${(dashboardData?.summary?.airTemperatureC ?? 37.5).toFixed(1)} °C`}
+                  {loading ? "..." : formatTemperature(dashboardData?.summary?.airTemperatureC)}
                 </p>
             </div>
         </div>
@@ -294,22 +336,10 @@ export default function MarketGrowerPage() {
               <>
                 <div className="text-center mb-4">
                     <p className="text-xl font-medium text-[#054DD3]">
-                        {
-                          dashboardData?.summary?.temperatureDeltaC !== null && dashboardData?.summary?.temperatureDeltaC !== undefined
-                            ? `อุณหภูมิ${dashboardData?.summary?.temperatureDeltaC > 0 ? 'สูง' : 'ต่ำ'}กว่าปกติ ${Math.abs(dashboardData.summary.temperatureDeltaC).toFixed(1)}°C`
-                            : "วันนี้อุณหภูมิลดลงจากเมื่อวาน 2°C"
-                        }
+                      {buildTemperatureDeltaText(dashboardData?.summary?.temperatureDeltaC)}
                     </p>
                     <p className="text-xl font-medium text-[#054DD3]">
-                        {
-                          dashboardData?.summary?.recommendedFeedAdjustmentPct !== null && dashboardData?.summary?.recommendedFeedAdjustmentPct !== undefined
-                            ? dashboardData?.summary?.recommendedFeedAdjustmentPct > 0
-                              ? `แนะนำให้เพิ่มอาหารขึ้น ${dashboardData.summary.recommendedFeedAdjustmentPct}%`
-                              : dashboardData?.summary?.recommendedFeedAdjustmentPct < 0
-                                ? `แนะนำให้ลดอาหารลง ${Math.abs(dashboardData.summary.recommendedFeedAdjustmentPct)}%`
-                                : "ให้อาหารตามปกติ"
-                            : "แนะนำให้ลดอาหารลง"
-                        }
+                      {buildFeedAdviceText(dashboardData?.summary?.recommendedFeedAdjustmentPct)}
                     </p>
                 </div>
                 <div>
@@ -330,7 +360,7 @@ export default function MarketGrowerPage() {
                     <span className="text-base font-medium">อายุปลา (วัน)</span>
                 </div>
                 <p className="text-xl font-bold text-black text-center">
-                  31-90
+                  -
                 </p>
             </div>
             
@@ -342,7 +372,7 @@ export default function MarketGrowerPage() {
                     <span className="text-base font-medium text-center leading-tight">น้ำหนักเฉลี่ย</span>
                 </div>
                 <p className="text-xl font-bold text-black">
-                  {loading ? "..." : (dashboardData?.summary?.averageFishWeight || 1.5)}
+                  {loading ? "..." : formatAverageWeight(dashboardData?.summary?.averageFishWeight)}
                 </p> 
             </div>
         </div>
@@ -413,6 +443,11 @@ export default function MarketGrowerPage() {
                         );
                     })}
                 </svg>
+                {!loading && graphData.length === 0 && (
+                  <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">
+                    ไม่มีข้อมูล
+                  </div>
+                )}
             </div>
         </div>
 
@@ -437,10 +472,10 @@ export default function MarketGrowerPage() {
                 {/* Numbers Row */}
                 <div className="flex items-baseline justify-center gap-4 mt-1">
                   <span className="text-3xl font-bold text-[#FF2424]">
-                    {loading ? "..." : (dashboardData?.summary?.averageFishWeight || 0.3)}
+                    {loading ? "..." : formatAverageWeight(dashboardData?.summary?.averageFishWeight)}
                   </span>
                   <span className="text-[#FF2424] text-xs font-bold">
-                    ▼ ({loading ? "..." : `${dashboardData?.summary?.weightChange || -2}%`})
+                    {loading ? "..." : formatWeightChange(dashboardData?.summary?.weightChange)}
                   </span>
               </div>
           </div>
@@ -458,9 +493,13 @@ export default function MarketGrowerPage() {
                     <div className="text-sm font-bold text-[#75CFB6] text-center">สภาพอากาศ</div>
                     <div className="text-sm font-bold text-[#75CFB6] text-center">ปริมาณอาหารที่แนะนำ</div>
                 </div>
-                {loading || forecastData.length === 0 ? (
+                {loading ? (
                   <div className="text-center py-8">
                     <p className="text-gray-500">กำลังโหลด...</p>
+                  </div>
+                ) : forecastData.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">ไม่มีข้อมูล</p>
                   </div>
                 ) : (
                   <div className="space-y-5">
