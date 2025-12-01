@@ -290,7 +290,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-[60%_40%] gap-4">
           <label className="bg-[#E4F5E7] rounded-xl py-3 px-4 flex flex-col gap-1 shadow-sm border border-[#6CCF9C]/30">
             <span className="text-xs text-[#0F614E]/70">วันที่บันทึก</span>
             <div className="flex items-center">
@@ -298,7 +298,8 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                 type="date"
                 value={recordDate}
                 onChange={(event) => setRecordDate(event.target.value)}
-                className="bg-transparent text-[#093832] text-lg font-bold flex-1 focus:outline-none"
+                lang="th-TH"
+                className="bg-transparent text-[#093832] text-lg font-bold flex-1 focus:outline-none pr-6"
               />
             </div>
           </label>
@@ -309,7 +310,9 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                 type="time"
                 value={recordTime}
                 onChange={(event) => setRecordTime(event.target.value)}
-                className="bg-transparent text-[#093832] text-lg font-bold flex-1 focus:outline-none"
+                lang="th-TH"
+                inputMode="numeric"
+                className="bg-transparent text-[#093832] text-lg font-bold flex-1 focus:outline-none pr-2"
               />
             </div>
           </label>

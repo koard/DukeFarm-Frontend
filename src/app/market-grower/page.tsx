@@ -134,6 +134,16 @@ const formatAverageWeight = (value?: number | null): string => {
   return `${formatter.format(grams)} กรัม`;
 };
 
+const formatGraphWeight = (value?: number | null): string => {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "-";
+  }
+  const formatter = new Intl.NumberFormat("th-TH", {
+    maximumFractionDigits: 0,
+  });
+  return `${formatter.format(value)} กรัม`;
+};
+
 const formatGrowthRate = (value?: number | null): string => {
   if (typeof value !== "number" || Number.isNaN(value)) {
     return "-";
@@ -242,9 +252,17 @@ export default function MarketGrowerPage() {
 
   const hasDashboardData = dashboardData?.hasData;
 
-  const graphData: GraphDataPoint[] = hasDashboardData
+  const graphDataRaw: GraphDataPoint[] = hasDashboardData
     ? dashboardData?.summary?.monthlyFeedingData ?? []
     : [];
+
+  const graphData: GraphDataPoint[] = graphDataRaw.map((point) => ({
+    ...point,
+    value:
+      typeof point.value === "number" && Number.isFinite(point.value)
+        ? point.value * 1000
+        : 0,
+  }));
 
   const forecastData: ForecastData[] = hasDashboardData ? dashboardData?.feedingPlan || [] : [];
 
@@ -253,7 +271,12 @@ export default function MarketGrowerPage() {
   const weightChangeValue = summary?.weightChange ?? null;
   const latestFishAgeLabel = summary?.latestFishAgeLabel ?? null;
 
-  const getY = (val: number): number => 130 - (val / 2) * 110;
+  const MAX_GRAPH_VALUE = 2000; // grams
+  const axisValues = [2000, 1500, 1000, 500, 0];
+  const getY = (val: number): number => {
+    const clamped = Math.max(0, Math.min(MAX_GRAPH_VALUE, val));
+    return 130 - (clamped / MAX_GRAPH_VALUE) * 110;
+  };
   const getX = (index: number): number => 35 + index * 25; 
 
   const generateSmoothPath = (data: Coordinate[], tension: number = 0.4): string => {
@@ -433,16 +456,16 @@ export default function MarketGrowerPage() {
                         }}
                     >
                         <div className="text-xs text-gray-600 font-medium">ค่าเฉลี่ย</div>
-                        <div className="text-sm font-bold text-[#10B981]">{hoverData.value.toFixed(2)} Kg.</div>
+                    <div className="text-sm font-bold text-[#10B981]">{formatGraphWeight(hoverData.value)}</div>
                         <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white drop-shadow-sm"></div>
                     </div>
                 )}
 
                 <svg viewBox="0 0 320 150" className="w-full h-full overflow-visible">
-                    {[2.0, 1.5, 1.0, 0.5, 0.0].map((val) => (
+                    {axisValues.map((val) => (
                         <g key={val}>
                             <line x1="35" y1={getY(val)} x2="310" y2={getY(val)} stroke="#f0f0f0" strokeWidth="1" />
-                            <text x="25" y={getY(val) + 3} fontSize="10" fill="#999" textAnchor="end">{val}</text>
+                        <text x="25" y={getY(val) + 3} fontSize="10" fill="#999" textAnchor="end">{formatGraphWeight(val)}</text>
                         </g>
                     ))}
                     <path 
@@ -506,9 +529,8 @@ export default function MarketGrowerPage() {
                 />
             </div>
             <div className="bg-[#FFE3E3] rounded-2xl p-5 flex flex-col justify-center h-full text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Image src="/nursery-large/famicons_fish-outline.svg" alt="growth" width={20} height={20} />
-                  <span className="text-black text-sm font-medium">การเติบโตของปลา</span>
+                <div className="mb-2">
+                  <span className="text-black text-base font-semibold">การเติบโตของปลา</span>
                 </div>
                 <div className="flex flex-col items-center gap-1 mt-1">
                   <span className="text-3xl font-bold text-[#FF2424]">
