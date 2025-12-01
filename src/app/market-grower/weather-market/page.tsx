@@ -7,8 +7,20 @@ import { useLineUser } from "@/hooks/useLineUser";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { CacheManager } from "@/utils/cache";
+import L from "leaflet";
 
 import "leaflet/dist/leaflet.css";
+
+// Fix Leaflet default icon paths
+if (typeof window !== 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  delete (L.Icon.Default.prototype as any)._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  });
+}
 
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
