@@ -86,9 +86,6 @@ interface DashboardData {
       precipitationProbabilityPct: number;
       weatherCode: number;
     }>;
-    location?: {
-      name: string;
-    };
   };
   feedingPlan: {
     forecast: Array<{
@@ -151,7 +148,7 @@ export default function WeatherLargePage() {
         const { summary, feedingPlan } = dashboardData;
 
         // Set location
-        setLocationName(summary.location?.name || "ตำแหน่งฟาร์ม");
+        setLocationName("ตำแหน่งฟาร์ม");
 
         // Set current weather
         const now = new Date();

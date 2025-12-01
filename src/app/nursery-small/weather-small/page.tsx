@@ -70,13 +70,6 @@ interface HourlyForecast {
   weatherCode: number;
 }
 
-interface LocationInfo {
-  name: string;
-  district: string;
-  city: string;
-  country: string;
-}
-
 interface DashboardData {
   summary: {
     weather: {
@@ -91,7 +84,6 @@ interface DashboardData {
       precipitationProbability: number;
       weatherCode: number;
     }>;
-    location: LocationInfo | null;
   };
   feedingPlan: Array<{
     date: string;
@@ -243,7 +235,7 @@ export default function WeatherSmallPage() {
         const { summary, feedingPlan } = dashboardData;
 
         // Set location
-        setLocationName(summary.location?.name || "ตำแหน่งฟาร์ม");
+        setLocationName("ตำแหน่งฟาร์ม");
 
         // Set current weather
         if (summary.weather) {
