@@ -233,7 +233,7 @@ export default function WeatherLargePage() {
             >
               <ChevronLeft className="w-8 h-8" />
             </Link>
-            <h1 className="text-2xl font-bold">อุณหภูมิ</h1>
+            <h1 className="text-2xl font-bold">สภาพอากาศ</h1>
         </div>
 
         <div className="flex items-center gap-3">
