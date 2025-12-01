@@ -344,14 +344,6 @@ export default function WeatherSmallPage() {
                 </div>
             </div>
 
-            {/* Location name above map */}
-            {locationName && (
-              <div className="mb-2 flex items-center gap-2 px-1">
-                  <MapPin className="w-4 h-4 text-gray-500" />
-                  <p className="text-sm font-medium text-gray-700">{locationName}</p>
-              </div>
-            )}
-
             {/* Interactive map */}
             <div className="relative w-full h-[280px] bg-slate-100 rounded border border-gray-200 overflow-hidden mb-3">
                <MapContainer 
