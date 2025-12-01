@@ -130,23 +130,6 @@ const formatThaiDateTime = () => {
   return `${thaiDate} ${thaiTime}`;
 };
 
-const getUserCoordinates = (): Coordinates => {
-  try {
-    const storedUser = localStorage.getItem("user");
-    if (!storedUser) return DEFAULT_COORDS;
-
-    const parsedUser = JSON.parse(storedUser);
-    const { farmLatitude, farmLongitude } = parsedUser.farmerProfile || {};
-
-    if (farmLatitude && farmLongitude) {
-      return { lat: farmLatitude, lon: farmLongitude };
-    }
-  } catch (error) {
-    console.error("Error parsing user coordinates:", error);
-  }
-  return DEFAULT_COORDS;
-};
-
 // Component: Weather stat card
 interface WeatherStatProps {
   icon: React.ReactNode;
@@ -218,12 +201,28 @@ export default function WeatherSmallPage() {
   const lineUser = useLineUser();
 
   // State
-  const [coords] = useState<Coordinates>(getUserCoordinates);
+  const [coords, setCoords] = useState<Coordinates>(DEFAULT_COORDS);
   const [locationName, setLocationName] = useState("กำลังโหลดข้อมูล...");
   const [current, setCurrent] = useState<CurrentWeather | null>(null);
   const [daily, setDaily] = useState<DailyForecast[]>([]);
   const [hourly, setHourly] = useState<HourlyForecast[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Load user coordinates from localStorage
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        const { farmLatitude, farmLongitude } = parsedUser.farmerProfile || {};
+        if (farmLatitude && farmLongitude) {
+          setCoords({ lat: farmLatitude, lon: farmLongitude });
+        }
+      }
+    } catch (error) {
+      console.error("Error loading user coordinates:", error);
+    }
+  }, []);
 
   // Load weather data from sessionStorage
   useEffect(() => {

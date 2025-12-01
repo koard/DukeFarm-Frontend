@@ -10,7 +10,13 @@ import { CacheManager } from "@/utils/cache";
 import "leaflet/dist/leaflet.css";
 
 const MapContainer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.MapContainer),
+  () => import("react-leaflet").then((mod) => {
+    // Fix Leaflet icons when loading the map component
+    import("@/utils/leaflet-icon").then(({ fixLeafletDefaultIcon }) => {
+      fixLeafletDefaultIcon();
+    });
+    return mod.MapContainer;
+  }),
   { ssr: false }
 );
 const TileLayer = dynamic(
@@ -97,17 +103,6 @@ interface DashboardData {
 }
 
 const DASHBOARD_CACHE_KEY = "nurseryLargeDashboard";
-
-const MapContainer = dynamic(
-  () => import("react-leaflet").then((mod) => {
-    // Fix Leaflet icons when loading the map component
-    import("@/utils/leaflet-icon").then(({ fixLeafletDefaultIcon }) => {
-      fixLeafletDefaultIcon();
-    });
-    return mod.MapContainer;
-  }),
-  { ssr: false }
-);
 
 export default function WeatherLargePage() {
   const router = useRouter();
