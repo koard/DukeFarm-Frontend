@@ -1,11 +1,12 @@
 "use client";
 
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Cloud, CloudRain, CloudSun, Sun, Droplets, Wind, MapPin, Navigation, ArrowUp, ArrowDown } from "lucide-react";
 import Link from "next/link";
-import { useLineUser } from "@/hooks/useLineUser";
-import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import { ChevronLeft, Cloud, CloudRain, CloudSun, Sun, Droplets, Wind, MapPin, ArrowUp, ArrowDown } from "lucide-react";
+import { useLineUser } from "@/hooks/useLineUser";
+import { CacheManager } from "@/utils/cache";
 
 import "leaflet/dist/leaflet.css";
 
@@ -40,14 +41,12 @@ const RecenterAutomatically = dynamic(
   { ssr: false }
 );
 
-const getWeatherInfo = (code: number) => {
-  if (code === 0) return { label: "ฟ้าโปร่ง", icon: <Sun className="w-8 h-8 text-orange-400" /> };
-  if (code >= 1 && code <= 3) return { label: "มีเมฆ", icon: <CloudSun className="w-8 h-8 text-yellow-500" /> };
-  if (code >= 45 && code <= 48) return { label: "มีหมอก", icon: <Cloud className="w-8 h-8 text-gray-400" /> };
-  if (code >= 51 && code <= 67) return { label: "ฝนปรอย", icon: <CloudRain className="w-8 h-8 text-blue-400" /> };
-  if (code >= 80 && code <= 99) return { label: "พายุฝน", icon: <CloudRain className="w-8 h-8 text-purple-500" /> };
-  return { label: "ฝนตก", icon: <CloudRain className="w-8 h-8 text-blue-500" /> };
-};
+// Types
+interface Coordinates {
+  lat: number;
+  lon: number;
+}
+
 
 interface CurrentWeather {
   temp: number;
@@ -71,124 +70,241 @@ interface HourlyForecast {
   weatherCode: number;
 }
 
-export default function WeatherLargePage() {
+interface LocationInfo {
+  name: string;
+  district: string;
+  city: string;
+  country: string;
+}
+
+interface DashboardData {
+  summary: {
+    weather: {
+      temperatureC: number;
+      humidityPct: number;
+      rainMm: number;
+      weatherCode: number;
+    } | null;
+    hourlyForecast: Array<{
+      time: string;
+      temperatureC: number;
+      precipitationProbability: number;
+      weatherCode: number;
+    }>;
+    location: LocationInfo | null;
+  };
+  feedingPlan: Array<{
+    date: string;
+    highTemperatureC: number;
+    lowTemperatureC: number;
+    weatherCode: number;
+  }>;
+}
+
+interface WeatherInfo {
+  label: string;
+  icon: React.ReactNode;
+}
+
+// Constants
+const DEFAULT_COORDS: Coordinates = { lat: 13.7563, lon: 100.5018 }; // Bangkok
+const DASHBOARD_CACHE_KEY = "nurserySmallDashboard";
+const LOCALE_TH = 'th-TH';
+
+// Utility functions
+const getWeatherInfo = (code: number): WeatherInfo => {
+  if (code === 0) return { label: "ฟ้าโปร่ง", icon: <Sun className="w-8 h-8 text-orange-400" /> };
+  if (code >= 1 && code <= 3) return { label: "มีเมฆ", icon: <CloudSun className="w-8 h-8 text-yellow-500" /> };
+  if (code >= 45 && code <= 48) return { label: "มีหมอก", icon: <Cloud className="w-8 h-8 text-gray-400" /> };
+  if (code >= 51 && code <= 67) return { label: "ฝนปรอย", icon: <CloudRain className="w-8 h-8 text-blue-400" /> };
+  if (code >= 80 && code <= 99) return { label: "พายุฝน", icon: <CloudRain className="w-8 h-8 text-purple-500" /> };
+  return { label: "ฝนตก", icon: <CloudRain className="w-8 h-8 text-blue-500" /> };
+};
+
+const formatThaiDateTime = () => {
+  const now = new Date();
+  const thaiDate = now.toLocaleDateString(LOCALE_TH, { 
+    weekday: 'long', 
+    day: 'numeric', 
+    month: 'long', 
+    year: 'numeric' 
+  });
+  const thaiTime = now.toLocaleTimeString(LOCALE_TH, { hour: '2-digit', minute: '2-digit' });
+  return `${thaiDate} ${thaiTime}`;
+};
+
+const getUserCoordinates = (): Coordinates => {
+  try {
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) return DEFAULT_COORDS;
+
+    const parsedUser = JSON.parse(storedUser);
+    const { farmLatitude, farmLongitude } = parsedUser.farmerProfile || {};
+
+    if (farmLatitude && farmLongitude) {
+      return { lat: farmLatitude, lon: farmLongitude };
+    }
+  } catch (error) {
+    console.error("Error parsing user coordinates:", error);
+  }
+  return DEFAULT_COORDS;
+};
+
+// Component: Weather stat card
+interface WeatherStatProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  bgColor: string;
+}
+
+const WeatherStat = ({ icon, label, value, bgColor }: WeatherStatProps) => (
+  <div className={`${bgColor} p-2 rounded-lg`}>
+    {icon}
+    <p className="text-[10px] text-gray-500">{label}</p>
+    <p className="font-bold text-gray-700 text-xs truncate">{value}</p>
+  </div>
+);
+
+// Component: Hourly forecast card
+interface HourlyCardProps {
+  hour: HourlyForecast;
+}
+
+const HourlyCard = ({ hour }: HourlyCardProps) => {
+  const info = getWeatherInfo(hour.weatherCode);
+  return (
+    <div className="flex flex-col items-center min-w-[85px] bg-gray-50 p-2 rounded-xl border border-gray-100">
+      <span className="text-xs text-gray-500 mb-1">{hour.time}</span>
+      <div className="flex flex-col items-center justify-center h-14">
+        {info.icon}
+        <span className="text-[10px] text-gray-600 font-medium mt-1 text-center leading-none">
+          {info.label}
+        </span>
+      </div>
+      <span className="text-lg font-bold text-gray-700 mt-1">{Math.round(hour.temp)}°</span>
+      <span className="text-[10px] text-blue-500 flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-full mt-1">
+        <Droplets className="w-3 h-3"/> ฝน {hour.rainProb}%
+      </span>
+    </div>
+  );
+};
+
+// Component: Daily forecast row
+interface DailyRowProps {
+  day: DailyForecast;
+}
+
+const DailyRow = ({ day }: DailyRowProps) => {
+  const info = getWeatherInfo(day.weatherCode);
+  return (
+    <div className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
+      <div className="w-24 text-sm font-medium text-gray-600">{day.date}</div>
+      <div className="flex flex-col items-center w-24">
+        {info.icon}
+        <span className="text-[10px] text-gray-500 mt-1 text-center">{info.label}</span>
+      </div>
+      <div className="flex flex-col items-end gap-1 w-20">
+        <span className="text-sm font-bold text-orange-500 flex items-center gap-1">
+          <ArrowUp className="w-3 h-3"/> {Math.round(day.tempMax)}°
+        </span>
+        <span className="text-sm font-medium text-blue-500 flex items-center gap-1">
+          <ArrowDown className="w-3 h-3"/> {Math.round(day.tempMin)}°
+        </span>
+      </div>
+    </div>
+  );
+};
+
+export default function WeatherSmallPage() {
   const router = useRouter();
   const lineUser = useLineUser();
 
-  // ตั้งค่าเริ่มต้นเป็น กทม. ก่อน (กันเหนียว)
-  const [coords, setCoords] = useState({ lat: 13.7563, lon: 100.5018 });
-  const [locationName, setLocationName] = useState("กำลังโหลดข้อมูลฟาร์ม...");
-  
+  // State
+  const [coords] = useState<Coordinates>(getUserCoordinates);
+  const [locationName, setLocationName] = useState("กำลังโหลดข้อมูล...");
   const [current, setCurrent] = useState<CurrentWeather | null>(null);
   const [daily, setDaily] = useState<DailyForecast[]>([]);
   const [hourly, setHourly] = useState<HourlyForecast[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Load weather data from sessionStorage
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-        try {
-            const parsedUser = JSON.parse(storedUser);
-            if (parsedUser.farmerProfile?.farmLatitude && parsedUser.farmerProfile?.farmLongitude) {
-                setCoords({
-                    lat: parsedUser.farmerProfile.farmLatitude,
-                    lon: parsedUser.farmerProfile.farmLongitude
-                });
-                console.log("📍 ใช้พิกัดจากฟาร์ม:", parsedUser.farmerProfile.farmLatitude, parsedUser.farmerProfile.farmLongitude);
-            } else {
-                console.warn("⚠️ ไม่พบพิกัดฟาร์มใน LocalStorage ใช้ค่าเริ่มต้น");
-                setLocationName("ไม่พบพิกัดฟาร์ม");
-            }
-        } catch (error) {
-            console.error("Error parsing user data:", error);
-        }
-    }
-  }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
+    const loadWeatherData = () => {
       try {
         setLoading(true);
+        const dashboardData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
+        
+        if (!dashboardData) {
+          console.warn("ไม่พบข้อมูลใน cache หรือข้อมูลหมดอายุ");
+          setLocationName("ไม่พบข้อมูล - กรุณากลับไปหน้าหลัก");
+          return;
+        }
+        const { summary, feedingPlan } = dashboardData;
 
-        try {
-            const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lon}&accept-language=th`);
-            const geoData = await geoRes.json();
-            const address = geoData.address;
-            const district = address.suburb || address.city_district || address.town || "";
-            const city = address.city || address.state || "";
-            
-            if (district && city) {
-                 setLocationName(`${district}, ${city}`);
-            } else {
-                 setLocationName(city || district || "ตำแหน่งฟาร์ม");
-            }
+        // Set location
+        setLocationName(summary.location?.name || "ตำแหน่งฟาร์ม");
 
-        } catch (e) {
-            setLocationName(`พิกัด: ${coords.lat.toFixed(2)}, ${coords.lon.toFixed(2)}`);
+        // Set current weather
+        if (summary.weather) {
+          setCurrent({
+            temp: summary.weather.temperatureC,
+            humidity: summary.weather.humidityPct || 0,
+            rain: summary.weather.rainMm || 0,
+            weatherCode: summary.weather.weatherCode || 0,
+            time: formatThaiDateTime()
+          });
         }
 
-        const res = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,rain,weather_code&hourly=temperature_2m,precipitation_probability,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Asia%2FBangkok`
-        );
-        const data = await res.json();
-
-        const now = new Date();
-        const thaiDate = now.toLocaleDateString('th-TH', { 
-            weekday: 'long', 
+        // Set daily forecast
+        const dailyData = feedingPlan.map((item) => ({
+          date: new Date(item.date).toLocaleDateString(LOCALE_TH, { 
+            weekday: 'short', 
             day: 'numeric', 
-            month: 'long', 
-            year: 'numeric' 
-        });
-        const thaiTime = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-
-        setCurrent({
-          temp: data.current.temperature_2m,
-          humidity: data.current.relative_humidity_2m,
-          rain: data.current.rain,
-          weatherCode: data.current.weather_code,
-          time: `${thaiDate} ${thaiTime}`
-        });
-
-        const dailyData = data.daily.time.map((t: string, i: number) => ({
-          date: new Date(t).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' }),
-          tempMax: data.daily.temperature_2m_max[i],
-          tempMin: data.daily.temperature_2m_min[i],
-          weatherCode: data.daily.weather_code[i]
+            month: 'short' 
+          }),
+          tempMax: item.highTemperatureC,
+          tempMin: item.lowTemperatureC,
+          weatherCode: item.weatherCode
         }));
         setDaily(dailyData);
 
-        const currentHour = new Date().getHours();
-        const hourlyData = data.hourly.time.slice(currentHour, currentHour + 24).map((t: string, i: number) => ({
-            time: new Date(t).toLocaleTimeString('th-TH', { hour: 'numeric', minute: '2-digit' }),
-            temp: data.hourly.temperature_2m[currentHour + i],
-            rainProb: data.hourly.precipitation_probability[currentHour + i],
-            weatherCode: data.hourly.weather_code[currentHour + i]
+        // Set hourly forecast
+        const hourlyData = summary.hourlyForecast.slice(0, 24).map((item) => ({
+          time: new Date(item.time).toLocaleTimeString(LOCALE_TH, { 
+            hour: 'numeric', 
+            minute: '2-digit' 
+          }),
+          temp: item.temperatureC,
+          rainProb: item.precipitationProbability,
+          weatherCode: item.weatherCode
         }));
         setHourly(hourlyData);
 
       } catch (error) {
-        console.error("Failed to fetch data", error);
+        console.error("ไม่สามารถโหลดข้อมูลสภาพอากาศ:", error);
+        setLocationName("เกิดข้อผิดพลาด");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, [coords]);
-
-  useEffect(() => {
-    import("leaflet").then((L) => {
-        // @ts-ignore
-        delete L.Icon.Default.prototype._getIconUrl;
-        L.Icon.Default.mergeOptions({
-            iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-            iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-            shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-        });
-    });
+    loadWeatherData();
   }, []);
 
-  const currentWeatherInfo = current ? getWeatherInfo(current.weatherCode) : { label: "...", icon: null };
+  // Memoized values
+  const currentWeatherInfo = useMemo(
+    () => current ? getWeatherInfo(current.weatherCode) : { label: "...", icon: null },
+    [current]
+  );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-500">กำลังโหลดข้อมูลสภาพอากาศ...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -236,7 +352,16 @@ export default function WeatherLargePage() {
                 </div>
             </div>
 
-            <div className="relative w-full h-[280px] bg-slate-100 rounded border border-gray-200 overflow-hidden mb-3 z-0">
+            {/* Location name above map */}
+            {locationName && (
+              <div className="mb-2 flex items-center gap-2 px-1">
+                  <MapPin className="w-4 h-4 text-gray-500" />
+                  <p className="text-sm font-medium text-gray-700">{locationName}</p>
+              </div>
+            )}
+
+            {/* Interactive map */}
+            <div className="relative w-full h-[280px] bg-slate-100 rounded border border-gray-200 overflow-hidden mb-3">
                <MapContainer 
                   key={`${coords.lat}-${coords.lon}`} 
                   center={[coords.lat, coords.lon]} 
@@ -249,121 +374,100 @@ export default function WeatherLargePage() {
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
                     <Marker position={[coords.lat, coords.lon]}>
-                        <Popup>
-                            ตำแหน่งฟาร์มของคุณ
-                        </Popup>
+                        <Popup>ตำแหน่งฟาร์มของคุณ</Popup>
                     </Marker>
                     <RecenterAutomatically lat={coords.lat} lon={coords.lon} />
                </MapContainer>
-               
-               <button 
-                onClick={() => {
-
-                   const mapEvent = new CustomEvent('reset-map-view');
-                   window.dispatchEvent(mapEvent); 
-                }}
-                className="absolute top-2 right-2 z-[1000] bg-white p-2 rounded shadow-md text-gray-600 hover:text-blue-600"
-                title="กลับไปที่ตั้งฟาร์ม"
-               >
-                   <MapPin className="w-5 h-5" />
-               </button>
             </div>
 
+            {/* Weather stats */}
             <div className="grid grid-cols-3 gap-2 mt-4 text-center">
-                 <div className="bg-blue-50 p-2 rounded-lg">
-                    <Droplets className="w-5 h-5 mx-auto text-blue-500 mb-1"/>
-                    <p className="text-[10px] text-gray-500">ความชื้น</p>
-                    <p className="font-bold text-gray-700">{current?.humidity}%</p>
-                 </div>
-                 <div className="bg-gray-50 p-2 rounded-lg">
-                    <CloudRain className="w-5 h-5 mx-auto text-gray-500 mb-1"/>
-                    <p className="text-[10px] text-gray-500">ปริมาณฝน</p>
-                    <p className="font-bold text-gray-700">{current?.rain} มม.</p>
-                 </div>
-                 <div className="bg-yellow-50 p-2 rounded-lg">
-                    <Wind className="w-5 h-5 mx-auto text-yellow-600 mb-1"/>
-                    <p className="text-[10px] text-gray-500">สภาพอากาศ</p>
-                    <p className="font-bold text-gray-700 text-xs truncate">{currentWeatherInfo.label}</p>
-                 </div>
+                 <WeatherStat
+                    icon={<Droplets className="w-5 h-5 mx-auto text-blue-500 mb-1"/>}
+                    label="ความชื้น"
+                    value={`${current?.humidity || 0}%`}
+                    bgColor="bg-blue-50"
+                 />
+                 <WeatherStat
+                    icon={<CloudRain className="w-5 h-5 mx-auto text-gray-500 mb-1"/>}
+                    label="ปริมาณฝน"
+                    value={`${current?.rain || 0} มม.`}
+                    bgColor="bg-gray-50"
+                 />
+                 <WeatherStat
+                    icon={<Wind className="w-5 h-5 mx-auto text-yellow-600 mb-1"/>}
+                    label="สภาพอากาศ"
+                    value={currentWeatherInfo.label}
+                    bgColor="bg-yellow-50"
+                 />
             </div>
         </div>
 
-        {/* --- รายชั่วโมง --- */}
+        {/* Hourly forecast */}
         <div className="mt-4 bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
             <h3 className="text-[#4A4A4A] text-lg font-bold mb-4">พยากรณ์รายชั่วโมง</h3>
             <div className="flex overflow-x-auto gap-3 pb-4 scrollbar-hide">
-                {hourly.length > 0 ? hourly.map((h, i) => {
-                    const info = getWeatherInfo(h.weatherCode);
-                    return (
-                        <div key={i} className="flex flex-col items-center min-w-[85px] bg-gray-50 p-2 rounded-xl border border-gray-100">
-                            <span className="text-xs text-gray-500 mb-1">{h.time}</span>
-                            
-                            <div className="flex flex-col items-center justify-center h-14">
-                                {info.icon}
-                                <span className="text-[10px] text-gray-600 font-medium mt-1 text-center leading-none">{info.label}</span>
-                            </div>
-
-                            <span className="text-lg font-bold text-gray-700 mt-1">{Math.round(h.temp)}°</span>
-                            <span className="text-[10px] text-blue-500 flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-full mt-1">
-                                <Droplets className="w-3 h-3"/> ฝน {h.rainProb}%
-                            </span>
-                        </div>
-                    );
-                }) : (
-                    <p className="text-gray-400 text-sm w-full text-center">กำลังโหลดข้อมูล...</p>
+                {hourly.length > 0 ? (
+                  hourly.map((hour, i) => <HourlyCard key={i} hour={hour} />)
+                ) : (
+                  <p className="text-gray-400 text-sm w-full text-center">กำลังโหลดข้อมูล...</p>
                 )}
             </div>
         </div>
 
-        {/* --- 7 วันล่วงหน้า --- */}
+        {/* 7-day forecast */}
         <div className="mt-4 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
              <div className="p-4 pb-2 border-b border-gray-50 bg-gray-50/50">
                 <div className="flex justify-between items-center">
                     <h3 className="text-[#4A4A4A] text-lg font-bold">7 วันล่วงหน้า</h3>
                     <div className="flex gap-3 text-[10px] text-gray-500">
-                        <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-orange-500"></div>สูงสุด</span>
-                        <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-blue-500"></div>ต่ำสุด</span>
+                        <span className="flex items-center gap-1">
+                          <div className="w-2 h-2 rounded-full bg-orange-500" />
+                          สูงสุด
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <div className="w-2 h-2 rounded-full bg-blue-500" />
+                          ต่ำสุด
+                        </span>
                     </div>
                 </div>
              </div>
              
              <div className="divide-y divide-gray-50">
-                {daily.length > 0 ? daily.map((item, index) => {
-                    const info = getWeatherInfo(item.weatherCode);
-                    return (
-                        <div key={index} className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
-                            <div className="w-24 text-sm font-medium text-gray-600">{item.date}</div>
-                            
-                            <div className="flex flex-col items-center w-24">
-                                 {info.icon}
-                                 <span className="text-[10px] text-gray-500 mt-1 text-center">{info.label}</span>
-                            </div>
-
-                            <div className="flex flex-col items-end gap-1 w-20">
-                                 <span className="text-sm font-bold text-orange-500 flex items-center gap-1">
-                                    <ArrowUp className="w-3 h-3"/> {Math.round(item.tempMax)}°
-                                 </span>
-                                 <span className="text-sm font-medium text-blue-500 flex items-center gap-1">
-                                    <ArrowDown className="w-3 h-3"/> {Math.round(item.tempMin)}°
-                                 </span>
-                            </div>
-                        </div>
-                    );
-                }) : (
-                     <div className="p-4 text-center text-gray-400">กำลังโหลดข้อมูล...</div>
+                {daily.length > 0 ? (
+                  daily.map((day, index) => <DailyRow key={index} day={day} />)
+                ) : (
+                  <div className="p-4 text-center text-gray-400">กำลังโหลดข้อมูล...</div>
                 )}
              </div>
         </div>
 
-        {/* --- Footer --- */}
-        <div className="mt-6 mb-10 text-center">
+        {/* Footer */}
+        <footer className="mt-6 mb-10 text-center space-y-1">
             <p className="text-[10px] text-gray-400">
-                ข้อมูลสภาพอากาศโดย <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">Open-Meteo.com</a>
+                ข้อมูลสภาพอากาศโดย{" "}
+                <a 
+                  href="https://open-meteo.com/" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="underline hover:text-gray-600"
+                >
+                  Open-Meteo.com
+                </a>
             </p>
             <p className="text-[10px] text-gray-400">
-                ข้อมูลแผนที่ © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">OpenStreetMap</a> contributors
+                ข้อมูลแผนที่ ©{" "}
+                <a 
+                  href="https://www.openstreetmap.org/copyright" 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="underline hover:text-gray-600"
+                >
+                  OpenStreetMap
+                </a>
+                {" "}contributors
             </p>
-        </div>
+        </footer>
 
       </div>
 

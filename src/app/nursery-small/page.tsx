@@ -1,12 +1,13 @@
 "use client";
 
+import { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useLineUser } from "@/hooks/useLineUser";
-import { useEffect, useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { CacheManager, CACHE_TTL } from "@/utils/cache";
 
-// ตาม API spec response structure
+// Types
 interface ForecastData {
   date: string;
   highTemperatureC: number;
@@ -16,16 +17,6 @@ interface ForecastData {
   weatherCode: number;
 }
 
-// Map weather code to icon file name based on WMO standard and available icons
-const getWeatherIconFromCode = (code: number): string => {
-  if (code <= 1) return 'fluent_weather-sunny.svg'; // WMO 0-1: Clear, Mainly clear
-  if (code <= 3) return 'fluent-color_weather-sunny.svg'; // WMO 2-3: Partly cloudy, Overcast
-  if (code >= 51 && code <= 67) return 'fluent_weather-rain-snow.svg'; // WMO 51-67: Drizzle, Rain
-  if (code >= 80 && code <= 82) return 'fluent_weather-rain-snow.svg'; // WMO 80-82: Rain showers
-  if (code >= 95 && code <= 99) return 'fluent_weather-hail-day.svg'; // WMO 95-99: Thunderstorm
-  // Default for fog, snow, etc.
-  return 'fluent-color_weather-sunny.svg';
-};
 
 interface WeatherData {
   time: string;
@@ -52,6 +43,20 @@ interface DashboardData {
   feedingPlan: ForecastData[];
 }
 
+// Constants
+const API_BASE_URL = "https://dukefarm-backend.onrender.com/api";
+const DASHBOARD_CACHE_KEY = "nurserySmallDashboard";
+
+// Utility functions
+const getWeatherIconFromCode = (code: number): string => {
+  if (code <= 1) return 'fluent_weather-sunny.svg';
+  if (code <= 3) return 'fluent-color_weather-sunny.svg';
+  if (code >= 51 && code <= 67) return 'fluent_weather-rain-snow.svg';
+  if (code >= 80 && code <= 82) return 'fluent_weather-rain-snow.svg';
+  if (code >= 95 && code <= 99) return 'fluent_weather-hail-day.svg';
+  return 'fluent-color_weather-sunny.svg';
+};
+
 export default function NurserySmallPage() {
   const lineUser = useLineUser();
   const router = useRouter();
@@ -61,8 +66,9 @@ export default function NurserySmallPage() {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Fetch dashboard data with caching
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const loadDashboard = async () => {
       try {
         const token = localStorage.getItem("authToken");
         if (!token) {
@@ -70,21 +76,27 @@ export default function NurserySmallPage() {
           return;
         }
 
-        // ตาม API spec: GET /dashboard/groups/:groupType
-        const response = await fetch("https://dukefarm-backend.onrender.com/api/dashboard/groups/NURSERY_SMALL", {
-          method: "GET",
+        // Check cache first (with TTL)
+        const cachedData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
+        if (cachedData) {
+          setDashboardData(cachedData);
+          setLoading(false);
+          return;
+        }
+
+        // Fetch from API
+        const response = await fetch(`${API_BASE_URL}/dashboard/groups/NURSERY_SMALL`, {
           headers: {
             "Authorization": `Bearer ${token}`,
             "Content-Type": "application/json"
           }
         });
 
-        if (!response.ok) {
-          throw new Error("ไม่สามารถดึงข้อมูลได้");
-        }
+        if (!response.ok) throw new Error("Failed to fetch dashboard data");
 
         const result = await response.json();
         setDashboardData(result.data);
+        CacheManager.set(DASHBOARD_CACHE_KEY, result.data, CACHE_TTL.DASHBOARD);
       } catch (err) {
         console.error("Dashboard error:", err);
         setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
@@ -93,7 +105,7 @@ export default function NurserySmallPage() {
       }
     };
 
-    fetchDashboardData();
+    loadDashboard();
   }, [router]);
 
   // Close dropdown when clicking outside
@@ -108,14 +120,18 @@ export default function NurserySmallPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     localStorage.removeItem("authToken");
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("user");
+    sessionStorage.clear();
     router.push("/login");
-  };
+  }, [router]);
 
-  const forecastData: ForecastData[] = dashboardData?.feedingPlan || [];
+  const forecastData = useMemo(
+    () => dashboardData?.feedingPlan || [],
+    [dashboardData]
+  );
 
   return (
     <div className="min-h-screen bg-white pb-10">

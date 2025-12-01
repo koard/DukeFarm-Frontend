@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useLineUser } from "@/hooks/useLineUser";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import { CacheManager } from "@/utils/cache";
 
 import "leaflet/dist/leaflet.css";
 
@@ -71,6 +72,36 @@ interface HourlyForecast {
   weatherCode: number;
 }
 
+interface DashboardData {
+  summary: {
+    weather: {
+      temperatureC: number;
+      humidityPct: number;
+      rainMm: number;
+      weatherCode: number;
+    };
+    hourlyForecast?: Array<{
+      time: string;
+      temperatureC: number;
+      precipitationProbabilityPct: number;
+      weatherCode: number;
+    }>;
+    location?: {
+      name: string;
+    };
+  };
+  feedingPlan: {
+    forecast: Array<{
+      date: string;
+      highTemperatureC: number;
+      lowTemperatureC: number;
+      weatherCode: number;
+    }>;
+  };
+}
+
+const DASHBOARD_CACHE_KEY = "marketGrowerDashboard";
+
 export default function WeatherLargePage() {
   const router = useRouter();
   const lineUser = useLineUser();
@@ -106,32 +137,23 @@ export default function WeatherLargePage() {
   }, []);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const loadWeatherData = () => {
       try {
         setLoading(true);
-
-        try {
-            const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lon}&accept-language=th`);
-            const geoData = await geoRes.json();
-            const address = geoData.address;
-            const district = address.suburb || address.city_district || address.town || "";
-            const city = address.city || address.state || "";
-            
-            if (district && city) {
-                 setLocationName(`${district}, ${city}`);
-            } else {
-                 setLocationName(city || district || "ตำแหน่งฟาร์ม");
-            }
-
-        } catch (e) {
-            setLocationName(`พิกัด: ${coords.lat.toFixed(2)}, ${coords.lon.toFixed(2)}`);
+        const dashboardData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
+        
+        if (!dashboardData) {
+          console.warn("ไม่พบข้อมูลใน cache หรือข้อมูลหมดอายุ");
+          setLocationName("ไม่พบข้อมูล - กรุณากลับไปหน้าหลัก");
+          return;
         }
 
-        const res = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,rain,weather_code&hourly=temperature_2m,precipitation_probability,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Asia%2FBangkok`
-        );
-        const data = await res.json();
+        const { summary, feedingPlan } = dashboardData;
 
+        // Set location
+        setLocationName(summary.location?.name || "ตำแหน่งฟาร์ม");
+
+        // Set current weather
         const now = new Date();
         const thaiDate = now.toLocaleDateString('th-TH', { 
             weekday: 'long', 
@@ -141,40 +163,49 @@ export default function WeatherLargePage() {
         });
         const thaiTime = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
 
-        setCurrent({
-          temp: data.current.temperature_2m,
-          humidity: data.current.relative_humidity_2m,
-          rain: data.current.rain,
-          weatherCode: data.current.weather_code,
-          time: `${thaiDate} ${thaiTime}`
-        });
+        if (summary.weather) {
+          setCurrent({
+            temp: summary.weather.temperatureC,
+            humidity: summary.weather.humidityPct || 0,
+            rain: summary.weather.rainMm || 0,
+            weatherCode: summary.weather.weatherCode || 0,
+            time: `${thaiDate} ${thaiTime}`
+          });
 
-        const dailyData = data.daily.time.map((t: string, i: number) => ({
-          date: new Date(t).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' }),
-          tempMax: data.daily.temperature_2m_max[i],
-          tempMin: data.daily.temperature_2m_min[i],
-          weatherCode: data.daily.weather_code[i]
-        }));
-        setDaily(dailyData);
+        }
 
-        const currentHour = new Date().getHours();
-        const hourlyData = data.hourly.time.slice(currentHour, currentHour + 24).map((t: string, i: number) => ({
-            time: new Date(t).toLocaleTimeString('th-TH', { hour: 'numeric', minute: '2-digit' }),
-            temp: data.hourly.temperature_2m[currentHour + i],
-            rainProb: data.hourly.precipitation_probability[currentHour + i],
-            weatherCode: data.hourly.weather_code[currentHour + i]
-        }));
-        setHourly(hourlyData);
+        // Set daily forecast
+        if (feedingPlan?.forecast) {
+          const dailyData = feedingPlan.forecast.map(day => ({
+            date: new Date(day.date).toLocaleDateString('th-TH', { weekday: 'short', day: 'numeric', month: 'short' }),
+            tempMax: day.highTemperatureC,
+            tempMin: day.lowTemperatureC,
+            weatherCode: day.weatherCode
+          }));
+          setDaily(dailyData);
+        }
+
+        // Set hourly forecast
+        if (summary.hourlyForecast) {
+          const next24Hours = summary.hourlyForecast.slice(0, 24).map(hour => ({
+            time: new Date(hour.time).toLocaleTimeString('th-TH', { hour: 'numeric', minute: '2-digit' }),
+            temp: hour.temperatureC,
+            rainProb: hour.precipitationProbabilityPct || 0,
+            weatherCode: hour.weatherCode
+          }));
+          setHourly(next24Hours);
+        }
 
       } catch (error) {
-        console.error("Failed to fetch data", error);
+        console.error("Error loading weather from cache:", error);
+        setLocationName("ไม่สามารถโหลดข้อมูลสภาพอากาศได้");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, [coords]);
+    loadWeatherData();
+  }, []);
 
   useEffect(() => {
     import("leaflet").then((L) => {
