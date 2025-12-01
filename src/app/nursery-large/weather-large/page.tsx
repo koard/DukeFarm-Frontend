@@ -7,8 +7,6 @@ import { useLineUser } from "@/hooks/useLineUser";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { CacheManager } from "@/utils/cache";
-import { fixLeafletDefaultIcon } from "@/utils/leaflet-icon";
-
 import "leaflet/dist/leaflet.css";
 
 const MapContainer = dynamic(
@@ -100,6 +98,17 @@ interface DashboardData {
 
 const DASHBOARD_CACHE_KEY = "nurseryLargeDashboard";
 
+const MapContainer = dynamic(
+  () => import("react-leaflet").then((mod) => {
+    // Fix Leaflet icons when loading the map component
+    import("@/utils/leaflet-icon").then(({ fixLeafletDefaultIcon }) => {
+      fixLeafletDefaultIcon();
+    });
+    return mod.MapContainer;
+  }),
+  { ssr: false }
+);
+
 export default function WeatherLargePage() {
   const router = useRouter();
   const lineUser = useLineUser();
@@ -112,11 +121,6 @@ export default function WeatherLargePage() {
   const [daily, setDaily] = useState<DailyForecast[]>([]);
   const [hourly, setHourly] = useState<HourlyForecast[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Fix Leaflet default icon paths
-  useEffect(() => {
-    fixLeafletDefaultIcon();
-  }, []);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");

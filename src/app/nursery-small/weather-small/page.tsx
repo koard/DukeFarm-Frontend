@@ -7,12 +7,16 @@ import dynamic from "next/dynamic";
 import { ChevronLeft, Cloud, CloudRain, CloudSun, Sun, Droplets, Wind, MapPin, ArrowUp, ArrowDown } from "lucide-react";
 import { useLineUser } from "@/hooks/useLineUser";
 import { CacheManager } from "@/utils/cache";
-import { fixLeafletDefaultIcon } from "@/utils/leaflet-icon";
-
 import "leaflet/dist/leaflet.css";
 
 const MapContainer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.MapContainer),
+  () => import("react-leaflet").then((mod) => {
+    // Fix Leaflet icons when loading the map component
+    import("@/utils/leaflet-icon").then(({ fixLeafletDefaultIcon }) => {
+      fixLeafletDefaultIcon();
+    });
+    return mod.MapContainer;
+  }),
   { ssr: false }
 );
 const TileLayer = dynamic(
@@ -220,11 +224,6 @@ export default function WeatherSmallPage() {
   const [daily, setDaily] = useState<DailyForecast[]>([]);
   const [hourly, setHourly] = useState<HourlyForecast[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Fix Leaflet default icon paths
-  useEffect(() => {
-    fixLeafletDefaultIcon();
-  }, []);
 
   // Load weather data from sessionStorage
   useEffect(() => {
