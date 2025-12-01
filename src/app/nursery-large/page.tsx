@@ -128,7 +128,7 @@ export default function NurseryLargePage() {
       }
     };
 
-    fetchDashboardData();
+    loadDashboard();
   }, [router]);
 
   // Close dropdown when clicking outside
