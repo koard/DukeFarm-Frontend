@@ -67,14 +67,6 @@ const safeNumber = (value: number | null | undefined, suffix: string) => {
 
 const displayText = (value: string | null | undefined) => value && value.length > 0 ? value : '--';
 
-const sanitizeTimeInput = (value: string): string => {
-  const numeric = value.replace(/[^0-9]/g, '').slice(0, 4);
-  if (numeric.length <= 2) {
-    return numeric;
-  }
-  return `${numeric.slice(0, 2)}:${numeric.slice(2)}`;
-};
-
 const normalizeTimeValue = (value: string, fallback: string): string => {
   if (!value || !value.includes(':')) {
     return fallback;
@@ -89,8 +81,6 @@ const normalizeTimeValue = (value: string, fallback: string): string => {
   const safeMinutes = Math.min(59, Math.max(0, minutes));
   return `${String(safeHours).padStart(2, '0')}:${String(safeMinutes).padStart(2, '0')}`;
 };
-
-const isCompleteTime = (value: string): boolean => /^\d{2}:\d{2}$/.test(value);
 
 export type WeatherSnapshot = {
   observedAt: string | null;
@@ -191,7 +181,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
   const isFormValid = Boolean(
     recordDate &&
-      isCompleteTime(recordTime) &&
+      recordTime &&
       selectedAge &&
       selectedPondType &&
       pondCount &&
@@ -334,13 +324,10 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             <span className="text-xs text-[#0F614E]/70">เวลา</span>
             <div className="flex items-center gap-1">
               <input
-                type="text"
+                type="time"
                 value={recordTime}
-                onChange={(event) => setRecordTime(sanitizeTimeInput(event.target.value.replace('น.', '')))}
-                onBlur={() => setRecordTime((prev) => normalizeTimeValue(prev, formatInputTime(now)))}
-                placeholder="เช่น 14:30"
-                inputMode="numeric"
-                pattern="^\d{2}:\d{2}$"
+                onChange={(event) => setRecordTime(event.target.value)}
+                lang="th-TH"
                 className="bg-transparent text-[#093832] text-lg font-bold flex-1 focus:outline-none pr-2"
               />
               <span className="text-[#093832] text-base font-bold">น.</span>

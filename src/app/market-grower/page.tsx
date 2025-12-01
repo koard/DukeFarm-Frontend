@@ -69,6 +69,7 @@ interface DashboardData {
 // Constants
 const API_BASE_URL = "https://dukefarm-backend.onrender.com/api";
 const DASHBOARD_CACHE_KEY = "growoutDashboard";
+const MARKET_GROWER_COMFORT_ZONE = "26-36°C";
 
 // Utility functions
 const getWeatherIconFromCode = (code: number): string => {
@@ -411,7 +412,7 @@ export default function MarketGrowerPage() {
                 <div>
                   <h4 className="text-base font-bold text-black mb-1">คำแนะนำ :</h4>
                   <p className="text-base text-black leading-relaxed">
-                    หากอุณหภูมิน้ำอยู่ในช่วงที่เหมาะสม ปลามักจะกินอาหารและเจริญเติบโตได้ดี ควรเฝ้าดูแนวโน้มอุณหภูมิทุกวัน และหลีกเลี่ยงการเปลี่ยนแปลงอุณหภูมิกะทันหันจากการเปลี่ยนน้ำหรือเติมน้ำปริมาณมาก
+                    หากอุณหภูมิน้ำอยู่ในช่วงที่เหมาะสม ({MARKET_GROWER_COMFORT_ZONE}) ปลามักจะกินอาหารและเจริญเติบโตได้ดี ควรเฝ้าดูแนวโน้มอุณหภูมิทุกวัน
                   </p>
                 </div>
               </>
