@@ -134,19 +134,28 @@ const formatAverageWeight = (value?: number | null): string => {
   return `${formatter.format(grams)} กรัม`;
 };
 
+const formatGrowthRate = (value?: number | null): string => {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "-";
+  }
+  return `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`;
+};
+
+const describeGrowthTrend = (value?: number | null): string => {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "ไม่มีข้อมูล";
+  }
+  if (value === 0) {
+    return "คงที่";
+  }
+  return value > 0 ? "เพิ่มขึ้น" : "ลดลง";
+};
+
 const formatFishAgeLabel = (label?: string | null): string => {
   if (!label || !label.trim().length) {
     return "-";
   }
   return label;
-};
-
-const formatWeightChange = (value?: number | null): string => {
-  if (typeof value !== "number" || Number.isNaN(value)) {
-    return "ไม่มีข้อมูล";
-  }
-  const arrow = value >= 0 ? "▲" : "▼";
-  return `${arrow} (${Math.abs(value).toFixed(1)}%)`;
 };
 
 export default function NurseryLargePage() {
@@ -496,22 +505,22 @@ export default function NurseryLargePage() {
                             className="object-contain drop-shadow-sm"
                         />
                     </div>
-                    <div className="bg-[#FFE3E3] rounded-2xl p-5 flex flex-col justify-center h-full">
-                        {/* Header */}
-                        <div className="flex items-center gap-2 mb-2">
-                          <Image src="/nursery-large/famicons_fish-outline.svg" alt="weight" width={20} height={20} />
-                          <span className="text-black text-sm font-medium">น้ำหนักเฉลี่ยของปลา</span>
+                    <div className="bg-[#FFE3E3] rounded-2xl p-5 flex flex-col justify-center h-full text-center">
+                        <div className="flex items-center justify-center gap-2 mb-2">
+                          <Image src="/nursery-large/famicons_fish-outline.svg" alt="growth" width={20} height={20} />
+                          <span className="text-black text-sm font-medium">การเติบโตของปลา</span>
                         </div>
-                                        
-                        {/* Numbers Row */}
-                        <div className="flex items-baseline justify-center gap-4 mt-1">
+                        <div className="flex flex-col items-center gap-1 mt-1">
                           <span className="text-3xl font-bold text-[#FF2424]">
-                            {loading ? "..." : formatAverageWeight(averageFishWeightValue)}
+                            {loading ? "..." : formatGrowthRate(weightChangeValue)}
                           </span>
                           <span className="text-[#FF2424] text-xs font-bold">
-                            {loading ? "..." : formatWeightChange(weightChangeValue)}
+                            {loading ? "..." : describeGrowthTrend(weightChangeValue)}
                           </span>
-                      </div>
+                          <span className="text-xs text-gray-600">
+                            {loading ? "..." : `น้ำหนักเฉลี่ย ${formatAverageWeight(averageFishWeightValue)}`}
+                          </span>
+                        </div>
                   </div>
                 </div>
         
