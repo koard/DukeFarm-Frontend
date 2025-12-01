@@ -51,8 +51,9 @@ interface DashboardSummary {
   comfortRangeC: { min: number; max: number };
   recommendedFeedAdjustmentPct: number | null;
   weather: WeatherData | null;
-  averageFishWeight: number;
-  weightChange: number;
+  averageFishWeight: number | null;
+  weightChange: number | null;
+  latestFishAgeLabel: string | null;
   pelletFoodCost: number;
   freshFoodCost: number;
   monthlyFeedingData: GraphDataPoint[];
@@ -123,7 +124,21 @@ const formatAverageWeight = (value?: number | null): string => {
   if (typeof value !== "number" || Number.isNaN(value)) {
     return "-";
   }
-  return value.toFixed(2);
+
+  const grams = value * 1000;
+  const formatter = new Intl.NumberFormat("th-TH", {
+    minimumFractionDigits: grams < 100 ? 1 : 0,
+    maximumFractionDigits: grams < 100 ? 1 : 0,
+  });
+
+  return `${formatter.format(grams)} กรัม`;
+};
+
+const formatFishAgeLabel = (label?: string | null): string => {
+  if (!label || !label.trim().length) {
+    return "-";
+  }
+  return label;
 };
 
 const formatWeightChange = (value?: number | null): string => {
@@ -223,8 +238,10 @@ export default function MarketGrowerPage() {
 
   const forecastData: ForecastData[] = hasDashboardData ? dashboardData?.feedingPlan || [] : [];
 
-  const averageFishWeightValue = hasDashboardData ? dashboardData?.summary?.averageFishWeight : null;
-  const weightChangeValue = hasDashboardData ? dashboardData?.summary?.weightChange : null;
+  const summary = dashboardData?.summary;
+  const averageFishWeightValue = summary?.averageFishWeight ?? null;
+  const weightChangeValue = summary?.weightChange ?? null;
+  const latestFishAgeLabel = summary?.latestFishAgeLabel ?? null;
 
   const getY = (val: number): number => 130 - (val / 2) * 110;
   const getX = (index: number): number => 35 + index * 25; 
@@ -373,10 +390,10 @@ export default function MarketGrowerPage() {
             <div className="flex-1 p-4 flex flex-col items-center justify-center">
                 <div className="flex items-center gap-2 mb-1 text-black">
                     <Image src="/nursery-large/famicons_fish-outline.svg" alt="age" width={20} height={20} />
-                    <span className="text-base font-medium">อายุปลา (วัน)</span>
+                    <span className="text-base font-medium">อายุปลา</span>
                 </div>
                 <p className="text-xl font-bold text-black text-center">
-                  -
+                  {loading ? "..." : formatFishAgeLabel(latestFishAgeLabel)}
                 </p>
             </div>
             
@@ -482,14 +499,14 @@ export default function MarketGrowerPage() {
                 {/* Header */}
                 <div className="flex items-center gap-2 mb-2">
                   <Image src="/nursery-large/famicons_fish-outline.svg" alt="weight" width={20} height={20} />
-                  <span className="text-black text-sm font-medium">น้ำหนักเฉลี่ยของปลา (Kg.)</span>
+                          <span className="text-black text-sm font-medium">น้ำหนักเฉลี่ยของปลา</span>
                 </div>
                                 
                 {/* Numbers Row */}
                 <div className="flex items-baseline justify-center gap-4 mt-1">
-                  <span className="text-3xl font-bold text-[#FF2424]">
-                    {loading ? "..." : formatAverageWeight(averageFishWeightValue)}
-                  </span>
+                          <span className="text-3xl font-bold text-[#FF2424]">
+                            {loading ? "..." : formatAverageWeight(averageFishWeightValue)}
+                          </span>
                   <span className="text-[#FF2424] text-xs font-bold">
                     {loading ? "..." : formatWeightChange(weightChangeValue)}
                   </span>

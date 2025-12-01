@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -51,8 +51,9 @@ interface DashboardSummary {
   comfortRangeC: { min: number; max: number };
   recommendedFeedAdjustmentPct: number | null;
   weather: WeatherData | null;
-  averageFishWeight: number;
-  weightChange: number;
+  averageFishWeight: number | null;
+  weightChange: number | null;
+  latestFishAgeLabel: string | null;
   pelletFoodCost: number;
   freshFoodCost: number;
   monthlyFeedingData: GraphDataPoint[];
@@ -123,7 +124,21 @@ const formatAverageWeight = (value?: number | null): string => {
   if (typeof value !== "number" || Number.isNaN(value)) {
     return "-";
   }
-  return value.toFixed(2);
+
+  const grams = value * 1000;
+  const formatter = new Intl.NumberFormat("th-TH", {
+    minimumFractionDigits: grams < 100 ? 1 : 0,
+    maximumFractionDigits: grams < 100 ? 1 : 0,
+  });
+
+  return `${formatter.format(grams)} กรัม`;
+};
+
+const formatFishAgeLabel = (label?: string | null): string => {
+  if (!label || !label.trim().length) {
+    return "-";
+  }
+  return label;
 };
 
 const formatWeightChange = (value?: number | null): string => {
@@ -223,8 +238,10 @@ export default function NurseryLargePage() {
 
   const forecastData: ForecastData[] = hasDashboardData ? dashboardData?.feedingPlan || [] : [];
 
-  const averageFishWeightValue = hasDashboardData ? dashboardData?.summary?.averageFishWeight : null;
-  const weightChangeValue = hasDashboardData ? dashboardData?.summary?.weightChange : null;
+  const summary = dashboardData?.summary;
+  const averageFishWeightValue = summary?.averageFishWeight ?? null;
+  const weightChangeValue = summary?.weightChange ?? null;
+  const latestFishAgeLabel = summary?.latestFishAgeLabel ?? null;
 
   const getY = (val: number): number => 130 - (val / 2) * 110;
   
@@ -376,7 +393,9 @@ export default function NurseryLargePage() {
                             <Image src="/nursery-large/famicons_fish-outline.svg" alt="age" width={20} height={20} />
                             <span className="text-base font-medium">อายุปลา (วัน)</span>
                         </div>
-                        <p className="text-xl font-bold text-black text-center">-</p>
+                    <p className="text-xl font-bold text-black text-center">
+                      {loading ? "..." : formatFishAgeLabel(latestFishAgeLabel)}
+                    </p>
                     </div>
                     
                     <div className="w-px h-16 bg-gray-300 mx-2"></div>
@@ -384,9 +403,11 @@ export default function NurseryLargePage() {
                     <div className="flex-1 p-4 flex flex-col items-center justify-center">
                         <div className="flex items-center justify-center gap-2 mb-1 text-black">
                             <Image src="/nursery-large/hugeicons_weight.svg" alt="weight" width={20} height={20} className="shrink-0" />
-                            <span className="text-base font-medium text-center leading-tight">น้ำหนักเฉลี่ย</span>
+                      <span className="text-base font-medium text-center leading-tight">น้ำหนักเฉลี่ย</span>
                         </div>
-                        <p className="text-xl font-bold text-black">-</p> 
+                    <p className="text-xl font-bold text-black">
+                      {loading ? "..." : formatAverageWeight(averageFishWeightValue)}
+                    </p> 
                     </div>
                 </div>
         
@@ -479,7 +500,7 @@ export default function NurseryLargePage() {
                         {/* Header */}
                         <div className="flex items-center gap-2 mb-2">
                           <Image src="/nursery-large/famicons_fish-outline.svg" alt="weight" width={20} height={20} />
-                          <span className="text-black text-sm font-medium">น้ำหนักเฉลี่ยของปลา (Kg.)</span>
+                          <span className="text-black text-sm font-medium">น้ำหนักเฉลี่ยของปลา</span>
                         </div>
                                         
                         {/* Numbers Row */}
