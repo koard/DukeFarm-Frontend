@@ -38,6 +38,12 @@ export default function ProfilePage() {
     { value: "GROWOUT", label: "กลุ่มผู้เลี้ยงขนาดตลาด" },
   ];
 
+  const farmTypeRoutes: Record<string, string> = {
+    NURSERY_SMALL: "/nursery-small",
+    NURSERY_LARGE: "/nursery-large",
+    GROWOUT: "/market-grower",
+  };
+
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -156,19 +162,31 @@ export default function ProfilePage() {
       }
 
       const result = await response.json();
-      
-      // Update localStorage
+
+      const latestFarmProfile = result?.data?.profile ?? result?.data;
+      const latestUserState = result?.data?.user;
+
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
         const userData = JSON.parse(storedUser);
-        userData.farmerProfile = result.data;
+        if (latestFarmProfile) {
+          userData.farmerProfile = latestFarmProfile;
+        }
+        if (latestUserState) {
+          userData.role = latestUserState.role;
+          userData.registrationStatus = latestUserState.registrationStatus;
+        }
         localStorage.setItem("user", JSON.stringify(userData));
       }
-      
+
+      const resolvedFarmType = latestFarmProfile?.primaryFarmType || formData.farmType;
+      const destination = resolvedFarmType ? farmTypeRoutes[resolvedFarmType] ?? "/nursery-small" : "/nursery-small";
+
       setSubmitStatus('success');
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      setIsEditing(false);
-      setSubmitStatus('idle');
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      router.push(destination);
+      return;
       
     } catch (err) {
       console.error("Error updating profile:", err);
