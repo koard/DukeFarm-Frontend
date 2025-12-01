@@ -29,10 +29,10 @@ const POND_TYPE_MAP: Record<string, 'EARTHEN' | 'CONCRETE'> = {
 };
 
 const formatInputDate = (value: Date) => {
-  const year = value.getFullYear();
+  const year = `${value.getFullYear()}`.slice(-2);
   const month = `${value.getMonth() + 1}`.padStart(2, '0');
   const day = `${value.getDate()}`.padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return `${day}/${month}/${year}`;
 };
 
 const formatInputTime = (value: Date) => {
@@ -42,9 +42,10 @@ const formatInputTime = (value: Date) => {
 };
 
 const combineDateAndTime = (dateStr: string, timeStr: string): string => {
-  const [year, month, day] = dateStr.split('-').map(Number);
+  const [day, month, year2] = dateStr.split('/').map(Number);
+  const fullYear = 2000 + (year2 ?? 0);
   const [hours, minutes] = timeStr.split(':').map(Number);
-  const composedDate = new Date(year!, (month ?? 1) - 1, day ?? 1, hours ?? 0, minutes ?? 0, 0);
+  const composedDate = new Date(fullYear, (month ?? 1) - 1, day ?? 1, hours ?? 0, minutes ?? 0, 0);
   return composedDate.toISOString();
 };
 
@@ -322,9 +323,10 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             <span className="text-xs text-[#0F614E]/70">วันที่บันทึก</span>
             <div className="flex items-center">
               <input
-                type="date"
+                type="text"
                 value={recordDate}
                 onChange={(event) => setRecordDate(event.target.value)}
+                placeholder="เช่น 02/12/68"
                 lang="th-TH"
                 className="bg-transparent text-[#093832] text-lg font-bold flex-1 focus:outline-none pr-6"
               />
