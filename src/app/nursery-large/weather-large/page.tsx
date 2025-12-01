@@ -11,9 +11,6 @@ import { fixLeafletDefaultIcon } from "@/utils/leaflet-icon";
 
 import "leaflet/dist/leaflet.css";
 
-// Fix Leaflet default icon paths
-fixLeafletDefaultIcon();
-
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
   { ssr: false }
@@ -115,6 +112,11 @@ export default function WeatherLargePage() {
   const [daily, setDaily] = useState<DailyForecast[]>([]);
   const [hourly, setHourly] = useState<HourlyForecast[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Fix Leaflet default icon paths
+  useEffect(() => {
+    fixLeafletDefaultIcon();
+  }, []);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
