@@ -1,11 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image"; 
 import Link from "next/link";
 import { ChevronLeft, ChevronDown } from "lucide-react";
 import { useLineUser } from "@/hooks/useLineUser";
+import { CacheManager } from "@/utils/cache";
+
+const DASHBOARD_CACHE_KEY = 'nurseryLargeDashboard';
+
+interface WeatherData {
+  airTemperatureC: number | null;
+  humidityPct: number | null;
+  rainMm: number | null;
+}
+
+interface DashboardData {
+  summary: {
+    airTemperatureC: number | null;
+    weather: WeatherData | null;
+  };
+}
 
 export default function FeedingLargePage() {
   const router = useRouter();
@@ -13,6 +29,15 @@ export default function FeedingLargePage() {
   const [selectedAge, setSelectedAge] = useState<string>("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showResult, setShowResult] = useState(false);
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+
+  useEffect(() => {
+    const cachedData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
+    if (cachedData?.summary?.weather) {
+      setWeatherData(cachedData.summary.weather);
+      console.log('✅ โหลดข้อมูลสภาพอากาศจาก cache');
+    }
+  }, []);
 
   const ageOptions = [
     "0–15 วัน (ระยะลูกปลา)",
@@ -76,14 +101,14 @@ export default function FeedingLargePage() {
         {/* สภาพอากาศ Auto */}
                 {!showResult && (
                     <div className="mb-6">
-                        <h2 className="text-lg font-bold text-black mb-2">สภาพอากาศ Auto</h2>
+                        <h2 className="text-lg font-bold text-black mb-2">สภาพอากาศปัจจุบัน</h2>
                         <div className="flex items-center bg-[#D8EFFF] rounded-xl overflow-hidden shadow-sm">
                             <div className="flex-1 py-4 flex flex-col items-center justify-center">
                                 <div className="flex items-center gap-1 mb-1">
                                     <Image src="/nursery-large/fluent_temperature-b.svg" alt="temp" width={20} height={20} />
                                     <span className="text-sm text-black">อุณหภูมิ</span>
                                 </div>
-                                <p className="text-xl font-bold text-black">32 °C</p>
+                                <p className="text-xl font-bold text-black">{weatherData?.airTemperatureC ?? '--'} °C</p>
                             </div>
                             <div className="w-[2px] h-[40px] bg-white"></div>
                             <div className="flex-1 py-4 flex flex-col items-center justify-center">
@@ -91,7 +116,7 @@ export default function FeedingLargePage() {
                                     <Image src="/nursery-large/fluent_weather-rain-snow-b.svg" alt="rain" width={20} height={20} />
                                     <span className="text-sm text-black">ปริมาณน้ำฝน</span>
                                 </div>
-                                <p className="text-xl font-bold text-black">30</p>
+                                <p className="text-xl font-bold text-black">{weatherData?.rainMm ?? '--'} mm</p>
                             </div>
                             <div className="w-[2px] h-[40px] bg-white"></div>
                             <div className="flex-1 py-4 flex flex-col items-center justify-center">
@@ -99,7 +124,7 @@ export default function FeedingLargePage() {
                                     <Image src="/nursery-large/mdi_dots-triangle.svg" alt="humidity" width={20} height={20} />
                                     <span className="text-sm text-black">ความชื้นสัมพัทธ์</span>
                                 </div>
-                                <p className="text-xl font-bold text-black">27</p>
+                                <p className="text-xl font-bold text-black">{weatherData?.humidityPct ?? '--'}%</p>
                             </div>
                         </div>
                     </div>

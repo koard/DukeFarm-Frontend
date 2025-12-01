@@ -6,6 +6,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronDown } from "lucide-react";
 import { useLineUser } from "@/hooks/useLineUser";
+import { CacheManager } from "@/utils/cache";
+
+const DASHBOARD_CACHE_KEY = 'nurserySmallDashboard';
 
 // Interfaces based on API specification
 interface WeatherData {
@@ -77,38 +80,26 @@ export default function FeedingSmallPage() {
   const [feedingInfo, setFeedingInfo] = useState<FeedingInfo | null>(null);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const loadDashboardData = () => {
       try {
-        const token = localStorage.getItem("authToken");
-        if (!token) {
-          router.push("/login");
-          return;
+        const cachedData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
+        
+        if (cachedData) {
+          setDashboardData(cachedData);
+          console.log('✅ ใช้ข้อมูลจาก cache:', DASHBOARD_CACHE_KEY);
+        } else {
+          setError("ไม่พบข้อมูล - กรุณากลับไปหน้าหลัก");
+          console.warn('⚠️ ไม่พบข้อมูลใน cache');
         }
-
-        const response = await fetch("https://dukefarm-backend.onrender.com/api/dashboard/groups/NURSERY_SMALL", {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error("ไม่สามารถดึงข้อมูลสภาพอากาศได้");
-        }
-
-        const result = await response.json();
-        setDashboardData(result.data);
-      } catch (err) {
-        console.error("Dashboard error:", err);
-        setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
+      } catch (err: unknown) {
+        console.error("Error loading dashboard data:", err);
+        setError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
       } finally {
         setLoading(false);
       }
     };
-
-    fetchDashboardData();
-  }, [router]);
+    loadDashboardData();
+  }, []);
 
   const [feedFormulas, setFeedFormulas] = useState<FeedFormula[]>([]);
 
