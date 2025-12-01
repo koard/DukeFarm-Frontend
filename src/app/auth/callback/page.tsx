@@ -33,6 +33,12 @@ function CallbackContent() {
         localStorage.setItem("authToken", token);
         localStorage.setItem("isLoggedIn", "true");
         console.log("✓ Token saved to localStorage");
+
+        if (registrationStatus) {
+          localStorage.setItem("registrationStatus", registrationStatus);
+        } else {
+          localStorage.removeItem("registrationStatus");
+        }
         
         // เก็บข้อมูล user เต็มจาก query parameter (backend ส่งมาครบแล้ว)
         const userParam = searchParams.get("user");
