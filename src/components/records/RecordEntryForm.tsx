@@ -67,6 +67,31 @@ const safeNumber = (value: number | null | undefined, suffix: string) => {
 
 const displayText = (value: string | null | undefined) => value && value.length > 0 ? value : '--';
 
+const sanitizeTimeInput = (value: string): string => {
+  const numeric = value.replace(/[^0-9]/g, '').slice(0, 4);
+  if (numeric.length <= 2) {
+    return numeric;
+  }
+  return `${numeric.slice(0, 2)}:${numeric.slice(2)}`;
+};
+
+const normalizeTimeValue = (value: string, fallback: string): string => {
+  if (!value || !value.includes(':')) {
+    return fallback;
+  }
+  const [rawHours, rawMinutes] = value.split(':');
+  const hours = Number(rawHours);
+  const minutes = Number(rawMinutes);
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+    return fallback;
+  }
+  const safeHours = Math.min(23, Math.max(0, hours));
+  const safeMinutes = Math.min(59, Math.max(0, minutes));
+  return `${String(safeHours).padStart(2, '0')}:${String(safeMinutes).padStart(2, '0')}`;
+};
+
+const isCompleteTime = (value: string): boolean => /^\d{2}:\d{2}$/.test(value);
+
 export type WeatherSnapshot = {
   observedAt: string | null;
   temperatureC: number | null;
@@ -166,7 +191,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
   const isFormValid = Boolean(
     recordDate &&
-      recordTime &&
+      isCompleteTime(recordTime) &&
       selectedAge &&
       selectedPondType &&
       pondCount &&
@@ -188,7 +213,9 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         return;
       }
 
-      const recordedAtIso = combineDateAndTime(recordDate, recordTime);
+      const safeTime = normalizeTimeValue(recordTime, formatInputTime(now));
+      setRecordTime(safeTime);
+      const recordedAtIso = combineDateAndTime(recordDate, safeTime);
       const response = await fetch(`${API_BASE_URL}/records`, {
         method: 'POST',
         headers: {
@@ -307,11 +334,13 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             <span className="text-xs text-[#0F614E]/70">เวลา</span>
             <div className="flex items-center">
               <input
-                type="time"
+                type="text"
                 value={recordTime}
-                onChange={(event) => setRecordTime(event.target.value)}
-                lang="th-TH"
+                onChange={(event) => setRecordTime(sanitizeTimeInput(event.target.value))}
+                onBlur={() => setRecordTime((prev) => normalizeTimeValue(prev, formatInputTime(now)))}
+                placeholder="เช่น 14:30"
                 inputMode="numeric"
+                pattern="^\d{2}:\d{2}$"
                 className="bg-transparent text-[#093832] text-lg font-bold flex-1 focus:outline-none pr-2"
               />
             </div>
