@@ -222,6 +222,10 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
       setSelectedPondType('');
       setPondCount('');
       setFishCount('');
+
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      router.push(backHref);
+      router.refresh();
     } catch (error) {
       setSubmitMessage({
         type: 'error',
@@ -247,7 +251,13 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             <p className="text-sm font-bold">{lineUser.displayName}</p>
           </div>
           <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-gray-200">
-            <img src={lineUser.pictureUrl} alt="Profile" className="w-full h-full object-cover" />
+            <Image
+              src={lineUser.pictureUrl || '/default-avatar.png'}
+              alt="Profile"
+              width={40}
+              height={40}
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
       </div>
