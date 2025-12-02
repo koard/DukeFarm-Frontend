@@ -3,18 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ExternalLink } from "lucide-react";
-import { useLineUser } from "@/hooks/useLineUser";
+import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
 
 const TALAADTHAI_URL = "https://talaadthai.com/search/%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B8%94%E0%B8%B8%E0%B8%81%E0%B9%80%E0%B8%A5%E0%B8%B5%E0%B9%89%E0%B8%A2%E0%B8%87";
 
 export default function PriceMarketPage() {
-  const lineUser = useLineUser();
   const [iframeLoaded, setIframeLoaded] = useState(false);
 
   return (
     <div className="min-h-screen bg-white pb-10">
       
-      <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10 flex items-center justify-between">
+      <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-30 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Link
             href="/market-grower"
@@ -24,16 +23,7 @@ export default function PriceMarketPage() {
           </Link>
           <h1 className="text-2xl font-bold">ตรวจสอบราคาตลาด</h1>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <p className="text-sm text-gray-300">ยินดีต้อนรับ</p>
-            <p className="text-sm font-bold">{lineUser.displayName}</p>
-          </div>
-          <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-gray-200">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={lineUser.pictureUrl} alt="Profile" className="w-full h-full object-cover" />
-          </div>
-        </div>
+        <ProfileDropdownMenu />
       </div>
 
       <div className="px-4 mt-4 w-full max-w-5xl mx-auto space-y-4">

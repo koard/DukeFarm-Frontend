@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import Image from "next/image"; 
 import Link from "next/link";
 import { ChevronLeft, ChevronDown } from "lucide-react";
-import { useLineUser } from "@/hooks/useLineUser";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
 
 // Interfaces based on API specification
 interface WeatherData {
@@ -64,8 +64,6 @@ interface FeedingInfo {
 }
 
 export default function FeedingSmallPage() {
-  const lineUser = useLineUser();
-  
   const [selectedAge, setSelectedAge] = useState<string>("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showResult, setShowResult] = useState(false);
@@ -163,7 +161,7 @@ export default function FeedingSmallPage() {
   return (
     <div className="min-h-screen bg-white pb-10">
       
-      <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10 flex items-center justify-between">
+      <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-30 flex items-center justify-between">
         <div className="flex items-center gap-2">
             <Link 
               href="/nursery-small" 
@@ -173,16 +171,7 @@ export default function FeedingSmallPage() {
             </Link>
             <h1 className="text-2xl font-bold">การให้อาหาร</h1>
         </div>
-        <div className="flex items-center gap-3">
-            <div className="text-right">
-              <p className="text-sm text-gray-300">ยินดีต้อนรับ</p>
-              <p className="text-sm font-bold">{lineUser.displayName}</p>
-            </div>
-            <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-gray-200">
-               {/* eslint-disable-next-line @next/next/no-img-element */}
-               <img src={lineUser.pictureUrl} alt="Profile" className="w-full h-full object-cover" />
-            </div>
-        </div>
+        <ProfileDropdownMenu />
       </div>
       
 

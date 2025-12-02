@@ -2,10 +2,10 @@
 
 import { ChevronLeft, Cloud, CloudRain, CloudSun, Sun, Droplets, Wind, MapPin, ArrowUp, ArrowDown } from "lucide-react";
 import Link from "next/link";
-import { useLineUser } from "@/hooks/useLineUser";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
 import "leaflet/dist/leaflet.css";
 
 const MapContainer = dynamic(
@@ -105,7 +105,6 @@ interface DashboardData {
 
 
 export default function WeatherLargePage() {
-  const lineUser = useLineUser();
 
   // ตั้งค่าเริ่มต้นเป็น กทม. ก่อน (กันเหนียว)
   const [coords, setCoords] = useState({ lat: 13.7563, lon: 100.5018 });
@@ -219,7 +218,7 @@ export default function WeatherLargePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       
-      <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10 flex items-center justify-between">
+      <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-30 flex items-center justify-between">
         <div className="flex items-center gap-3">
             <Link 
               href="/market-grower" 
@@ -230,16 +229,7 @@ export default function WeatherLargePage() {
             <h1 className="text-2xl font-bold">สภาพอากาศ</h1>
         </div>
 
-        <div className="flex items-center gap-3">
-            <div className="text-right">
-              <p className="text-sm text-gray-300 leading-tight">ยินดีต้อนรับ</p>
-              <p className="text-sm font-bold leading-tight">{lineUser.displayName || "เกษตรกร"}</p>
-            </div>
-            <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-gray-200">
-               {/* eslint-disable-next-line @next/next/no-img-element */}
-               {lineUser.pictureUrl && <img src={lineUser.pictureUrl} alt="Profile" className="w-full h-full object-cover" />}
-            </div>
-        </div>
+        <ProfileDropdownMenu />
       </div>
 
       <div className="px-4 mt-5 pb-10 space-y-4">

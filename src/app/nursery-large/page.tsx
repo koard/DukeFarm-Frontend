@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useLineUser } from "@/hooks/useLineUser";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
 
 // Types
 
@@ -168,32 +167,8 @@ const formatFishAgeLabel = (label?: string | null): string => {
 };
 
 export default function NurseryLargePage() {
-  const lineUser = useLineUser();
-  const router = useRouter();
-  const [hoverData, setHoverData] = useState<HoverData | null>(null);
   const { data: dashboardData, loading, error } = useDashboardData<DashboardData>("NURSERY_LARGE");
-  const [showDropdown, setShowDropdown] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setShowDropdown(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("user");
-    sessionStorage.clear();
-    router.push("/login");
-  }, [router]);
+  const [hoverData, setHoverData] = useState<HoverData | null>(null);
 
   // ใช้ข้อมูลจาก API หรือ fallback ถ้ายังไม่มี
   const hasDashboardData = dashboardData?.hasData;
@@ -254,51 +229,14 @@ export default function NurseryLargePage() {
   return (
     <div className="min-h-screen bg-white pb-10">
       
-      <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10">
+      <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-30">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Image src="/nursery-large/Group.svg" alt="Overview" width={24} height={24} />
             <h1 className="text-2xl font-bold">ภาพรวมฟาร์ม</h1>
           </div>
           
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <p className="text-sm text-gray-300">ยินดีต้อนรับ</p>
-              <p className="text-sm font-bold">{lineUser.displayName}</p>
-            </div>
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setShowDropdown(!showDropdown)}
-                className="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-gray-200 hover:border-gray-300 transition-colors cursor-pointer"
-              >
-                <Image src={lineUser.pictureUrl} alt="Profile" width={40} height={40} className="w-full h-full object-cover" />
-              </button>
-              
-              {showDropdown && (
-                <div className="absolute right-0 top-full mt-2 w-48 overflow-hidden bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                  <Link
-                    href="/profile"
-                    className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    โปรไฟล์
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="w-full border-t border-gray-100 text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2 cursor-pointer"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    ออกจากระบบ
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+          <ProfileDropdownMenu />
         </div>
       </div>
 
