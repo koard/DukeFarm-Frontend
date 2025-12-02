@@ -330,7 +330,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                 lang="th-TH"
                 className="bg-transparent text-[#093832] text-lg font-bold flex-1 focus:outline-none pr-2"
               />
-              <span className="text-[#093832] text-base font-bold">น.</span>
             </div>
           </label>
         </div>
