@@ -154,7 +154,7 @@ export default function FeedingSmallPage() {
     const pct = dashboardData?.summary?.recommendedFeedAdjustmentPct;
     if (pct === undefined) return "N/A";
     if (pct > 0) return `เพิ่มอาหาร ${pct}%`;
-    if (pct < 0) return `ลดอาหาร ${Math.abs(pct)}%`;
+    if (pct < 0) return `กินน้อยลง ${Math.abs(pct)}%`;
     return "ปกติ";
   };
 
