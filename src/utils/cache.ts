@@ -6,8 +6,8 @@ type CacheRecord<T> = {
 const store = new Map<string, CacheRecord<unknown>>();
 
 export const CACHE_TTL = {
-  DASHBOARD: 5 * 60 * 1000, // 5 minutes
-  WEATHER: 2 * 60 * 1000, // 2 minutes
+  DASHBOARD: 15 * 60 * 1000, // 15 minutes
+  WEATHER: 15 * 60 * 1000, // 15 minutes
   SHORT: 30 * 1000, // fallback for quick fetches
 } as const;
 
