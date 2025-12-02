@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronDown, ChevronLeft } from 'lucide-react';
+import { Check, ChevronDown, ChevronLeft } from 'lucide-react';
 import { useLineUser } from '@/hooks/useLineUser';
 
 const API_BASE_URL = 'https://dukefarm-backend.onrender.com/api';
@@ -121,6 +121,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
   const [formSeedError, setFormSeedError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -195,6 +196,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
     setSubmitting(true);
     setSubmitMessage(null);
+    setShowSuccessModal(false);
 
     try {
       const token = localStorage.getItem('authToken');
@@ -234,13 +236,13 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         throw new Error(payload?.message ?? 'ไม่สามารถบันทึกข้อมูลได้');
       }
 
-      setSubmitMessage({ type: 'success', text: 'บันทึกข้อมูลเรียบร้อยแล้ว' });
       setSelectedAge('');
       setSelectedPondType('');
       setPondCount('');
       setFishCount('');
+      setShowSuccessModal(true);
 
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 1200));
       router.push(backHref);
       router.refresh();
     } catch (error) {
@@ -248,6 +250,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         type: 'error',
         text: error instanceof Error ? error.message : 'เกิดข้อผิดพลาดในการบันทึก',
       });
+      setShowSuccessModal(false);
     } finally {
       setSubmitting(false);
     }
@@ -255,6 +258,17 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
   return (
     <div className="min-h-screen bg-white pb-10 relative">
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-[32px] px-8 py-10 text-center shadow-2xl w-full max-w-sm">
+            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[#22C55E] flex items-center justify-center shadow-lg">
+              <Check className="w-10 h-10 text-white" strokeWidth={4} />
+            </div>
+            <p className="text-2xl font-bold text-[#093832]">บันทึกข้อมูลสำเร็จ</p>
+            <p className="text-sm text-gray-500 mt-2">กำลังนำคุณกลับไปยังหน้าแดชบอร์ด...</p>
+          </div>
+        </div>
+      )}
       <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href={backHref} className="p-1 hover:bg-white/10 rounded-full transition-colors">
@@ -285,14 +299,8 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             {formSeedError}
           </div>
         )}
-        {submitMessage && (
-          <div
-            className={`rounded-xl px-4 py-3 text-sm border ${
-              submitMessage.type === 'success'
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                : 'bg-red-50 border-red-200 text-red-700'
-            }`}
-          >
+        {submitMessage && submitMessage.type === 'error' && (
+          <div className="rounded-xl px-4 py-3 text-sm border bg-red-50 border-red-200 text-red-700">
             {submitMessage.text}
           </div>
         )}
