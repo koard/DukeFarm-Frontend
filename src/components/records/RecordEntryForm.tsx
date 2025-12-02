@@ -366,12 +366,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               ไม่พบพิกัดฟาร์ม กรุณาบันทึกตำแหน่งในหน้าโปรไฟล์เพื่อรับข้อมูลอากาศอัตโนมัติ
             </p>
           )}
-          {weatherSnapshot?.conditionText && (
-            <p className="text-xs text-gray-500 mt-1">
-              ล่าสุด: {displayText(weatherSnapshot.conditionText)}
-              {weatherSnapshot.observedAt ? ` (${new Date(weatherSnapshot.observedAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })})` : ''}
-            </p>
-          )}
         </div>
 
         <div className="relative">
