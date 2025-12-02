@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useLineUser } from "@/hooks/useLineUser";
-import { CacheManager, CACHE_TTL } from "@/utils/cache";
+import { useDashboardData } from "@/hooks/useDashboardData";
 
 // Types
 interface ForecastData {
@@ -44,8 +44,6 @@ interface DashboardData {
 }
 
 // Constants
-const API_BASE_URL = "https://dukefarm-backend.onrender.com/api";
-const DASHBOARD_CACHE_KEY = "nurserySmallDashboard";
 const NURSERY_SMALL_COMFORT_ZONE = "28-34°C";
 
 // Utility functions
@@ -101,55 +99,10 @@ const buildFeedAdviceText = (adjustmentPct?: number | null): string => {
 export default function NurserySmallPage() {
   const lineUser = useLineUser();
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { data: dashboardData, loading, error } = useDashboardData<DashboardData>("NURSERY_SMALL");
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch dashboard data with caching
-  useEffect(() => {
-    const loadDashboard = async () => {
-      try {
-        const token = localStorage.getItem("authToken");
-        if (!token) {
-          router.push("/login");
-          return;
-        }
-
-        // Check cache first (with TTL)
-        const cachedData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
-        if (cachedData) {
-          setDashboardData(cachedData);
-          setLoading(false);
-          return;
-        }
-
-        // Fetch from API
-        const response = await fetch(`${API_BASE_URL}/dashboard/groups/NURSERY_SMALL`, {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        });
-
-        if (!response.ok) throw new Error("Failed to fetch dashboard data");
-
-        const result = await response.json();
-        setDashboardData(result.data);
-        CacheManager.set(DASHBOARD_CACHE_KEY, result.data, CACHE_TTL.DASHBOARD);
-      } catch (err) {
-        console.error("Dashboard error:", err);
-        setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadDashboard();
-  }, [router]);
-
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -194,6 +147,7 @@ export default function NurserySmallPage() {
                       onClick={() => setShowDropdown(!showDropdown)}
                       className="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-gray-200 hover:border-gray-300 transition-colors cursor-pointer"
                     >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={lineUser.pictureUrl} alt="Profile" className="w-full h-full object-cover" />
                     </button>
                     

@@ -1,14 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image"; 
 import Link from "next/link";
 import { ChevronLeft, ChevronDown } from "lucide-react";
 import { useLineUser } from "@/hooks/useLineUser";
-import { CacheManager } from "@/utils/cache";
+import { useDashboardData } from "@/hooks/useDashboardData";
 
-const DASHBOARD_CACHE_KEY = 'nurseryLargeDashboard';
 
 // Interfaces based on API specification
 interface WeatherData {
@@ -67,39 +65,14 @@ interface FeedingInfo {
 }
 
 export default function FeedingLargePage() {
-  const router = useRouter();
   const lineUser = useLineUser();
   const [selectedAge, setSelectedAge] = useState<string>("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showResult, setShowResult] = useState(false);
 
-  const [loading, setLoading] = useState(true);
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { data: dashboardData, loading, error } = useDashboardData<DashboardData>("NURSERY_LARGE");
   const [feedingInfo, setFeedingInfo] = useState<FeedingInfo | null>(null);
   const [feedFormulas, setFeedFormulas] = useState<FeedFormula[]>([]);
-
-  useEffect(() => {
-    const loadDashboardData = () => {
-      try {
-        const cachedData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
-        
-        if (cachedData) {
-          setDashboardData(cachedData);
-          console.log('✅ ใช้ข้อมูลจาก cache:', DASHBOARD_CACHE_KEY);
-        } else {
-          setError("ไม่พบข้อมูล - กรุณากลับไปหน้าหลัก");
-          console.warn('⚠️ ไม่พบข้อมูลใน cache');
-        }
-      } catch (err: unknown) {
-        console.error("Error loading dashboard data:", err);
-        setError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadDashboardData();
-  }, []);
 
   // Generate age options from feed formulas
   const ageOptions = feedFormulas
@@ -175,10 +148,10 @@ export default function FeedingLargePage() {
   
   const getFeedingRecommendationText = () => {
     if (loading) return "กำลังโหลด...";
-    if (error || !dashboardData?.hasData || dashboardData.summary.recommendedFeedAdjustmentPct === null) {
+    if (error || !dashboardData?.hasData || dashboardData?.summary?.recommendedFeedAdjustmentPct === null) {
       return "N/A";
     }
-    const pct = dashboardData.summary.recommendedFeedAdjustmentPct;
+    const pct = dashboardData?.summary?.recommendedFeedAdjustmentPct;
     if (pct === undefined) return "N/A";
     if (pct > 0) return `เพิ่มอาหาร ${pct}%`;
     if (pct < 0) return `ลดอาหาร ${Math.abs(pct)}%`;
@@ -206,7 +179,8 @@ export default function FeedingLargePage() {
               <p className="text-sm font-bold">{lineUser.displayName}</p>
             </div>
             <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-gray-200">
-               <img src={lineUser.pictureUrl} alt="Profile" className="w-full h-full object-cover" />
+               {/* eslint-disable-next-line @next/next/no-img-element */}
+               {lineUser.pictureUrl && <img src={lineUser.pictureUrl} alt="Profile" className="w-full h-full object-cover" />}
             </div>
         </div>
       </div>
@@ -228,7 +202,7 @@ export default function FeedingLargePage() {
                                 <Image src="/nursery-large/fluent_temperature-b.svg" alt="temp" width={20} height={20} />
                                 <span className="text-sm text-black">อุณหภูมิ</span>
                             </div>
-                            <p className="text-xl font-bold text-black">{dashboardData.summary.airTemperatureC?.toFixed(1) ?? 'N/A'} °C</p>
+                            <p className="text-xl font-bold text-black">{dashboardData?.summary?.airTemperatureC?.toFixed(1) ?? 'N/A'} °C</p>
                         </div>
                         <div className="w-[2px] h-[40px] bg-white"></div>
                         <div className="flex-1 py-4 flex flex-col items-center justify-center">
@@ -236,7 +210,7 @@ export default function FeedingLargePage() {
                                 <Image src="/nursery-large/fluent_weather-rain-snow-b.svg" alt="rain" width={20} height={20} />
                                 <span className="text-sm text-black">ปริมาณน้ำฝน</span>
                             </div>
-                            <p className="text-xl font-bold text-black">{dashboardData.summary.weather?.rainMm !== undefined ? `${dashboardData.summary.weather.rainMm} mm` : 'N/A'}</p>
+                            <p className="text-xl font-bold text-black">{dashboardData?.summary?.weather?.rainMm !== undefined ? `${dashboardData?.summary?.weather?.rainMm} mm` : 'N/A'}</p>
                         </div>
                         <div className="w-[2px] h-[40px] bg-white"></div>
                         <div className="flex-1 py-4 flex flex-col items-center justify-center">
@@ -244,7 +218,7 @@ export default function FeedingLargePage() {
                                 <Image src="/nursery-large/mdi_dots-triangle.svg" alt="humidity" width={20} height={20} />
                                 <span className="text-sm text-black">ความชื้น</span>
                             </div>
-                            <p className="text-xl font-bold text-black">{dashboardData.summary.weather?.humidityPct !== undefined ? `${dashboardData.summary.weather.humidityPct}%` : 'N/A'}</p>
+                            <p className="text-xl font-bold text-black">{dashboardData?.summary?.weather?.humidityPct !== undefined ? `${dashboardData?.summary?.weather?.humidityPct}%` : 'N/A'}</p>
                         </div>
                     </div>
                 ) : (

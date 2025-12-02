@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ChevronLeft, Cloud, CloudRain, CloudSun, Sun, Droplets, Wind, MapPin, ArrowUp, ArrowDown } from "lucide-react";
 import { useLineUser } from "@/hooks/useLineUser";
-import { CacheManager } from "@/utils/cache";
+import { useDashboardData } from "@/hooks/useDashboardData";
 import "leaflet/dist/leaflet.css";
 
 const MapContainer = dynamic(
@@ -76,26 +75,28 @@ interface HourlyForecast {
 }
 
 interface DashboardData {
-  summary: {
-    weather: {
+  summary?: {
+    weather?: {
       temperatureC: number;
-      humidityPct: number;
-      rainMm: number;
-      weatherCode: number;
+      humidityPct?: number;
+      rainMm?: number;
+      weatherCode?: number;
     } | null;
-    hourlyForecast: Array<{
+    hourlyForecast?: Array<{
       time: string;
       temperatureC: number;
-      precipitationProbability: number;
+      precipitationProbability?: number;
+      precipitationProbabilityPct?: number;
       weatherCode: number;
     }>;
   };
-  feedingPlan: Array<{
+  feedingPlan?: Array<{
     date: string;
     highTemperatureC: number;
     lowTemperatureC: number;
-    weatherCode: number;
+    weatherCode?: number;
   }>;
+  hasData?: boolean;
 }
 
 interface WeatherInfo {
@@ -105,7 +106,6 @@ interface WeatherInfo {
 
 // Constants
 const DEFAULT_COORDS: Coordinates = { lat: 13.7563, lon: 100.5018 }; // Bangkok
-const DASHBOARD_CACHE_KEY = "nurserySmallDashboard";
 const LOCALE_TH = 'th-TH';
 
 // Utility functions
@@ -197,7 +197,6 @@ const DailyRow = ({ day }: DailyRowProps) => {
 };
 
 export default function WeatherSmallPage() {
-  const router = useRouter();
   const lineUser = useLineUser();
 
   // State
@@ -206,7 +205,7 @@ export default function WeatherSmallPage() {
   const [current, setCurrent] = useState<CurrentWeather | null>(null);
   const [daily, setDaily] = useState<DailyForecast[]>([]);
   const [hourly, setHourly] = useState<HourlyForecast[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: dashboardData, loading, error } = useDashboardData<DashboardData>("NURSERY_SMALL");
 
   // Load user coordinates from localStorage
   useEffect(() => {
@@ -224,69 +223,63 @@ export default function WeatherSmallPage() {
     }
   }, []);
 
-  // Load weather data from sessionStorage
   useEffect(() => {
-    const loadWeatherData = () => {
-      try {
-        setLoading(true);
-        const dashboardData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
-        
-        if (!dashboardData) {
-          console.warn("ไม่พบข้อมูลใน cache หรือข้อมูลหมดอายุ");
-          setLocationName("ไม่พบข้อมูล - กรุณากลับไปหน้าหลัก");
-          return;
-        }
-        const { summary, feedingPlan } = dashboardData;
-
-        // Set location
-        setLocationName("ตำแหน่งฟาร์ม");
-
-        // Set current weather
-        if (summary.weather) {
-          setCurrent({
-            temp: summary.weather.temperatureC,
-            humidity: summary.weather.humidityPct || 0,
-            rain: summary.weather.rainMm || 0,
-            weatherCode: summary.weather.weatherCode || 0,
-            time: formatThaiDateTime()
-          });
-        }
-
-        // Set daily forecast
-        const dailyData = feedingPlan.map((item) => ({
-          date: new Date(item.date).toLocaleDateString(LOCALE_TH, { 
-            weekday: 'short', 
-            day: 'numeric', 
-            month: 'short' 
-          }),
-          tempMax: item.highTemperatureC,
-          tempMin: item.lowTemperatureC,
-          weatherCode: item.weatherCode
-        }));
-        setDaily(dailyData);
-
-        // Set hourly forecast
-        const hourlyData = summary.hourlyForecast.slice(0, 24).map((item) => ({
-          time: new Date(item.time).toLocaleTimeString(LOCALE_TH, { 
-            hour: 'numeric', 
-            minute: '2-digit' 
-          }),
-          temp: item.temperatureC,
-          rainProb: item.precipitationProbability,
-          weatherCode: item.weatherCode
-        }));
-        setHourly(hourlyData);
-
-      } catch (error) {
-        console.error("ไม่สามารถโหลดข้อมูลสภาพอากาศ:", error);
-        setLocationName("เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
+    if (!dashboardData) {
+      if (error) {
+        setLocationName("ไม่สามารถโหลดข้อมูลสภาพอากาศได้");
+      } else if (!loading) {
+        setLocationName("ไม่พบข้อมูล - กรุณากลับไปหน้าหลัก");
       }
-    };
+      setCurrent(null);
+      setDaily([]);
+      setHourly([]);
+      return;
+    }
 
-    loadWeatherData();
-  }, []);
+    setLocationName("ตำแหน่งฟาร์ม");
+    const summary = dashboardData.summary;
+    const timeLabel = formatThaiDateTime();
+
+    if (summary?.weather) {
+      setCurrent({
+        temp: summary.weather.temperatureC,
+        humidity: summary.weather.humidityPct ?? 0,
+        rain: summary.weather.rainMm ?? 0,
+        weatherCode: summary.weather.weatherCode ?? 0,
+        time: timeLabel,
+      });
+    } else {
+      setCurrent(null);
+    }
+
+    const planRows = Array.isArray(dashboardData.feedingPlan) ? dashboardData.feedingPlan : [];
+    const dailyData = planRows.map((item) => ({
+      date: new Date(item.date).toLocaleDateString(LOCALE_TH, {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+      }),
+      tempMax: item.highTemperatureC,
+      tempMin: item.lowTemperatureC,
+      weatherCode: item.weatherCode ?? 0,
+    }));
+    setDaily(dailyData);
+
+    const hourlyRows = Array.isArray(summary?.hourlyForecast) ? summary?.hourlyForecast : [];
+    const hourlyData = hourlyRows.slice(0, 24).map((item) => ({
+      time: new Date(item.time).toLocaleTimeString(LOCALE_TH, {
+        hour: 'numeric',
+        minute: '2-digit',
+      }),
+      temp: item.temperatureC,
+      rainProb:
+        typeof item.precipitationProbability === 'number'
+          ? item.precipitationProbability
+          : item.precipitationProbabilityPct ?? 0,
+      weatherCode: item.weatherCode,
+    }));
+    setHourly(hourlyData);
+  }, [dashboardData, error, loading]);
 
   // Memoized values
   const currentWeatherInfo = useMemo(
@@ -322,6 +315,7 @@ export default function WeatherSmallPage() {
               <p className="text-sm font-bold leading-tight">{lineUser.displayName || "เกษตรกร"}</p>
             </div>
             <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-gray-200">
+               {/* eslint-disable-next-line @next/next/no-img-element */}
                {lineUser.pictureUrl && <img src={lineUser.pictureUrl} alt="Profile" className="w-full h-full object-cover" />}
             </div>
         </div>

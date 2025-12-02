@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useLineUser } from "@/hooks/useLineUser";
-import { CacheManager, CACHE_TTL } from "@/utils/cache";
+import { useDashboardData } from "@/hooks/useDashboardData";
 
 // Types
 
@@ -67,8 +67,6 @@ interface DashboardData {
 }
 
 // Constants
-const API_BASE_URL = "https://dukefarm-backend.onrender.com/api";
-const DASHBOARD_CACHE_KEY = "nurseryLargeDashboard";
 const NURSERY_LARGE_COMFORT_ZONE = "27-35°C";
 
 // Utility functions
@@ -173,61 +171,9 @@ export default function NurseryLargePage() {
   const lineUser = useLineUser();
   const router = useRouter();
   const [hoverData, setHoverData] = useState<HoverData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { data: dashboardData, loading, error } = useDashboardData<DashboardData>("NURSERY_LARGE");
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  // Fetch dashboard data with caching
-  useEffect(() => {
-    const loadDashboard = async () => {
-      try {
-        const token = localStorage.getItem("authToken");
-        if (!token) {
-          router.push("/login");
-          return;
-        }
-
-        // Check cache first (with TTL)
-        const cachedData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
-        if (cachedData?.hasData) {
-          setDashboardData(cachedData);
-          setLoading(false);
-          return;
-        }
-        if (cachedData && !cachedData.hasData) {
-          CacheManager.remove(DASHBOARD_CACHE_KEY);
-        }
-
-        // Fetch from API
-        const response = await fetch(`${API_BASE_URL}/dashboard/groups/NURSERY_LARGE`, {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        });
-
-        if (!response.ok) throw new Error("Failed to fetch dashboard data");
-
-        const result = await response.json();
-        setDashboardData(result.data);
-
-        if (result.data?.hasData) {
-          CacheManager.set(DASHBOARD_CACHE_KEY, result.data, CACHE_TTL.DASHBOARD);
-        } else {
-          CacheManager.remove(DASHBOARD_CACHE_KEY);
-        }
-      } catch (err) {
-        console.error("Dashboard error:", err);
-        setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadDashboard();
-  }, [router]);
 
   // Close dropdown when clicking outside
   useEffect(() => {

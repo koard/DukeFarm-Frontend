@@ -1,14 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Image from "next/image"; 
 import Link from "next/link";
 import { ChevronLeft, ChevronDown } from "lucide-react";
 import { useLineUser } from "@/hooks/useLineUser";
-import { CacheManager } from "@/utils/cache";
-
-const DASHBOARD_CACHE_KEY = 'growoutDashboard';
+import { useDashboardData } from "@/hooks/useDashboardData";
 
 // Interfaces based on API specification
 interface WeatherData {
@@ -67,39 +64,14 @@ interface FeedingInfo {
 }
 
 export default function FeedingLargePage() {
-  const router = useRouter();
   const lineUser = useLineUser();
   const [selectedAge, setSelectedAge] = useState<string>("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showResult, setShowResult] = useState(false);
 
-  const [loading, setLoading] = useState(true);
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { data: dashboardData, loading, error } = useDashboardData<DashboardData>("GROWOUT");
   const [feedingInfo, setFeedingInfo] = useState<FeedingInfo | null>(null);
   const [feedFormulas, setFeedFormulas] = useState<FeedFormula[]>([]);
-
-  useEffect(() => {
-    const loadDashboardData = () => {
-      try {
-        const cachedData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
-        
-        if (cachedData) {
-          setDashboardData(cachedData);
-          console.log('✅ ใช้ข้อมูลจาก cache:', DASHBOARD_CACHE_KEY);
-        } else {
-          setError("ไม่พบข้อมูล - กรุณากลับไปหน้าหลัก");
-          console.warn('⚠️ ไม่พบข้อมูลใน cache');
-        }
-      } catch (err: unknown) {
-        console.error("Error loading dashboard data:", err);
-        setError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadDashboardData();
-  }, []);
 
   // Generate age options from feed formulas
   const ageOptions = feedFormulas
@@ -204,6 +176,7 @@ export default function FeedingLargePage() {
               <p className="text-sm font-bold">{lineUser.displayName}</p>
             </div>
             <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-gray-200">
+               {/* eslint-disable-next-line @next/next/no-img-element */}
                <img src={lineUser.pictureUrl} alt="Profile" className="w-full h-full object-cover" />
             </div>
         </div>
