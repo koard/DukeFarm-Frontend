@@ -149,7 +149,7 @@ export default function RegisterFarmerPage() {
       const farmTypeMap: Record<string, string> = {
         "nursery-small": "NURSERY_SMALL",
         "nursery-large": "NURSERY_LARGE",
-        "market-grower": "GROWOUT"
+        "market-grower": "GROWOUT" 
       };
 
       const requestBody = {
