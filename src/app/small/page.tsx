@@ -352,7 +352,7 @@ export default function NurserySmallPage() {
                 <div className="mb-2 flex items-center justify-center gap-2">
                   <Image src="/nursery-large/famicons_fish-outline.svg" alt="survival-rate" width={24} height={24} className="text-black shrink-0" />
                   <span className="text-black text-base font-semibold leading-tight text-left">
-                      อัตราการรอดชีวิต (ตัว)
+                      อัตราการรอด (%)
                   </span>
                 </div>
 
