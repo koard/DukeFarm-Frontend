@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronDown } from "lucide-react";
@@ -51,6 +51,7 @@ interface FeedFormula {
   targetStage: string;
   description: string;
   recommendations: string;
+  farmType?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -78,22 +79,13 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
   const [feedingInfo, setFeedingInfo] = useState<FeedingInfo | null>(null);
   const [feedFormulas, setFeedFormulas] = useState<FeedFormula[]>([]);
 
-  const filterFormulasByFarmType = (formulas: FeedFormula[]) => {
-    return formulas.filter(f => {
-      const stage = f.targetStage || "";
-      if (farmType === "SMALL") return stage.includes('0-15') || stage.includes('ลูกปลา');
-      if (farmType === "LARGE") return stage.includes('16-30') || stage.includes('31-60') || stage.includes('นิ้ว');
-      if (farmType === "MARKET") return stage.includes('60') || stage.includes('ตลาด') || stage.includes('ขุน');
-      return true; 
-    });
-  };
-
-  const filteredFormulas = filterFormulasByFarmType(feedFormulas);
-
-  const ageOptions = filteredFormulas
-    .filter(formula => formula.targetStage)
-    .map(formula => formula.targetStage)
-    .filter((value, index, self) => self.indexOf(value) === index);
+  const ageOptions = useMemo(() => {
+    const allStages = feedFormulas.map(formula => formula.targetStage);
+    
+    return allStages
+      .filter((stage): stage is string => !!stage) 
+      .filter((value, index, self) => self.indexOf(value) === index);
+  }, [feedFormulas]);
 
   useEffect(() => {
     const fetchFeedFormulas = async () => {
@@ -111,7 +103,8 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
 
         if (response.ok) {
           const result = await response.json();
-          setFeedFormulas(result.data?.data || []);
+          const formulas = Array.isArray(result.data?.data) ? result.data.data : [];
+          setFeedFormulas(formulas);
         }
       } catch (err) {
         console.error("Failed to fetch feed formulas:", err);
@@ -124,7 +117,7 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
   const handleViewData = () => {
       if (!selectedAge) return;
       
-      const matchedFormula = filteredFormulas.find(formula => 
+      const matchedFormula = feedFormulas.find(formula => 
         formula.targetStage === selectedAge
       );
 
@@ -291,11 +284,11 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                     
                     <div className="flex-1 p-5 flex flex-col items-center justify-center">
                         <div className="flex items-center gap-2 mb-1 text-black">
-                            <Image src="/nursery-large/famicons_fish-outline.svg" alt="age" width={20} height={20} />
-                            <span className="text-base font-medium text-center">อายุปลา</span>
+                            <Image src="/nursery-large/fluent_food-grains.svg" alt="formula" width={20} height={20} />
+                            <span className="text-base font-medium text-center">สูตรอาหาร</span>
                         </div>
-                        <p className="text-xl font-bold text-black text-center">
-                            {selectedAge}
+                        <p className="text-lg font-bold text-black text-center">
+                            {feedingInfo?.name || 'N/A'}
                         </p>
                     </div>
 
@@ -303,11 +296,11 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
 
                     <div className="flex-1 p-5 flex flex-col items-center justify-center">
                         <div className="flex items-center gap-2 mb-1 text-black">
-                            <Image src="/nursery-large/fluent_food-grains.svg" alt="formula" width={20} height={20} />
-                            <span className="text-base font-medium text-center">สูตรอาหาร</span>
+                            <Image src="/nursery-large/famicons_fish-outline.svg" alt="age" width={20} height={20} />
+                            <span className="text-base font-medium text-center">อายุปลา</span>
                         </div>
-                        <p className="text-lg font-bold text-black text-center">
-                            {feedingInfo?.name || 'N/A'}
+                        <p className="text-xl font-bold text-black text-center">
+                            {selectedAge}
                         </p>
                     </div>
                 </div>
