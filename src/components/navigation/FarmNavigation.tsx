@@ -84,8 +84,8 @@ export default function FarmNavigation() {
     // 1. ลบ mx-auto และ max-w-2xl ออก เพื่อไม่ให้คอนเทนเนอร์ถูกบีบอยู่ตรงกลาง
     // 2. ลบ px-2 ออกเพื่อให้ชิดขอบซ้ายสุดของ parent (หรือใส่ไว้นิดหน่อยถ้าต้องการ)
     <div className="py-4 mt-4 w-full mt-8">
-      {/* เปลี่ยน justify-center เป็น justify-start เพื่อให้ปุ่มเริ่มจากซ้าย */}
-      <div className="flex items-center justify-start gap-3 md:gap-4 flex-wrap">
+      {/* ใช้ grid 3 คอลัมน์เพื่อให้ปุ่มพอดีในแถวเดียวทุกหน้าจอ */}
+      <div className="grid grid-cols-3 gap-2 md:gap-3 w-full">
         {displayItems.map((item) => {
            const isActive = pathname.startsWith(item.path);
 
@@ -94,7 +94,7 @@ export default function FarmNavigation() {
                key={item.type}
                href={item.path}
                className={`
-                 flex items-center gap-2 px-5 py-2.5 rounded-full text-sm md:text-base font-bold transition-all border
+                flex items-center justify-center gap-2 px-3 py-2 rounded-full text-xs sm:text-sm md:text-base font-semibold transition-all border whitespace-nowrap
                  ${isActive
                    ? "bg-[#009D64] border-[#009D64] text-white shadow-md"
                    : "bg-white border-gray-300 text-black hover:bg-gray-50"
@@ -110,7 +110,7 @@ export default function FarmNavigation() {
                  width={20}
                  height={20}
                />
-               {item.label}
+               <span className="truncate">{item.label}</span>
              </Link>
            );
         })}
