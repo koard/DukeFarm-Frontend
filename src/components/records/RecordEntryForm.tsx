@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, useRef, Dispatch, SetStateAction } from '
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Check, ChevronLeft } from 'lucide-react';
+import { Check, ChevronLeft, Minus, Plus } from 'lucide-react';
 import { useLineUser } from '@/hooks/useLineUser';
 
 type FarmType = 'SMALL' | 'LARGE' | 'MARKET';
@@ -714,11 +714,13 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               <div className="flex items-center bg-white border border-gray-200 rounded-2xl overflow-hidden">
                 <button
                   type="button"
+                  aria-label="ลดอายุเริ่มต้น"
                   onClick={() => handleStepChange(setInitialAgeOffsetDays, -1)}
-                  className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
+                  className="w-14 h-12 flex items-center justify-center text-[#093832] hover:bg-gray-50"
                 >
-                  –
+                  <Minus className="w-4 h-4" />
                 </button>
+                <span className="h-6 w-px bg-gray-200" aria-hidden="true" />
                 <input
                   type="text"
                   inputMode="numeric"
@@ -728,12 +730,14 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                   placeholder={defaultInitialAge.toString()}
                   className="flex-1 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
                 />
+                <span className="h-6 w-px bg-gray-200" aria-hidden="true" />
                 <button
                   type="button"
+                  aria-label="เพิ่มอายุเริ่มต้น"
                   onClick={() => handleStepChange(setInitialAgeOffsetDays, 1)}
-                  className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
+                  className="w-14 h-12 flex items-center justify-center text-[#093832] hover:bg-gray-50"
                 >
-                  +
+                  <Plus className="w-4 h-4" />
                 </button>
               </div>
             </div>
