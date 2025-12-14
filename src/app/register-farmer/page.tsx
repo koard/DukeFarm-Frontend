@@ -152,17 +152,18 @@ export default function RegisterFarmerPage() {
       const [lat, lng] = formData.location.split(", ").map(Number);
 
       const farmAreaRai = parseFloat(formData.raiCount);
-      const pondsPerRai = parseFloat(formData.pondCount);
-
-      if (Number.isNaN(farmAreaRai) || Number.isNaN(pondsPerRai)) {
-        alert("กรุณาระบุจำนวนไร่และจำนวนบ่อต่อไร่เป็นตัวเลข");
+      if (Number.isNaN(farmAreaRai)) {
+        alert("กรุณาระบุจำนวนไร่เป็นตัวเลข");
         setSubmitStatus('idle');
         return;
       }
 
-      const declaredPondCount = Number.isNaN(parseInt(formData.pondCount, 10))
-        ? null
-        : parseInt(formData.pondCount, 10);
+      const declaredPondCount = parseInt(formData.pondCount, 10);
+      if (Number.isNaN(declaredPondCount)) {
+        alert("กรุณาระบุจำนวนบ่อทั้งหมดเป็นตัวเลข");
+        setSubmitStatus('idle');
+        return;
+      }
       
       // จัดลำดับความสำคัญของประเภทฟาร์ม (เพื่อหา Primary Type)
       const priorityOrder: FarmTypeOption[] = ["SMALL", "LARGE", "MARKET"];
@@ -181,7 +182,6 @@ export default function RegisterFarmerPage() {
         
         declaredPondCount,
         farmAreaRai,
-        pondsPerRai,
         
         farmLatitude: lat,
         farmLongitude: lng
@@ -393,7 +393,7 @@ export default function RegisterFarmerPage() {
                         className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500" />
                 </div>
                 <div className="space-y-1.5">
-                    <label className="text-base font-bold text-black">จำนวนบ่อ ต่อไร่</label>
+                  <label className="text-base font-bold text-black">จำนวนบ่อทั้งหมด</label>
                     <input type="number" name="pondCount" value={formData.pondCount} onChange={handleChange} placeholder="ระบุข้อมูล" 
                         className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500" />
                 </div>

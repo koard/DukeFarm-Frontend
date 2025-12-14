@@ -120,7 +120,7 @@ const buildFormStateFromProfile = (profile?: FarmerProfile) => {
     phone: profile?.phone || "",
     farmTypes,
     raiCount: formatNumericInput(profile?.farmAreaRai ?? profile?.declaredRaiCount),
-    pondCount: formatNumericInput(profile?.pondsPerRai ?? profile?.declaredPondCount),
+    pondCount: formatNumericInput(profile?.declaredPondCount ?? profile?.pondsPerRai),
     location: coords ? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}` : "",
   };
 
@@ -254,16 +254,16 @@ export default function ProfilePage() {
     }
 
     const farmAreaRai = parseFloat(formData.raiCount);
-    const pondsPerRai = parseFloat(formData.pondCount);
-
-    if (Number.isNaN(farmAreaRai) || Number.isNaN(pondsPerRai)) {
-      alert("กรุณาระบุจำนวนไร่และจำนวนบ่อต่อไร่เป็นตัวเลข");
+    if (Number.isNaN(farmAreaRai)) {
+      alert("กรุณาระบุจำนวนไร่เป็นตัวเลข");
       return;
     }
 
-    const declaredPondCount = Number.isNaN(parseInt(formData.pondCount, 10))
-      ? null
-      : parseInt(formData.pondCount, 10);
+    const declaredPondCount = parseInt(formData.pondCount, 10);
+    if (Number.isNaN(declaredPondCount)) {
+      alert("กรุณาระบุจำนวนบ่อทั้งหมดเป็นตัวเลข");
+      return;
+    }
 
     const sortedFarmTypes = [...formData.farmTypes].sort(
       (a, b) => FARM_TYPE_PRIORITY.indexOf(a) - FARM_TYPE_PRIORITY.indexOf(b)
@@ -289,7 +289,6 @@ export default function ProfilePage() {
         selectedFarmTypes: formData.farmTypes,
         declaredPondCount,
         farmAreaRai,
-        pondsPerRai,
         farmLatitude: coords.lat,
         farmLongitude: coords.lng
       };
@@ -533,14 +532,14 @@ export default function ProfilePage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-base font-bold text-black">จำนวนบ่อ ต่อไร่</label>
+                <label className="text-base font-bold text-black">จำนวนบ่อทั้งหมด</label>
                 <input
                   type="number"
                   name="pondCount"
                   value={formData.pondCount}
                   onChange={handleChange}
                   disabled={!isEditing}
-                  placeholder="เช่น 4"
+                  placeholder="เช่น 12"
                   className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500 disabled:bg-gray-100 disabled:text-gray-600"
                 />
               </div>
