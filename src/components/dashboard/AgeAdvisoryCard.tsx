@@ -33,7 +33,7 @@ type FarmProgressConfig = {
 
 const FARM_PROGRESS_CONFIG: Record<DashboardGroup, FarmProgressConfig> = {
   SMALL: {
-    title: "สถานะรอบปลาตุ้ม",
+    title: "สถานะรอบการเลี้ยงปลาตุ้ม",
     subtitle: "ติดตามลูกปลาตุ้มก่อนย้ายไปบ่อปลานิ้ว",
     stage: { label: "ปลาตุ้ม (7-10 วัน)", min: 7, max: 10 },
     gradient: ["#FFEDD5", "#FDBA74"],
@@ -43,7 +43,7 @@ const FARM_PROGRESS_CONFIG: Record<DashboardGroup, FarmProgressConfig> = {
     readyText: "ถึงรอบย้ายไปบ่อปลานิ้วหรือเริ่มรอบใหม่แล้ว",
   },
   LARGE: {
-    title: "สถานะรอบปลานิ้ว",
+    title: "สถานะรอบการเลี้ยงปลานิ้ว",
     subtitle: "เร่งโตให้พร้อมย้ายบ่อขุนใหญ่",
     stage: { label: "ปลานิ้ว (11-30 วัน)", min: 11, max: 30 },
     gradient: ["#DBEAFE", "#A5B4FC"],
@@ -53,7 +53,7 @@ const FARM_PROGRESS_CONFIG: Record<DashboardGroup, FarmProgressConfig> = {
     readyText: "พร้อมย้ายเข้าบ่อปลาตลาดแล้ว",
   },
   MARKET: {
-    title: "สถานะรอบปลาตลาด",
+    title: "สถานะรอบการเลี้ยงปลาตลาด",
     subtitle: "วางแผนวันจับขายลอตถัดไป",
     stage: { label: "ปลาตลาด (31-180 วัน)", min: 31, max: 180 },
     gradient: ["#DCFCE7", "#86EFAC"],
