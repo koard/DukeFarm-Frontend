@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 import dynamic from "next/dynamic"; 
 import { useRouter } from "next/navigation";
 import { useLineUser } from "@/hooks/useLineUser"; 
@@ -410,25 +410,27 @@ export default function RegisterFarmerPage() {
 
             <div className="space-y-1.5 pt-2">
               <label className="text-base font-bold text-black">ตำแหน่งของฟาร์ม</label>
-              <div className="flex gap-2 items-center">
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  readOnly
-                  placeholder="กดปุ่มแผนที่เพื่อระบุตำแหน่ง"
-                  className={`flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none text-black text-xs placeholder:text-xs placeholder:text-gray-500 transition-colors ${
-                    formData.location ? "bg-[#E5FFD3]" : "bg-gray-50"
-                  }`}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowMap(true)}
-                  className="p-2 border-2 border-[#72B544] rounded-xl bg-white active:scale-95 transition-all"
-                >
-                  <Image src="/register-farmer/map.svg" alt="Map" width={24} height={24} />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setShowMap(true)}
+                className={`w-full text-left rounded-2xl border-2 border-dashed transition-all duration-200 ${
+                  formData.location ? "bg-[#E5FFD3] border-[#72B544]" : "bg-gray-50 border-gray-200"
+                } px-4 py-3 shadow-sm active:scale-[0.99]`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-inner">
+                    <Image src="/register-farmer/map.svg" alt="Map" width={24} height={24} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-[#0F3B35]">แตะเพื่อเลือกตำแหน่งบนแผนที่</p>
+                    <p className={`text-xs ${formData.location ? "text-gray-700" : "text-gray-400"}`}>
+                      {formData.location ? formData.location : "ยังไม่ได้เลือกตำแหน่ง"}
+                    </p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-[#0F3B35]" />
+                </div>
+              </button>
+              <p className="text-xs text-gray-500">ระบบจะใช้พิกัดนี้ในการให้คำแนะนำและบริการต่าง ๆ</p>
             </div>
 
             <div className="pt-8 pb-8">
