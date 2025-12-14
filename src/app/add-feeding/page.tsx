@@ -274,7 +274,7 @@ export default function AddFeedingPage() {
                 
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-2">
-                    อัตราการรอด (%)
+                    อัตราการรอด
                   </label>
                   <input
                     type="number"
