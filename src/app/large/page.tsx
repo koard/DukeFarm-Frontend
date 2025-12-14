@@ -25,6 +25,11 @@ interface Coordinate {
   y: number;
 }
 
+interface ComfortRange {
+  min: number;
+  max: number;
+}
+
 interface ForecastData {
   date: string;
   highTemperatureC: number;
@@ -65,7 +70,8 @@ interface DashboardData {
   feedingPlan: ForecastData[];
 }
 
-const LARGE_STAGE_COMFORT_ZONE = "27-35°C";
+const LARGE_STAGE_COMFORT_RANGE: ComfortRange = { min: 27, max: 35 };
+const LARGE_STAGE_COMFORT_ZONE = `${LARGE_STAGE_COMFORT_RANGE.min}-${LARGE_STAGE_COMFORT_RANGE.max}°C`;
 
 const getWeatherIconFromCode = (code: number): string => {
   if (code <= 1) return 'fluent_weather-sunny.svg';
@@ -92,15 +98,17 @@ const formatTemperature = (value?: number | null): string => {
   return `${value.toFixed(1)} °C`;
 };
 
-const buildTemperatureDeltaText = (delta?: number | null): string => {
-  if (typeof delta !== "number" || Number.isNaN(delta)) {
+const buildTemperatureDeltaText = (actual?: number | null, comfortRange?: ComfortRange): string => {
+  if (!comfortRange || typeof actual !== "number" || Number.isNaN(actual)) {
     return "ไม่มีข้อมูล";
   }
-  if (delta === 0) {
-    return "อุณหภูมิคงที่เท่าเดิม";
+  if (actual < comfortRange.min) {
+    return `อุณหภูมิต่ำกว่าปกติ ${(comfortRange.min - actual).toFixed(1)}°C`;
   }
-  const direction = delta > 0 ? "สูง" : "ต่ำ";
-  return `อุณหภูมิ${direction}กว่าปกติ ${Math.abs(delta).toFixed(1)}°C`;
+  if (actual > comfortRange.max) {
+    return `อุณหภูมิสูงกว่าปกติ ${(actual - comfortRange.max).toFixed(1)}°C`;
+  }
+  return "อุณหภูมิอยู่ในช่วงเหมาะสม";
 };
 
 const buildFeedAdviceText = (adjustmentPct?: number | null): string => {
@@ -240,7 +248,7 @@ export default function NurseryLargePage() {
               <>
                 <div className="text-center mb-4">
                     <p className="text-xl font-medium text-[#054DD3]">
-                      {buildTemperatureDeltaText(dashboardData?.summary?.temperatureDeltaC)}
+                      {buildTemperatureDeltaText(dashboardData?.summary?.airTemperatureC, LARGE_STAGE_COMFORT_RANGE)}
                     </p>
                     <p className="text-xl font-medium text-[#054DD3]">
                       {buildFeedAdviceText(dashboardData?.summary?.recommendedFeedAdjustmentPct)}
