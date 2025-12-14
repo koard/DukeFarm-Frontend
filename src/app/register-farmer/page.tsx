@@ -395,7 +395,6 @@ export default function RegisterFarmerPage() {
                       name="raiCount"
                       value={formData.raiCount}
                       onChange={handleChange}
-                      placeholder="เช่น 3"
                       className="w-full pr-14 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500"
                     />
                     <span className="absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-gray-500">ไร่</span>

@@ -796,7 +796,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               type="text"
               value={pondCount}
               onChange={(e) => handleNumericInput(e.target.value, setPondCount)}
-              placeholder="เช่น 10"
               className="w-full px-4 py-3 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
             />
           </div>
@@ -812,7 +811,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               type="text"
               value={fishCount}
               onChange={(e) => handleNumericInput(e.target.value, setFishCount)}
-              placeholder="เช่น 250"
               className="w-full px-4 py-3 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
             />
           </div>
@@ -828,7 +826,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               type="text"
               value={foodAmount}
               onChange={(e) => handleNumericInput(e.target.value, setFoodAmount)}
-              placeholder="เช่น 12"
               className="w-full px-4 py-3 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
             />
           </div>
