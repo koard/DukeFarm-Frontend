@@ -313,10 +313,6 @@ export default function RegisterFarmerPage() {
         </div>
 
         <div className="px-6 relative z-20">
-          <div className="mt-4 mb-6">
-              <p className="text-red-500 text-sm font-medium">เจ้าของบ่อหรือเจ้าของพื้นที่เท่านั้น</p>
-          </div>
-
           <div className="flex items-center gap-4 mb-6">
             <div className="w-20 h-20 rounded-full border-4 border-white shadow-md overflow-hidden bg-gray-200 relative">
                <Image 
