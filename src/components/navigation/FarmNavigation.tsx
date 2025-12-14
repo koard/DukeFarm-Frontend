@@ -17,17 +17,17 @@ const NAV_ITEMS: NavItem[] = [
   {
     type: "SMALL",
     label: "ปลาตุ้ม",
-    path: "/nursery-small",
+    path: "/small",
   },
   {
     type: "LARGE",
     label: "ปลานิ้ว",
-    path: "/nursery-large",
+    path: "/large",
   },
   {
     type: "MARKET",
     label: "ปลาตลาด",
-    path: "/market-grower",
+    path: "/market",
   },
 ];
 

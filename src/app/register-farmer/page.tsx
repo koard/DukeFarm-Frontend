@@ -211,9 +211,9 @@ export default function RegisterFarmerPage() {
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
         const pathMap: Record<FarmTypeOption, string> = {
-          SMALL: "nursery-small",
-          LARGE: "nursery-large",
-          MARKET: "market-grower",
+          SMALL: "small",
+          LARGE: "large",
+          MARKET: "market",
         };
 
         if (primaryTypeKey && pathMap[primaryTypeKey]) {

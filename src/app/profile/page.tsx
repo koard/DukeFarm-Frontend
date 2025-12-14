@@ -16,9 +16,9 @@ const FARM_TYPE_INFO: Record<FarmTypeOption, { label: string; description: strin
 };
 
 const FARM_TYPE_ROUTES: Record<FarmTypeOption, string> = {
-  SMALL: "/nursery-small",
-  LARGE: "/nursery-large",
-  MARKET: "/market-grower",
+  SMALL: "/small",
+  LARGE: "/large",
+  MARKET: "/market",
 };
 
 const resolveFarmType = (value?: string | null): FarmTypeOption | null => {
@@ -198,7 +198,7 @@ export default function ProfilePage() {
       }
 
       const resolvedFarmType = resolveFarmType(latestFarmProfile?.primaryFarmType || formData.farmType);
-      const destination = resolvedFarmType ? FARM_TYPE_ROUTES[resolvedFarmType] : "/nursery-small";
+      const destination = resolvedFarmType ? FARM_TYPE_ROUTES[resolvedFarmType] : "/small";
 
       setSubmitStatus('success');
       await new Promise((resolve) => setTimeout(resolve, 1000));

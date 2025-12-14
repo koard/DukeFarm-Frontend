@@ -5,22 +5,22 @@ import { useRouter } from "next/navigation";
 
 const mapFarmTypeToRoute = (value?: string | null) => {
   if (!value) {
-    return "/nursery-small";
+    return "/small";
   }
 
   const normalized = value.toUpperCase();
 
   if (normalized === "SMALL" || normalized === "NURSERY_SMALL") {
-    return "/nursery-small";
+    return "/small";
   }
   if (normalized === "LARGE" || normalized === "NURSERY_LARGE") {
-    return "/nursery-large";
+    return "/large";
   }
   if (normalized === "MARKET" || normalized === "GROWOUT") {
-    return "/market-grower";
+    return "/market";
   }
 
-  return "/nursery-small";
+  return "/small";
 };
 
 export default function Home() {
@@ -64,9 +64,9 @@ export default function Home() {
       if (user.farmerProfile?.primaryFarmType) {
         router.push(mapFarmTypeToRoute(user.farmerProfile.primaryFarmType));
       } 
-      // ถ้าไม่มี farm profile -> default ไป nursery-small
+      // ถ้าไม่มี farm profile -> default ไปหน้า small
       else {
-        router.push("/nursery-small");
+        router.push("/small");
       }
     } catch (error) {
       console.error("Error parsing user data:", error);
