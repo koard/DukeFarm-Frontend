@@ -87,7 +87,6 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, loading }: AgeAdvisoryCard
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="text-lg font-bold text-[#8C3A0C]">{config.title}</h3>
-          <p className="text-md font-semibold text-[#C2410C]">{config.subtitle}</p>
         </div>
       </div>
 
