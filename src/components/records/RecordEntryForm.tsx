@@ -706,7 +706,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
         <div className="space-y-3">
           <label className="block text-lg font-bold text-black">ตั้งค่ารอบการเลี้ยง</label>
-          <span className="text-xs text-gray-500">กรอกเฉพาะการบันทึกข้อมูลครั้งแรก</span>
           <div className="rounded-2xl border border-[#6CCF9C]/40 bg-white/80 px-4 py-4 space-y-4 shadow-sm">
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-2">
@@ -747,7 +746,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                   value={cycleStartDate}
                   max={recordDate}
                   onChange={(event) => setCycleStartDate(event.target.value)}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-lg text-[#093832] focus:outline-none focus:ring-2 focus:ring-[#0F614E]"
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-lg font-semibold text-[#093832] focus:outline-none focus:ring-2 focus:ring-[#0F614E]"
                 />
                 {!isCycleStartValid && (
                   <span className="text-xs text-red-600">วันที่เริ่มรอบต้องไม่เกินวันที่บันทึก</span>
