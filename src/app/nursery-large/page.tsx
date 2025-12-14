@@ -64,7 +64,7 @@ interface DashboardData {
   feedingPlan: ForecastData[];
 }
 
-const NURSERY_LARGE_COMFORT_ZONE = "27-35°C";
+const LARGE_STAGE_COMFORT_ZONE = "27-35°C";
 
 const getWeatherIconFromCode = (code: number): string => {
   if (code <= 1) return 'fluent_weather-sunny.svg';
@@ -148,7 +148,7 @@ const formatFishAgeLabel = (label?: string | null): string => {
 
 export default function NurseryLargePage() {
   const [hoverData, setHoverData] = useState<HoverData | null>(null);
-  const { data: dashboardData, loading, error } = useDashboardData<DashboardData>("GROWOUT");
+  const { data: dashboardData, loading, error } = useDashboardData<DashboardData>("LARGE");
 
   const hasDashboardData = dashboardData?.hasData;
 
@@ -270,7 +270,7 @@ export default function NurseryLargePage() {
                 <div>
                   <h4 className="text-base font-bold text-black mb-1">คำแนะนำ :</h4>
                   <p className="text-base text-black leading-relaxed">
-                    หากอุณหภูมิน้ำอยู่ในช่วงที่เหมาะสม ({NURSERY_LARGE_COMFORT_ZONE}) ปลามักจะกินอาหารและเจริญเติบโตได้ดี ควรเฝ้าดูแนวโน้มอุณหภูมิทุกวัน
+                    หากอุณหภูมิน้ำอยู่ในช่วงที่เหมาะสม ({LARGE_STAGE_COMFORT_ZONE}) ปลามักจะกินอาหารและเจริญเติบโตได้ดี ควรเฝ้าดูแนวโน้มอุณหภูมิทุกวัน
                   </p>
                 </div>
               </>

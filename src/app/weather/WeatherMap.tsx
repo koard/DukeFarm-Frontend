@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
 
 // Fix for default markers in react-leaflet
@@ -86,6 +86,24 @@ export default function WeatherMap() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             maxZoom={18}
           />
+          {weatherPoints.map((point) => {
+            const color = getTemperatureColor(point.temperature);
+            return (
+              <CircleMarker
+                key={`${point.city}-${point.lat}-${point.lng}`}
+                center={[point.lat, point.lng]}
+                radius={8}
+                pathOptions={{ color, fillColor: color, fillOpacity: 0.8 }}
+              >
+                <Tooltip direction="top" offset={[0, -4]} opacity={0.9}>
+                  <div className="space-y-1 text-xs">
+                    <p className="font-semibold">{point.city}{point.country ? `, ${point.country}` : ''}</p>
+                    <p>{point.temperature}°C</p>
+                  </div>
+                </Tooltip>
+              </CircleMarker>
+            );
+          })}
         </MapContainer>
         
         {/* Attribution overlay */}
@@ -97,21 +115,49 @@ export default function WeatherMap() {
         </div>
       </div>
 
-      {/* Temperature Scale Bar */}
-      <div className="bg-white/95 rounded-lg shadow-lg p-4">
-        
-        {/* Temperature Bar - 100% width */}
-        <div className="relative h-2 w-full rounded-full overflow-hidden mb-4" style={{
-          background: 'linear-gradient(to right, #1e40af 0%, #2563eb 20%, #16a34a 40%, #ca8a04 60%, #ea580c 80%, #dc2626 100%)'
-        }}>
+      {/* Temperature Scale + City List */}
+      <div className="bg-white/95 rounded-lg shadow-lg p-4 space-y-4">
+        <div>
+          <div
+            className="relative h-2 w-full rounded-full overflow-hidden mb-3"
+            style={{
+              background:
+                'linear-gradient(to right, #1e40af 0%, #2563eb 20%, #16a34a 40%, #ca8a04 60%, #ea580c 80%, #dc2626 100%)',
+            }}
+          />
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>≤25°C</span>
+            <span>28°C</span>
+            <span>30°C</span>
+            <span>32°C</span>
+            <span>≥35°C</span>
+          </div>
         </div>
-        
-        {/* Scale labels */}
-        <div className="flex justify-between mt-2 text-xs text-gray-500pt-2">
-          <span>25°C</span>
-          <span>30°C</span>
-          <span>35°C</span>
-          <span>40°C</span>
+
+        <div className="grid gap-2 sm:grid-cols-2">
+          {weatherPoints.map((point) => {
+            const color = getTemperatureColor(point.temperature);
+            return (
+              <div
+                key={`weather-card-${point.city}`}
+                className="flex items-center justify-between rounded-lg border border-gray-100 px-3 py-2"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {point.city}
+                    {point.country ? <span className="text-gray-500"> · {point.country}</span> : null}
+                  </p>
+                  <p className="text-xs text-gray-500">Lat {point.lat.toFixed(1)} / Lng {point.lng.toFixed(1)}</p>
+                </div>
+                <div
+                  className="rounded-full px-3 py-1 text-xs font-bold text-white"
+                  style={{ backgroundColor: color }}
+                >
+                  {point.temperature}°C
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

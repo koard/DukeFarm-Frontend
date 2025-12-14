@@ -3,6 +3,26 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+const mapFarmTypeToRoute = (value?: string | null) => {
+  if (!value) {
+    return "/nursery-small";
+  }
+
+  const normalized = value.toUpperCase();
+
+  if (normalized === "SMALL" || normalized === "NURSERY_SMALL") {
+    return "/nursery-small";
+  }
+  if (normalized === "LARGE" || normalized === "NURSERY_LARGE") {
+    return "/nursery-large";
+  }
+  if (normalized === "MARKET" || normalized === "GROWOUT") {
+    return "/market-grower";
+  }
+
+  return "/nursery-small";
+};
+
 export default function Home() {
   const router = useRouter();
 
@@ -42,18 +62,7 @@ export default function Home() {
 
       // Redirect ตาม farm type (สำหรับ farmer)
       if (user.farmerProfile?.primaryFarmType) {
-        const farmType = user.farmerProfile.primaryFarmType.toUpperCase();
-        
-        if (farmType === "NURSERY_SMALL") {
-          router.push("/nursery-small");
-        } else if (farmType === "NURSERY_LARGE") {
-          router.push("/nursery-large");
-        } else if (farmType === "GROWOUT") {
-          router.push("/market-grower");
-        } else {
-          // ถ้าไม่รู้จัก farm type -> default ไป nursery-small
-          router.push("/nursery-small");
-        }
+        router.push(mapFarmTypeToRoute(user.farmerProfile.primaryFarmType));
       } 
       // ถ้าไม่มี farm profile -> default ไป nursery-small
       else {

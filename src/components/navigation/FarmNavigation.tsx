@@ -5,31 +5,48 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 
+type FarmType = "SMALL" | "LARGE" | "MARKET";
+
+interface NavItem {
+  type: FarmType;
+  label: string;
+  path: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  {
+    type: "SMALL",
+    label: "ปลาตุ้ม",
+    path: "/nursery-small",
+  },
+  {
+    type: "LARGE",
+    label: "ปลานิ้ว",
+    path: "/nursery-large",
+  },
+  {
+    type: "MARKET",
+    label: "ปลาตลาด",
+    path: "/market-grower",
+  },
+];
+
+const normalizeFarmType = (value: string | undefined): FarmType | null => {
+  if (!value) return null;
+  const normalized = value.toUpperCase();
+  if (normalized === "SMALL" || normalized === "NURSERY_SMALL") return "SMALL";
+  if (normalized === "LARGE" || normalized === "NURSERY_LARGE") return "LARGE";
+  if (normalized === "MARKET" || normalized === "GROWOUT") return "MARKET";
+  return null;
+};
+
 export default function FarmNavigation() {
   const pathname = usePathname();
-  const [displayItems, setDisplayItems] = useState<any[]>([]);
-
-  const navItems = [
-    {
-      type: "SMALL",
-      label: "ปลาตุ้ม",
-      path: "/nursery-small",
-    },
-    {
-      type: "LARGE",
-      label: "ปลานิ้ว",
-      path: "/nursery-large",
-    },
-    {
-      type: "MARKET",
-      label: "ปลาตลาด",
-      path: "/market-grower",
-    },
-  ];
+  const [displayItems, setDisplayItems] = useState<NavItem[]>(NAV_ITEMS);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    let allowed: string[] = [];
+    const allowed: FarmType[] = [];
 
     if (storedUser) {
       try {
@@ -37,17 +54,17 @@ export default function FarmNavigation() {
         const profile = user.farmerProfile || {};
 
         if (Array.isArray(profile.selectedFarmTypes) && profile.selectedFarmTypes.length > 0) {
-            allowed = profile.selectedFarmTypes.map((t: string) => {
-                if (t === "NURSERY_SMALL") return "SMALL";
-                if (t === "NURSERY_LARGE") return "LARGE";
-                if (t === "GROWOUT") return "MARKET";
-                return "";
-            });
-        }
-        else if (profile.primaryFarmType) {
-             if (profile.primaryFarmType === "NURSERY_SMALL") allowed = ["SMALL"];
-             if (profile.primaryFarmType === "NURSERY_LARGE") allowed = ["LARGE"];
-             if (profile.primaryFarmType === "GROWOUT") allowed = ["MARKET"];
+          profile.selectedFarmTypes.forEach((typeValue: string) => {
+            const normalized = normalizeFarmType(typeValue);
+            if (normalized) {
+              allowed.push(normalized);
+            }
+          });
+        } else if (profile.primaryFarmType) {
+          const normalizedPrimary = normalizeFarmType(profile.primaryFarmType);
+          if (normalizedPrimary) {
+            allowed.push(normalizedPrimary);
+          }
         }
       } catch (e) {
         console.error("Parse error", e);
@@ -55,10 +72,10 @@ export default function FarmNavigation() {
     }
 
     if (allowed.length === 0) {
-        setDisplayItems(navItems);
+      setDisplayItems(NAV_ITEMS);
     } else {
-        const filtered = navItems.filter(item => allowed.includes(item.type));
-        setDisplayItems(filtered.length > 0 ? filtered : navItems);
+      const filtered = NAV_ITEMS.filter((item) => allowed.includes(item.type));
+      setDisplayItems(filtered.length > 0 ? filtered : NAV_ITEMS);
     }
   }, []);
 

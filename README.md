@@ -224,15 +224,15 @@ Time 00:16 - User refreshes Dashboard
 Fish Age (days) + Water Temperature (°C)
     ↓
 Determine Farm Type:
-├─ 0-30 days → NURSERY_SMALL
+├─ 0-30 days → SMALL (ปลาตุ้ม)
 │   ├─ Temp < 28°C → High sensitivity (-70% to -90%)
 │   └─ Temp > 35°C → High sensitivity (-40% to -80%)
 │
-├─ 31-120 days → NURSERY_LARGE
+├─ 31-120 days → LARGE (ปลานิ้ว)
 │   ├─ Temp < 28°C → Medium sensitivity (-40% to -60%)
 │   └─ Temp > 35°C → Medium sensitivity (-20% to -50%)
 │
-└─ 121+ days → GROWOUT
+└─ 121+ days → MARKET (ปลาตลาด)
     ├─ Temp < 28°C → Low sensitivity (-30% to -50%)
     └─ Temp > 35°C → Low sensitivity (-15% to -40%)
     

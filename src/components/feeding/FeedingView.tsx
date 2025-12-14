@@ -7,6 +7,8 @@ import { ChevronLeft, ChevronDown } from "lucide-react";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
 
+type FarmType = "SMALL" | "LARGE" | "MARKET";
+
 interface WeatherData {
   time: string;
   temperatureC: number;
@@ -63,7 +65,7 @@ interface FeedingInfo {
 }
 
 interface FeedingViewProps {
-  farmType: 'NURSERY_SMALL' | 'NURSERY_LARGE' | 'GROWOUT';
+  farmType: FarmType;
   backHref: string;
 }
 
@@ -78,17 +80,17 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
 
   const filterFormulasByFarmType = (formulas: FeedFormula[]) => {
     return formulas.filter(f => {
-        const stage = f.targetStage || "";
-        if (farmType === 'NURSERY_SMALL') return stage.includes('0-15') || stage.includes('ลูกปลา');
-        if (farmType === 'NURSERY_LARGE') return stage.includes('16-30') || stage.includes('31-60') || stage.includes('นิ้ว');
-        if (farmType === 'GROWOUT') return stage.includes('60') || stage.includes('ตลาด') || stage.includes('ขุน');
-        return true; 
+      const stage = f.targetStage || "";
+      if (farmType === "SMALL") return stage.includes('0-15') || stage.includes('ลูกปลา');
+      if (farmType === "LARGE") return stage.includes('16-30') || stage.includes('31-60') || stage.includes('นิ้ว');
+      if (farmType === "MARKET") return stage.includes('60') || stage.includes('ตลาด') || stage.includes('ขุน');
+      return true; 
     });
   };
 
-  const displayFormulas = feedFormulas; 
+  const filteredFormulas = filterFormulasByFarmType(feedFormulas);
 
-  const ageOptions = displayFormulas
+  const ageOptions = filteredFormulas
     .filter(formula => formula.targetStage)
     .map(formula => formula.targetStage)
     .filter((value, index, self) => self.indexOf(value) === index);
@@ -122,7 +124,7 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
   const handleViewData = () => {
       if (!selectedAge) return;
       
-      const matchedFormula = feedFormulas.find(formula => 
+      const matchedFormula = filteredFormulas.find(formula => 
         formula.targetStage === selectedAge
       );
 

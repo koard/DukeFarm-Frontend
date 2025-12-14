@@ -7,6 +7,31 @@ import { ChevronLeft, Check } from "lucide-react";
 import { useLineUser } from "@/hooks/useLineUser";
 import dynamic from "next/dynamic";
 
+type FarmTypeOption = "SMALL" | "LARGE" | "MARKET";
+
+const FARM_TYPE_INFO: Record<FarmTypeOption, { label: string; description: string }> = {
+  SMALL: { label: "ปลาตุ้ม", description: "อายุ 7-10 วัน" },
+  LARGE: { label: "ปลานิ้ว", description: "อายุ 11-30 วัน" },
+  MARKET: { label: "ปลาตลาด", description: "อายุ 31-180 วัน" },
+};
+
+const FARM_TYPE_ROUTES: Record<FarmTypeOption, string> = {
+  SMALL: "/nursery-small",
+  LARGE: "/nursery-large",
+  MARKET: "/market-grower",
+};
+
+const resolveFarmType = (value?: string | null): FarmTypeOption | null => {
+  if (!value) return null;
+  const normalized = value.toUpperCase();
+
+  if (normalized === "SMALL" || normalized === "NURSERY_SMALL") return "SMALL";
+  if (normalized === "LARGE" || normalized === "NURSERY_LARGE") return "LARGE";
+  if (normalized === "MARKET" || normalized === "GROWOUT") return "MARKET";
+
+  return null;
+};
+
 const MapPicker = dynamic(() => import("../register-farmer/MapPicker"), { 
   ssr: false,
   loading: () => <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500">กำลังโหลดแผนที่...</div>
@@ -24,7 +49,7 @@ export default function ProfilePage() {
     firstName: "",
     lastName: "",
     phone: "",
-    farmType: "",
+    farmType: "" as FarmTypeOption | "",
     pondCount: "",
     location: "",
   });
@@ -32,17 +57,10 @@ export default function ProfilePage() {
   const [initialCoords, setInitialCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [tempCoords, setTempCoords] = useState({ lat: 0, lng: 0 });
 
-  const farmOptions = [
-    { value: "NURSERY_SMALL", label: "กลุ่มอนุบาลขนาดเล็ก" },
-    { value: "NURSERY_LARGE", label: "กลุ่มอนุบาลขนาดใหญ่" },
-    { value: "GROWOUT", label: "กลุ่มผู้เลี้ยงขนาดตลาด" },
-  ];
-
-  const farmTypeRoutes: Record<string, string> = {
-    NURSERY_SMALL: "/nursery-small",
-    NURSERY_LARGE: "/nursery-large",
-    GROWOUT: "/market-grower",
-  };
+  const farmOptions = (Object.keys(FARM_TYPE_INFO) as FarmTypeOption[]).map((value) => ({
+    value,
+    label: `${FARM_TYPE_INFO[value].label} (${FARM_TYPE_INFO[value].description})`,
+  }));
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -72,7 +90,7 @@ export default function ProfilePage() {
               firstName: profile.firstName || "",
               lastName: profile.lastName || "",
               phone: profile.phone || "",
-              farmType: profile.primaryFarmType || "",
+              farmType: resolveFarmType(profile.primaryFarmType) || "",
               pondCount: profile.declaredPondCount?.toString() || "",
               location: newLocation
             });
@@ -104,7 +122,7 @@ export default function ProfilePage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectFarmType = (typeValue: string) => {
+  const handleSelectFarmType = (typeValue: FarmTypeOption) => {
     setFormData((prev) => ({ ...prev, farmType: typeValue }));
   };
 
@@ -140,7 +158,7 @@ export default function ProfilePage() {
         firstName: formData.firstName,
         lastName: formData.lastName,
         phone: formData.phone,
-        primaryFarmType: formData.farmType,
+        primaryFarmType: formData.farmType || "SMALL",
         declaredPondCount: parseInt(formData.pondCount),
         farmLatitude: lat,
         farmLongitude: lng
@@ -179,8 +197,8 @@ export default function ProfilePage() {
         localStorage.setItem("user", JSON.stringify(userData));
       }
 
-      const resolvedFarmType = latestFarmProfile?.primaryFarmType || formData.farmType;
-      const destination = resolvedFarmType ? farmTypeRoutes[resolvedFarmType] ?? "/nursery-small" : "/nursery-small";
+      const resolvedFarmType = resolveFarmType(latestFarmProfile?.primaryFarmType || formData.farmType);
+      const destination = resolvedFarmType ? FARM_TYPE_ROUTES[resolvedFarmType] : "/nursery-small";
 
       setSubmitStatus('success');
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -421,7 +439,7 @@ export default function ProfilePage() {
                             firstName: profile.firstName || "",
                             lastName: profile.lastName || "",
                             phone: profile.phone || "",
-                            farmType: profile.primaryFarmType || "",
+                            farmType: resolveFarmType(profile.primaryFarmType) || "",
                             pondCount: profile.declaredPondCount?.toString() || "",
                             location: newLocation
                           });

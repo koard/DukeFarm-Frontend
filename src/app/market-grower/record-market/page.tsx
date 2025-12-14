@@ -3,5 +3,5 @@
 import { RecordEntryForm } from "@/components/records/RecordEntryForm";
 
 export default function RecordMarketPage() {
-    return <RecordEntryForm farmType="GROWOUT" backHref="/market-grower" />;
+    return <RecordEntryForm farmType="MARKET" backHref="/market-grower" />;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents, Circle } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -65,7 +65,7 @@ export default function MapPicker({ onLocationSelect, initialPosition }: MapPick
     const [map, setMap] = useState<L.Map | null>(null);
     const [accuracy, setAccuracy] = useState<number>(0);
 
-    const handleLocate = () => {
+    const handleLocate = useCallback(() => {
         if (!map) return;
         if (!navigator.geolocation) return;
 
@@ -98,7 +98,7 @@ export default function MapPicker({ onLocationSelect, initialPosition }: MapPick
                 maximumAge: 0
             }
         );
-    };
+    }, [map, onLocationSelect]);
 
     useEffect(() => {
         if (map) {
@@ -111,14 +111,15 @@ export default function MapPicker({ onLocationSelect, initialPosition }: MapPick
                             if (!initialPosition) {
                                 handleLocate();
                             }
-                        } catch (e) {
+                        } catch (error) {
+                            console.warn("Map initialization skipped", error);
                         }
                     }
                 });
             }, 500);
             return () => clearTimeout(timer);
         }
-    }, [map]);
+    }, [handleLocate, initialPosition, map]);
 
     return (
         <div className="relative w-full h-full">

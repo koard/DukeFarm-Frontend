@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
+
+type FarmType = "SMALL" | "LARGE" | "MARKET";
 import "leaflet/dist/leaflet.css";
 
 const MapContainer = dynamic(
@@ -103,7 +105,7 @@ interface DashboardData {
 }
 
 interface WeatherViewProps {
-  farmType: 'NURSERY_SMALL' | 'NURSERY_LARGE' | 'GROWOUT';
+  farmType: FarmType;
   backHref: string;
 }
 

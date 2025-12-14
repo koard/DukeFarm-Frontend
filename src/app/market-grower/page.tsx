@@ -148,7 +148,7 @@ const formatFishAgeLabel = (label?: string | null): string => {
 
 export default function MarketGrowerPage() {
   const [hoverData, setHoverData] = useState<HoverData | null>(null);
-  const { data: dashboardData, loading, error } = useDashboardData<DashboardData>("GROWOUT");
+  const { data: dashboardData, loading, error } = useDashboardData<DashboardData>("MARKET");
 
   const hasDashboardData = dashboardData?.hasData;
 
