@@ -150,11 +150,24 @@ export default function RegisterFarmerPage() {
       }
 
       const [lat, lng] = formData.location.split(", ").map(Number);
+
+      const farmAreaRai = parseFloat(formData.raiCount);
+      const pondsPerRai = parseFloat(formData.pondCount);
+
+      if (Number.isNaN(farmAreaRai) || Number.isNaN(pondsPerRai)) {
+        alert("กรุณาระบุจำนวนไร่และจำนวนบ่อต่อไร่เป็นตัวเลข");
+        setSubmitStatus('idle');
+        return;
+      }
+
+      const declaredPondCount = Number.isNaN(parseInt(formData.pondCount, 10))
+        ? null
+        : parseInt(formData.pondCount, 10);
       
       // จัดลำดับความสำคัญของประเภทฟาร์ม (เพื่อหา Primary Type)
-        const priorityOrder: FarmTypeOption[] = ["SMALL", "LARGE", "MARKET"];
+      const priorityOrder: FarmTypeOption[] = ["SMALL", "LARGE", "MARKET"];
       const sortedSelectedTypes = [...formData.farmType].sort((a, b) => {
-          return priorityOrder.indexOf(a) - priorityOrder.indexOf(b);
+        return priorityOrder.indexOf(a) - priorityOrder.indexOf(b);
       });
       const primaryTypeKey = sortedSelectedTypes[0];
 
@@ -166,8 +179,9 @@ export default function RegisterFarmerPage() {
         farmTypes: formData.farmType,
         selectedFarmTypes: formData.farmType,
         
-        declaredRaiCount: parseInt(formData.raiCount),
-        declaredPondCount: parseInt(formData.pondCount),
+        declaredPondCount,
+        farmAreaRai,
+        pondsPerRai,
         
         farmLatitude: lat,
         farmLongitude: lng

@@ -27,6 +27,8 @@ type FarmerProfile = {
   selectedFarmTypes?: string[] | null;
   declaredRaiCount?: number | string | null;
   declaredPondCount?: number | string | null;
+  farmAreaRai?: number | string | null;
+  pondsPerRai?: number | string | null;
   farmLatitude?: number | string | null;
   farmLongitude?: number | string | null;
 };
@@ -117,8 +119,8 @@ const buildFormStateFromProfile = (profile?: FarmerProfile) => {
     lastName: profile?.lastName || "",
     phone: profile?.phone || "",
     farmTypes,
-    raiCount: formatNumericInput(profile?.declaredRaiCount),
-    pondCount: formatNumericInput(profile?.declaredPondCount),
+    raiCount: formatNumericInput(profile?.farmAreaRai ?? profile?.declaredRaiCount),
+    pondCount: formatNumericInput(profile?.pondsPerRai ?? profile?.declaredPondCount),
     location: coords ? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}` : "",
   };
 
@@ -251,13 +253,17 @@ export default function ProfilePage() {
       return;
     }
 
-    const declaredRaiCount = parseInt(formData.raiCount, 10);
-    const declaredPondCount = parseInt(formData.pondCount, 10);
+    const farmAreaRai = parseFloat(formData.raiCount);
+    const pondsPerRai = parseFloat(formData.pondCount);
 
-    if (Number.isNaN(declaredRaiCount) || Number.isNaN(declaredPondCount)) {
-      alert("กรุณาระบุจำนวนไร่และจำนวนบ่อเป็นตัวเลข");
+    if (Number.isNaN(farmAreaRai) || Number.isNaN(pondsPerRai)) {
+      alert("กรุณาระบุจำนวนไร่และจำนวนบ่อต่อไร่เป็นตัวเลข");
       return;
     }
+
+    const declaredPondCount = Number.isNaN(parseInt(formData.pondCount, 10))
+      ? null
+      : parseInt(formData.pondCount, 10);
 
     const sortedFarmTypes = [...formData.farmTypes].sort(
       (a, b) => FARM_TYPE_PRIORITY.indexOf(a) - FARM_TYPE_PRIORITY.indexOf(b)
@@ -281,8 +287,9 @@ export default function ProfilePage() {
         primaryFarmType,
         farmTypes: formData.farmTypes,
         selectedFarmTypes: formData.farmTypes,
-        declaredRaiCount,
         declaredPondCount,
+        farmAreaRai,
+        pondsPerRai,
         farmLatitude: coords.lat,
         farmLongitude: coords.lng
       };
