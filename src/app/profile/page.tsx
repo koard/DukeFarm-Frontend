@@ -279,6 +279,7 @@ export default function ProfilePage() {
         lastName: formData.lastName,
         phone: formData.phone,
         primaryFarmType,
+        farmTypes: formData.farmTypes,
         selectedFarmTypes: formData.farmTypes,
         declaredRaiCount,
         declaredPondCount,

@@ -163,6 +163,7 @@ export default function RegisterFarmerPage() {
         lastName: formData.lastName,
         phone: formData.phone,
         primaryFarmType: primaryTypeKey || "SMALL",
+        farmTypes: formData.farmType,
         selectedFarmTypes: formData.farmType,
         
         declaredRaiCount: parseInt(formData.raiCount),
