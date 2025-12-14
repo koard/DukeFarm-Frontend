@@ -388,9 +388,18 @@ export default function RegisterFarmerPage() {
             {/* จำนวนไร่ และ จำนวนบ่อต่อไร่ */}
             <div className="grid grid-cols-2 gap-4 pt-2">
                 <div className="space-y-1.5">
-                    <label className="text-base font-bold text-black">จำนวนไร่</label>
-                    <input type="number" name="raiCount" value={formData.raiCount} onChange={handleChange} placeholder="ระบุข้อมูล" 
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500" />
+                  <label className="text-base font-bold text-black">พื้นที่ฟาร์มทั้งหมด</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      name="raiCount"
+                      value={formData.raiCount}
+                      onChange={handleChange}
+                      placeholder="เช่น 3"
+                      className="w-full pr-14 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500"
+                    />
+                    <span className="absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-gray-500">ไร่</span>
+                  </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-base font-bold text-black">จำนวนบ่อทั้งหมด</label>
