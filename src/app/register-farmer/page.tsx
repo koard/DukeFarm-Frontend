@@ -306,7 +306,6 @@ export default function RegisterFarmerPage() {
               <ChevronLeft className="w-7 h-7" />
             </Link>
             <div className="flex items-center gap-2 text-2xl font-bold">
-              <Image src="/register-farmer/Leaf.svg" alt="Leaf" width={24} height={24} />
               <span>กรอกข้อมูลลงทะเบียน</span>
             </div>
           </div>

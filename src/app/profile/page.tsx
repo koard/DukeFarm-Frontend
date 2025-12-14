@@ -421,7 +421,6 @@ export default function ProfilePage() {
               <ChevronLeft className="w-7 h-7" />
             </button>
             <div className="flex items-center gap-2 text-2xl font-bold">
-              <Image src="/register-farmer/Leaf.svg" alt="Leaf" width={24} height={24} />
               <span>ข้อมูลโปรไฟล์</span>
             </div>
           </div>
