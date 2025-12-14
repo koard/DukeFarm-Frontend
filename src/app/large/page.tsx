@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
+import AgeAdvisoryCard from "@/components/dashboard/AgeAdvisoryCard";
 import FarmNavigation from "@/components/navigation/FarmNavigation"; 
 
 interface GraphDataPoint {
@@ -254,6 +255,12 @@ export default function NurseryLargePage() {
               </>
             )}
         </div>
+
+        <AgeAdvisoryCard
+          group="LARGE"
+          latestFishAgeLabel={dashboardData?.summary?.latestFishAgeLabel ?? null}
+          loading={loading}
+        />
 
         {/* 5. กราฟ */}
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
