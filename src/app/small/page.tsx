@@ -115,19 +115,6 @@ const buildFeedAdviceText = (adjustmentPct?: number | null): string => {
   return "ให้อาหารตามปกติ";
 };
 
-const formatAverageWeight = (value?: number | null): string => {
-  if (typeof value !== "number" || Number.isNaN(value)) {
-    return "-";
-  }
-
-  const grams = value * 1000;
-  const formatter = new Intl.NumberFormat("th-TH", {
-    minimumFractionDigits: grams < 100 ? 1 : 0,
-    maximumFractionDigits: grams < 100 ? 1 : 0,
-  });
-
-  return `${formatter.format(grams)} กรัม`;
-};
 
 const formatGraphWeight = (value?: number | null): string => {
   if (typeof value !== "number" || Number.isNaN(value)) {
@@ -139,12 +126,6 @@ const formatGraphWeight = (value?: number | null): string => {
   return `${formatter.format(value)} กรัม`;
 };
 
-const formatFishAgeLabel = (label?: string | null): string => {
-  if (!label || !label.trim().length) {
-    return "-";
-  }
-  return label;
-};
 
 export default function NurserySmallPage() {
   const [hoverData, setHoverData] = useState<HoverData | null>(null);
@@ -166,9 +147,6 @@ export default function NurserySmallPage() {
 
   const forecastData: ForecastData[] = hasDashboardData ? dashboardData?.feedingPlan || [] : [];
 
-  const summary = dashboardData?.summary;
-  const averageFishWeightValue = summary?.averageFishWeight ?? null;
-  const latestFishAgeLabel = summary?.latestFishAgeLabel ?? null;
 
   const MAX_GRAPH_VALUE = 2000; // grams
   const axisValues = [2000, 1500, 1000, 500, 0];
@@ -275,44 +253,6 @@ export default function NurserySmallPage() {
                 </div>
               </>
             )}
-        </div>
-
-        {/* 3. อายุปลา & น้ำหนักเฉลี่ย */}
-        <div className="flex items-center bg-[#FFEFBC] rounded-2xl overflow-hidden shadow-sm min-h-[100px]">
-            <div className="flex-1 p-4 flex flex-col items-center justify-center">
-                <div className="flex items-center gap-2 mb-1 text-black">
-                    <Image src="/nursery-large/famicons_fish-outline.svg" alt="age" width={20} height={20} />
-                    <span className="text-base font-medium">อายุปลา</span>
-                </div>
-                <p className="text-xl font-bold text-black text-center">
-                  {loading ? "..." : formatFishAgeLabel(latestFishAgeLabel)}
-                </p>
-            </div>
-            
-            <div className="w-px h-16 bg-gray-300 mx-2"></div>
-
-            <div className="flex-1 p-4 flex flex-col items-center justify-center">
-                <div className="flex items-center justify-center gap-2 mb-1 text-black">
-                    <Image src="/nursery-large/hugeicons_weight.svg" alt="weight" width={20} height={20} className="shrink-0" />
-                    <span className="text-base font-medium text-center leading-tight">น้ำหนักเฉลี่ย</span>
-                </div>
-                <p className="text-xl font-bold text-black">
-                  {loading ? "..." : formatAverageWeight(averageFishWeightValue)}
-                </p> 
-            </div>
-        </div>
-
-        {/* 4. ช่วงอายุที่เหมาะกับการจับขาย (เอา E badge ออกแล้ว) */}
-        <div className="bg-[#DDF8C2] rounded-2xl p-4 shadow-sm border border-emerald-50 flex items-center justify-center relative min-h-[100px]">
-            <div className="flex flex-col items-center justify-center">
-                <div className="flex items-center gap-2 mb-2">
-                    <Image src="/nursery-large/solar_calendar-outline.svg" alt="calendar" width={20} height={20} />
-                    <span className="text-black text-base font-medium">ช่วงอายุที่เหมาะกับการจับขาย</span>
-                </div>
-                <p className="text-2xl font-bold text-black">
-                   2-6 เดือน
-                </p>
-            </div>
         </div>
 
         {/* 5. กราฟ */}
