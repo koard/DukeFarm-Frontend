@@ -716,9 +716,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-semibold text-[#093832]">ปลาอายุกี่วันตอนรับมา?</span>
-                <span className="text-xs text-gray-500">
-                  หน้านี้: {currentStageLabel} (≈ {defaultInitialAge} วัน)
-                </span>
               </div>
               <div className="flex items-center bg-white border border-gray-200 rounded-2xl overflow-hidden">
                 <button
