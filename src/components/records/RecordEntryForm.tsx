@@ -705,11 +705,12 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         </div>
 
         <div className="space-y-3">
-          <label className="block text-lg text-black">ตั้งค่าการเริ่มรอบนี้</label>
+          <label className="block text-lg font-bold text-black">ตั้งค่ารอบการเลี้ยง</label>
+          <span className="text-xs text-gray-500">กรอกเฉพาะการบันทึกข้อมูลครั้งแรก</span>
           <div className="rounded-2xl border border-[#6CCF9C]/40 bg-white/80 px-4 py-4 space-y-4 shadow-sm">
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-semibold text-[#093832]">ปลาอายุกี่วันตอนรับมา?</span>
+                <span className="text-md font-semibold text-[#093832]">ปลาอายุกี่วันตอนรับมา?</span>
               </div>
               <div className="flex items-center bg-white border border-gray-200 rounded-2xl overflow-hidden">
                 <button
@@ -739,7 +740,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             </div>
             <div className="h-px bg-[#6CCF9C]/30" />
             <div className="space-y-3">
-              <span className="text-sm font-semibold text-[#093832]">วันที่เริ่มปล่อยปลาลงบ่อ</span>
+              <span className="text-md font-semibold text-[#093832]">วันที่เริ่มปล่อยปลาลงบ่อ</span>
               <div className="flex flex-col gap-1">
                 <input
                   type="date"
@@ -789,7 +790,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         <div className="space-y-1">
           <div className="flex items-center justify-between">
             <label className="block text-lg text-black">จำนวนบ่อ</label>
-            <span className="text-xs text-gray-500">บ่อ</span>
           </div>
           <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden">
             <input
@@ -804,7 +804,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         <div className="space-y-1">
           <div className="flex items-center justify-between">
             <label className="block text-lg text-black">จำนวนปลาที่เลี้ยง (ตัว)</label>
-            <span className="text-xs text-gray-500">เพิ่ม/ลดครั้งละ 50 ตัว</span>
           </div>
           <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden">
             <input
@@ -819,7 +818,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         <div className="space-y-1">
           <div className="flex items-center justify-between">
             <label className="block text-lg text-black">ปริมาณอาหาร (กิโลกรัม)</label>
-            <span className="text-xs text-gray-500">เพิ่ม/ลดครั้งละ 0.5 กก.</span>
           </div>
           <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden">
             <input
