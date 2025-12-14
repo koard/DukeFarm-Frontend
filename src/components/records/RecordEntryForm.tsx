@@ -25,11 +25,18 @@ const AGE_PHASES: AgePhase[] = [
 ];
 
 const POND_TYPE_OPTIONS = ['บ่อดิน', 'บ่อปูน'];
-const INITIAL_AGE_PRESETS = [
-  { label: 'ปลาตุ้ม(7วัน)', value: 7 },
-  { label: 'ปลานิ้ว(11วัน)', value: 11 },
-  { label: 'ปลาตลาด(31วัน)', value: 31 },
-];
+const FARM_TYPE_INITIAL_AGE: Record<FarmType, number> = {
+  SMALL: 7,
+  LARGE: 11,
+  MARKET: 31,
+};
+const FARM_TYPE_STAGE_LABEL: Record<FarmType, string> = {
+  SMALL: 'ปลาตุ้ม',
+  LARGE: 'ปลานิ้ว',
+  MARKET: 'ปลาตลาด',
+};
+
+const getDefaultInitialAge = (type: FarmType) => FARM_TYPE_INITIAL_AGE[type] ?? 0;
 
 const formatInputDate = (value: Date) => {
   const year = value.getFullYear();
@@ -183,7 +190,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
   const now = useMemo(() => new Date(), []);
 
   const [cycleStartDate, setCycleStartDate] = useState(() => formatInputDate(now));
-  const [initialAgeOffsetDays, setInitialAgeOffsetDays] = useState('0');
+  const [initialAgeOffsetDays, setInitialAgeOffsetDays] = useState(() => getDefaultInitialAge(farmType).toString());
   const [selectedPondType, setSelectedPondType] = useState('');
   const [pondCount, setPondCount] = useState('');
   const [fishCount, setFishCount] = useState('');
@@ -230,6 +237,13 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
       console.error('Failed to parse last entry snapshot', error);
     }
   }, []);
+
+  useEffect(() => {
+    if (lastEntrySnapshot) {
+      return;
+    }
+    setInitialAgeOffsetDays(getDefaultInitialAge(farmType).toString());
+  }, [farmType, lastEntrySnapshot]);
 
   useEffect(() => {
     let isMounted = true;
@@ -291,6 +305,8 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
   const ageFromCycleStart = cycleStartDate ? getDaysDifference(cycleStartDate, recordDate) : 0;
   const fishAgeNumber = initialAgeOffsetNumber + ageFromCycleStart;
+  const defaultInitialAge = getDefaultInitialAge(farmType);
+  const currentStageLabel = FARM_TYPE_STAGE_LABEL[farmType] ?? 'ปลาดุก';
   const lastEntryAgeSummary = useMemo(() => {
     if (!lastEntrySnapshot) {
       return '-';
@@ -698,36 +714,36 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
           <label className="block text-lg text-black">ตั้งค่าการเริ่มรอบนี้</label>
           <div className="rounded-2xl border border-[#6CCF9C]/40 bg-white/80 px-4 py-4 space-y-4 shadow-sm">
             <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-semibold text-[#093832]">ปลาอายุกี่วันตอนรับมา?</span>
-                <div className="flex flex-wrap gap-2">
-                  {INITIAL_AGE_PRESETS.map((preset) => (
-                    <button
-                      type="button"
-                      key={preset.label}
-                      onClick={() => setInitialAgeOffsetDays(preset.value.toString())}
-                      className={`rounded-full px-3 py-1 text-xs font-semibold border transition-colors ${
-                        Number(initialAgeOffsetDays || '0') === preset.value
-                          ? 'bg-[#093832] text-white border-[#093832]'
-                          : 'bg-white text-[#093832] border-[#093832]/30 hover:border-[#093832]'
-                      }`}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
+                <span className="text-xs text-gray-500">
+                  หน้านี้: {currentStageLabel} (≈ {defaultInitialAge} วัน)
+                </span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center bg-white border border-gray-200 rounded-2xl overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => handleStepChange(setInitialAgeOffsetDays, -1)}
+                  className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
+                >
+                  –
+                </button>
                 <input
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
                   value={initialAgeOffsetDays}
                   onChange={(event) => handleIntegerInput(event.target.value, setInitialAgeOffsetDays)}
-                  placeholder="เช่น 7"
-                  className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-lg text-[#093832] focus:outline-none focus:ring-2 focus:ring-[#0F614E]"
+                  placeholder={defaultInitialAge.toString()}
+                  className="flex-1 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
                 />
-                <span className="text-sm text-gray-600 font-semibold">วัน</span>
+                <button
+                  type="button"
+                  onClick={() => handleStepChange(setInitialAgeOffsetDays, 1)}
+                  className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
+                >
+                  +
+                </button>
               </div>
             </div>
             <div className="h-px bg-[#6CCF9C]/30" />
