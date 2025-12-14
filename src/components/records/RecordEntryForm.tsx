@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, useRef, Dispatch, SetStateAction } from '
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Check, ChevronLeft, X, Plus } from 'lucide-react';
+import { Check, ChevronLeft } from 'lucide-react';
 import { useLineUser } from '@/hooks/useLineUser';
 
 type FarmType = 'SMALL' | 'LARGE' | 'MARKET';
@@ -22,64 +22,6 @@ const AGE_PHASES: AgePhase[] = [
   { label: 'ปลาตุ้ม', min: 7, max: 10, accent: '#F97316' },
   { label: 'ปลานิ้ว', min: 11, max: 30, accent: '#2563EB' },
   { label: 'ปลาตลาด', min: 31, max: 180, accent: '#16A34A' },
-];
-
-const FALLBACK_PHASE: AgePhase = {
-  label: 'รอบทั่วไป',
-  min: 0,
-  max: 180,
-  accent: '#0F172A',
-};
-
-const findPhase = (label: string): AgePhase => AGE_PHASES.find((phase) => phase.label === label) ?? FALLBACK_PHASE;
-
-type PhasePreset = {
-  stage: AgePhase;
-  defaultStartAge: number;
-  description: string;
-  nextHint: string;
-  gradient: [string, string];
-};
-
-const ENTRY_PHASE_CONFIG: Record<FarmType, PhasePreset> = {
-  SMALL: {
-    stage: findPhase('ปลาตุ้ม'),
-    defaultStartAge: 7,
-    description: 'ช่วงอนุบาลลูกปลาหลังฟัก ต้องให้อาหารถี่และคุมคุณภาพน้ำใกล้ชิด',
-    nextHint: 'ครบ 10 วันส่งต่อไปบ่อปลานิ้วได้ทันที',
-    gradient: ['#FFF5EB', '#FFE5D2'],
-  },
-  LARGE: {
-    stage: findPhase('ปลานิ้ว'),
-    defaultStartAge: 12,
-    description: 'เร่งให้ตัวใหญ่และแข็งแรง เตรียมพร้อมย้ายเข้าบ่อขุนใหญ่',
-    nextHint: 'อายุ 28–30 วันย้ายไปบ่อปลาตลาดได้เลย',
-    gradient: ['#E6F3FF', '#F2F6FF'],
-  },
-  MARKET: {
-    stage: findPhase('ปลาตลาด'),
-    defaultStartAge: 31,
-    description: 'โฟกัสที่อัตราโตและสุขภาพจนถึงขนาดจำหน่าย',
-    nextHint: 'พร้อมจับขายตั้งแต่ 90 วัน หรือสูงสุด 180 วัน',
-    gradient: ['#EEFDEE', '#DFF7E7'],
-  },
-};
-
-const DISEASE_LIST = [
-    'โรคลำไส้อักเสบปลาดุก',
-    'โรคแผลเลือดออก/แบคทีเรียแกรมลบ',
-    'โรคตัวด่าง/ตัวลาย',
-    'โรคสเตรปโตค็อกคัส/ติดเชื้อสมอง',
-    'โรคไวรัสทำลายสมองลูกปลา',
-    'โรคจุดขาว/ไอค์',
-    'เห็บปลา/หนอนสมอ',
-    'โปรโตซัวผิวหนัง/เหงือก',
-    'พยาธิหนอนลำไส้',
-    'โรครา/เชื้อราผิวหนังปลา',
-    'โรคแผลเน่ารุนแรง',
-    'โรคดีซ่านปลา/ตับอักเสบ',
-    'ปลาขาดสารอาหาร',
-    'อาการเครียดปลาดุก',
 ];
 
 const POND_TYPE_OPTIONS = ['บ่อดิน', 'บ่อปูน'];
@@ -192,13 +134,13 @@ export type FormStateResponse = {
 type LastEntrySnapshot = {
   recordDate: string;
   recordTime: string;
+  cycleStartDate: string;
   ageDays?: number;
   age?: string;
   pondType: string;
   pondCount: string;
   fishCount: string;
   foodAmount: string;
-  diseases: string[];
 };
 
 const getSnapshotAgeDays = (snapshot?: LastEntrySnapshot | null) => {
@@ -211,25 +153,34 @@ const getSnapshotAgeDays = (snapshot?: LastEntrySnapshot | null) => {
   return extractLegacyAgeDays(snapshot.age);
 };
 
+const deriveCycleStartDate = (recordDate: string, ageDays: number | null) => {
+  if (!recordDate || ageDays === null || Number.isNaN(ageDays)) {
+    return recordDate;
+  }
+  const record = new Date(recordDate);
+  if (Number.isNaN(record.getTime())) {
+    return recordDate;
+  }
+  const derived = new Date(record);
+  derived.setDate(derived.getDate() - ageDays);
+  return formatInputDate(derived);
+};
+
 export type RecordEntryFormProps = {
   farmType: FarmType;
   backHref: string;
 };
 
 export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) => {
-  const phasePreset = ENTRY_PHASE_CONFIG[farmType];
   const router = useRouter();
   const lineUser = useLineUser();
   const now = useMemo(() => new Date(), []);
 
-  const [fishAgeDays, setFishAgeDays] = useState(() => (
-    phasePreset ? phasePreset.defaultStartAge.toString() : ''
-  ));
+  const [cycleStartDate, setCycleStartDate] = useState(() => formatInputDate(now));
   const [selectedPondType, setSelectedPondType] = useState('');
   const [pondCount, setPondCount] = useState('');
   const [fishCount, setFishCount] = useState('');
   const [foodAmount, setFoodAmount] = useState('');
-  const [otherDisease, setOtherDisease] = useState('');
   const [recordDate, setRecordDate] = useState(() => formatInputDate(now));
   const [recordTime, setRecordTime] = useState(() => formatInputTime(now));
   const [weatherSnapshot, setWeatherSnapshot] = useState<WeatherSnapshot | null>(null);
@@ -238,14 +189,9 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isAnalysisView, setIsAnalysisView] = useState(false);
-  const [selectedDiseases, setSelectedDiseases] = useState<string[]>([]);
   const [lastEntrySnapshot, setLastEntrySnapshot] = useState<LastEntrySnapshot | null>(null);
 
-  // Image State
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const successModalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const ageInputTouchedRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -261,24 +207,19 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
       if (stored) {
         const snapshot: LastEntrySnapshot = JSON.parse(stored);
         setLastEntrySnapshot(snapshot);
-        const resolvedAgeDays = getSnapshotAgeDays(snapshot);
-        if (resolvedAgeDays !== null && !Number.isNaN(resolvedAgeDays)) {
-          setFishAgeDays(resolvedAgeDays.toString());
+        if (snapshot.cycleStartDate) {
+          setCycleStartDate(snapshot.cycleStartDate);
+        } else {
+          const resolvedAgeDays = getSnapshotAgeDays(snapshot);
+          if (resolvedAgeDays !== null && !Number.isNaN(resolvedAgeDays)) {
+            setCycleStartDate(deriveCycleStartDate(snapshot.recordDate, resolvedAgeDays));
+          }
         }
       }
     } catch (error) {
       console.error('Failed to parse last entry snapshot', error);
     }
   }, []);
-
-  useEffect(() => {
-    if (lastEntrySnapshot || ageInputTouchedRef.current) {
-      return;
-    }
-    if (phasePreset) {
-      setFishAgeDays(phasePreset.defaultStartAge.toString());
-    }
-  }, [phasePreset, lastEntrySnapshot]);
 
   useEffect(() => {
     let isMounted = true;
@@ -330,37 +271,15 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
     return () => { isMounted = false; };
   }, [farmType, router]);
 
-  const fishAgeNumber = fishAgeDays ? Number(fishAgeDays) : 0;
-  const ageStage = getAgeStage(fishAgeNumber);
-  const stageForDisplay = phasePreset?.stage ?? ageStage;
-  const daysToStageBoundary = stageForDisplay && Number.isFinite(stageForDisplay.max)
-    ? Math.max(0, Math.round(stageForDisplay.max - fishAgeNumber))
-    : null;
-  const showResetCyclePrompt = phasePreset
-    ? fishAgeNumber >= phasePreset.stage.max
-    : stageForDisplay && Number.isFinite(stageForDisplay.max)
-      ? fishAgeNumber >= stageForDisplay.max
-      : false;
-  const phaseStatus = phasePreset
-    ? fishAgeNumber > phasePreset.stage.max
-      ? 'over'
-      : fishAgeNumber < phasePreset.stage.min
-        ? 'under'
-        : 'ready'
-    : null;
-  const phaseStatusCopy = phaseStatus === 'over'
-    ? 'เกินช่วงที่แนะนำ ควรส่งต่อหรือเริ่มรอบใหม่'
-    : phaseStatus === 'under'
-      ? 'ยังไม่ถึงช่วงอายุหลัก ตรวจสอบว่าข้อมูลถูกต้อง'
-      : 'อยู่ในช่วงที่เหมาะสม';
-  const phaseProgress = phasePreset
-    ? (() => {
-        const span = Math.max(1, phasePreset.stage.max - phasePreset.stage.min);
-        const raw = (fishAgeNumber - phasePreset.stage.min) / span;
-        return Math.max(0, Math.min(1, raw));
-      })()
-    : null;
+  const fishAgeNumber = cycleStartDate ? getDaysDifference(cycleStartDate, recordDate) : 0;
   const lastEntryAgeSummary = useMemo(() => {
+    if (!lastEntrySnapshot) {
+      return '-';
+    }
+    if (lastEntrySnapshot.cycleStartDate) {
+      const derived = getDaysDifference(lastEntrySnapshot.cycleStartDate, lastEntrySnapshot.recordDate);
+      return formatAgeSummary(derived);
+    }
     const days = getSnapshotAgeDays(lastEntrySnapshot);
     if (days === null || Number.isNaN(days)) {
       return '-';
@@ -368,51 +287,10 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
     return formatAgeSummary(days);
   }, [lastEntrySnapshot]);
 
-  useEffect(() => {
-    if (!lastEntrySnapshot || !recordDate || ageInputTouchedRef.current) {
-      return;
-    }
-    const baseAge = getSnapshotAgeDays(lastEntrySnapshot);
-    if (baseAge === null || Number.isNaN(baseAge)) {
-      return;
-    }
-    const diffDays = getDaysDifference(lastEntrySnapshot.recordDate, recordDate);
-    const nextAge = clampAgeDays(baseAge + diffDays);
-    setFishAgeDays(nextAge.toString());
-  }, [lastEntrySnapshot, recordDate]);
-
   const handleNumericInput = (value: string, setter: (val: string) => void) => {
     if (/^\d*\.?\d*$/.test(value)) {
       setter(value);
     }
-  };
-
-  const handleAgeInput = (value: string) => {
-    if (/^\d*$/.test(value)) {
-      ageInputTouchedRef.current = true;
-      setFishAgeDays(value);
-    }
-  };
-
-  const bumpAgeBy = (delta: number) => {
-    ageInputTouchedRef.current = true;
-    setFishAgeDays((prev) => {
-      const parsed = Number(prev || '0');
-      return clampAgeDays(parsed + delta).toString();
-    });
-  };
-
-  const handleResetAgeCycle = (reason: 'cycle' | 'transfer' = 'cycle') => {
-    ageInputTouchedRef.current = true;
-    const nextAge = phasePreset?.defaultStartAge ?? 0;
-    setFishAgeDays(nextAge.toString());
-    setSubmitMessage({
-      type: 'success',
-      text:
-        reason === 'transfer'
-          ? 'ย้ายรอบสำเร็จแล้ว สามารถบันทึกอายุชุดถัดไปได้ทันที'
-          : 'รีเซ็ตรอบนี้แล้ว กรอกอายุใหม่ตามวันเริ่มต้นรอบล่าสุดได้เลย',
-    });
   };
 
   const adjustNumericByStep = (value: string, delta: number, allowDecimal = false) => {
@@ -436,46 +314,30 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
   const handleApplyLastEntry = () => {
     if (!lastEntrySnapshot) return;
-    const restoredAge = getSnapshotAgeDays(lastEntrySnapshot);
-    if (restoredAge !== null && !Number.isNaN(restoredAge)) {
-      setFishAgeDays(restoredAge.toString());
+    if (lastEntrySnapshot.cycleStartDate) {
+      setCycleStartDate(lastEntrySnapshot.cycleStartDate);
+    } else {
+      const restoredAge = getSnapshotAgeDays(lastEntrySnapshot);
+      if (restoredAge !== null && !Number.isNaN(restoredAge)) {
+        setCycleStartDate(deriveCycleStartDate(lastEntrySnapshot.recordDate, restoredAge));
+      }
     }
-    ageInputTouchedRef.current = true;
     setSelectedPondType(lastEntrySnapshot.pondType);
     setPondCount(lastEntrySnapshot.pondCount);
     setFishCount(lastEntrySnapshot.fishCount);
     setFoodAmount(lastEntrySnapshot.foodAmount);
-    setSelectedDiseases(lastEntrySnapshot.diseases);
-    setOtherDisease('');
     setSubmitMessage({ type: 'success', text: 'เติมข้อมูลครั้งล่าสุดให้แล้ว ปรับแก้ได้ตามต้องการ' });
   };
 
+  const isCycleStartValid = Boolean(cycleStartDate && cycleStartDate <= recordDate);
+
   const isFormValid = Boolean(
-    fishAgeDays &&
+    isCycleStartValid &&
     selectedPondType &&
     pondCount &&
     fishCount &&
     foodAmount
   );
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      const newImages = Array.from(event.target.files).map(file => URL.createObjectURL(file));
-      setUploadedImages(prev => [...prev, ...newImages]);
-    }
-  };
-
-  const removeImage = (index: number) => {
-    setUploadedImages(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const toggleDisease = (disease: string) => {
-    setSelectedDiseases(prev => 
-        prev.includes(disease) 
-        ? prev.filter(d => d !== disease) 
-        : [...prev, disease]
-    );
-  };
 
   const handleSubmit = async () => {
     if (!isFormValid || submitting) return;
@@ -486,11 +348,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
       if (!token) {
         router.push('/login');
         return;
-      }
-
-      const allDiseases = [...selectedDiseases];
-      if (otherDisease.trim()) {
-        allDiseases.push(otherDisease.trim());
       }
 
       const normalizedAge = clampAgeDays(fishAgeNumber);
@@ -512,7 +369,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             pondCount: Number(pondCount),
             fishCount: Number(fishCount),
             foodAmount: Number(foodAmount),
-            diseases: allDiseases,
+            diseases: [],
         }),
       });
 
@@ -527,12 +384,12 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
       const snapshot: LastEntrySnapshot = {
         recordDate,
         recordTime,
+        cycleStartDate,
         ageDays: normalizedAge,
         pondType: selectedPondType,
         pondCount,
         fishCount,
         foodAmount,
-        diseases: allDiseases,
       };
       localStorage.setItem(LAST_ENTRY_STORAGE_KEY, JSON.stringify(snapshot));
       setLastEntrySnapshot(snapshot);
@@ -644,29 +501,10 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                     </div>
                 </div>
                 
-                <div>
-                     <h3 className="font-bold text-black mb-2">ลักษณะปลา (กรณีผิดปกติ)</h3>
-                     <div className="flex flex-wrap gap-2 mb-4">
-                        {selectedDiseases.length > 0 ? selectedDiseases.map((d, i) => (
-                            <span key={i} className="bg-[#BDD7FF] text-blue-900 px-3 py-1 rounded-full text-sm">
-                                {d}
-                            </span>
-                        )) : (
-                            <span className="text-gray-400">- ไม่มี -</span>
-                        )}
-                        {otherDisease && (
-                             <span className="bg-[#BDD7FF] text-blue-900 px-3 py-1 rounded-full text-sm">
-                                {otherDisease}
-                             </span>
-                        )}
-                     </div>
-                </div>
-
-                 <div className="bg-[#FFF6DB] rounded-xl p-4">
-                    <h3 className="font-bold text-black text-sm">โรคที่พบ</h3>
-                    <p className="text-sm text-gray-700 mb-2">ปลาขาดสารอาหาร</p>
-                    <h3 className="font-bold text-black text-sm">แนวทางการรักษา</h3>
-                    <p className="text-sm text-gray-700">เพิ่มอาหารที่มีโปรตีน เช่น xxx, xxx, xxx</p>
+                <div className="bg-[#FFF6DB] rounded-xl p-4">
+                  <h3 className="font-bold text-black text-sm">บันทึกสถานะสุขภาพ</h3>
+                  <p className="text-sm text-gray-700 mb-2">ข้อมูลสุขภาพละเอียดให้บันทึกในหน้าแดชบอร์ดหลัก</p>
+                  <p className="text-xs text-gray-500">หน้านี้เน้นบันทึกข้อมูลการให้อาหารและจำนวนปลาเท่านั้น</p>
                 </div>
 
                 <button
@@ -751,6 +589,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             </div>
             <div className="text-xs text-gray-700 grid grid-cols-2 gap-y-1">
               <span>อายุปลา: {lastEntryAgeSummary}</span>
+              <span>เริ่มรอบ: {lastEntrySnapshot.cycleStartDate ?? '-'}</span>
               <span>ประเภทบ่อ: {lastEntrySnapshot.pondType || '-'}</span>
               <span>จำนวนบ่อ: {lastEntrySnapshot.pondCount || '-'}</span>
               <span>อาหาร: {lastEntrySnapshot.foodAmount || '-'} กก.</span>
@@ -825,123 +664,28 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <label className="block text-lg text-black">อายุปลา (จำนวนวัน)</label>
-            <span className="text-xs text-gray-500">ระบบจะเพิ่มให้อัตโนมัติทุกวัน</span>
-          </div>
-          <div className="flex flex-col gap-3 lg:flex-row">
-            <div className="flex-1 flex items-center bg-white border border-gray-300 rounded-2xl overflow-hidden shadow-sm">
-              <button
-                type="button"
-                onClick={() => bumpAgeBy(-1)}
-                className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-50"
-              >
-                –
-              </button>
+        <div className="space-y-3">
+          <label className="block text-lg text-black">วันที่เริ่มเลี้ยงรอบนี้</label>
+          <div className="rounded-2xl border border-[#6CCF9C]/40 bg-white/80 px-4 py-4 space-y-3 shadow-sm">
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-[#0F614E]/70">เลือกวันที่เริ่มปล่อยปลาลงบ่อ</span>
               <input
-                type="text"
-                inputMode="numeric"
-                value={fishAgeDays}
-                onChange={(event) => handleAgeInput(event.target.value)}
-                placeholder="เช่น 7"
-                className="flex-1 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
+                type="date"
+                value={cycleStartDate}
+                max={recordDate}
+                onChange={(event) => setCycleStartDate(event.target.value)}
+                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-lg text-[#093832] focus:outline-none focus:ring-2 focus:ring-[#0F614E]"
               />
-              <button
-                type="button"
-                onClick={() => bumpAgeBy(1)}
-                className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-50"
-              >
-                +
-              </button>
+              {!isCycleStartValid && (
+                <span className="text-xs text-red-600">วันที่เริ่มรอบต้องไม่เกินวันที่บันทึก</span>
+              )}
             </div>
-            {stageForDisplay && (
-              <div
-                className="flex-1 rounded-2xl p-4 border shadow-sm text-[#0F3B35]"
-                style={{
-                  background: phasePreset
-                    ? `linear-gradient(140deg, ${phasePreset.gradient[0]}, ${phasePreset.gradient[1]})`
-                    : 'linear-gradient(140deg, #F8FAFF, #FFFFFF)',
-                  borderColor: stageForDisplay.accent,
-                }}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] uppercase tracking-[0.2em] text-black/50">รอบปัจจุบัน</p>
-                    <p className="text-xl font-bold" style={{ color: stageForDisplay.accent }}>
-                      {phasePreset?.stage.label ?? stageForDisplay.label}
-                    </p>
-                    <p className="text-xs text-black/70">
-                      ช่วงแนะนำ {stageForDisplay.min}–{Number.isFinite(stageForDisplay.max) ? stageForDisplay.max : 180} วัน
-                    </p>
-                  </div>
-                  {phasePreset && (
-                    <span
-                      className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                        phaseStatus === 'over'
-                          ? 'bg-red-100 text-red-700'
-                          : phaseStatus === 'under'
-                            ? 'bg-amber-100 text-amber-800'
-                            : 'bg-emerald-100 text-emerald-700'
-                      }`}
-                    >
-                      {phaseStatusCopy}
-                    </span>
-                  )}
-                </div>
-                {phasePreset ? (
-                  <p className="mt-2 text-sm text-black/70">{phasePreset.description}</p>
-                ) : (
-                  <p className="mt-2 text-sm text-black/70">ระบบจะบอกช่วงที่เหมาะสมตามวันที่คุณกรอก</p>
-                )}
-                {phaseProgress !== null && (
-                  <div className="mt-4">
-                    <div className="flex items-center justify-between text-[11px] text-black/60 mb-1">
-                      <span>{Math.max(0, stageForDisplay.min)} วัน</span>
-                      <span>{Number.isFinite(stageForDisplay.max) ? stageForDisplay.max : '∞'} วัน</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-white/60 overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{ width: `${phaseProgress * 100}%`, backgroundColor: stageForDisplay.accent }}
-                      />
-                    </div>
-                  </div>
-                )}
-                {phasePreset && (
-                  <p className="mt-3 text-xs font-semibold text-[#0F3B35] flex items-center gap-1">
-                    <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: stageForDisplay.accent }} />
-                    {phasePreset.nextHint}
-                  </p>
-                )}
-                {daysToStageBoundary !== null && daysToStageBoundary <= 3 && daysToStageBoundary >= 0 && (
-                  <p className="mt-2 text-xs text-[#8C4A00]">
-                    เหลืออีก {daysToStageBoundary} วันก่อนครบช่วงนี้ เตรียมส่งต่อหรือเริ่มรอบใหม่ได้เลย
-                  </p>
-                )}
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleResetAgeCycle('cycle')}
-                    className="px-4 py-2 rounded-xl text-sm font-semibold bg-white/80 text-[#093832] shadow-sm hover:bg-white"
-                  >
-                    เริ่มรอบใหม่
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleResetAgeCycle('transfer')}
-                    className="px-4 py-2 rounded-xl text-sm font-semibold border border-dashed border-[#093832]/40 text-[#093832] hover:bg-white/70"
-                  >
-                    ย้ายรอบ/ส่งต่อก่อนกำหนด
-                  </button>
-                </div>
-                {showResetCyclePrompt && (
-                  <div className="mt-3 bg-white/80 border border-[#F4C58C] text-xs text-[#8C4A00] rounded-xl px-3 py-2">
-                    อายุถึงเพดานสูงสุดของช่วงนี้แล้ว กดปุ่มเริ่มรอบใหม่เพื่อบันทึกชุดถัดไป
-                  </div>
-                )}
-              </div>
-            )}
+            <div className="rounded-xl bg-[#E4F5E7] px-4 py-3 text-sm text-[#0F3B35] flex flex-col gap-1">
+              <span>ระบบคำนวณอายุอัตโนมัติ</span>
+              <strong className="text-2xl text-[#093832]">{fishAgeNumber} วัน</strong>
+              <span className="text-xs text-gray-500">จะเพิ่มตามวันที่บันทึกไว้ ไม่ต้องกรอกตัวเลขเอง</span>
+              <span className="text-xs text-gray-500">ช่วงอายุปัจจุบัน: {formatAgeSummary(fishAgeNumber)}</span>
+            </div>
           </div>
         </div>
 
@@ -1060,76 +804,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             </button>
           </div>
         </div>
-
-        <div>
-             <label className="block text-lg text-black mb-2">ลักษณะปลา (กรณีผิดปกติ)</label>
-             <div className="space-y-3">
-                 <div className="flex flex-col gap-1">
-                     <span className="text-sm text-gray-600">ลักษณะปลาที่พบ</span>
-                     <input
-                        type="text"
-                        value={otherDisease}
-                        onChange={(e) => setOtherDisease(e.target.value)}
-                        placeholder="ระบุเพิ่มเติม"
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-lg text-black placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#093832]"
-                    />
-                 </div>
-                 
-                 <div className="flex flex-wrap gap-2">
-                     {DISEASE_LIST.map((disease, idx) => {
-                         const isSelected = selectedDiseases.includes(disease);
-                         return (
-                            <button
-                                key={idx}
-                                type="button"
-                                onClick={() => toggleDisease(disease)}
-                                className={`px-4 py-2 rounded-full border transition-all text-sm font-medium
-                                    ${isSelected 
-                                        ? 'bg-[#BDD7FF] border-[#6FAEFF] text-blue-900' 
-                                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                                    }`}
-                            >
-                                {disease}
-                            </button>
-                         );
-                     })}
-                 </div>
-             </div>
-        </div>
-        
-        <div>
-            <label className="block text-lg text-black mb-2">รูปภาพประกอบ</label>
-            <div className="grid grid-cols-3 gap-2 mb-2">
-                {uploadedImages.map((src, index) => (
-                    <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200">
-                        <Image src={src} alt="uploaded" fill className="object-cover" />
-                        <button 
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full shadow-md"
-                        >
-                            <X size={14} />
-                        </button>
-                    </div>
-                ))}
-            </div>
-            <input 
-                type="file" 
-                multiple 
-                accept="image/*" 
-                className="hidden" 
-                ref={fileInputRef}
-                onChange={handleImageUpload}
-            />
-            <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full py-3 border-2 border-dashed border-[#093832] text-[#093832] rounded-xl flex items-center justify-center gap-2 hover:bg-[#E4F5E7] transition-colors"
-            >
-                <Plus /> ถ่ายรูป / อัปโหลดรูป
-            </button>
-        </div>
-
 
         <button
           type="button"
