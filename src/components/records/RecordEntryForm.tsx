@@ -30,11 +30,6 @@ const FARM_TYPE_INITIAL_AGE: Record<FarmType, number> = {
   LARGE: 11,
   MARKET: 31,
 };
-const FARM_TYPE_STAGE_LABEL: Record<FarmType, string> = {
-  SMALL: 'ปลาตุ้ม',
-  LARGE: 'ปลานิ้ว',
-  MARKET: 'ปลาตลาด',
-};
 
 const getDefaultInitialAge = (type: FarmType) => FARM_TYPE_INITIAL_AGE[type] ?? 0;
 
@@ -306,7 +301,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
   const ageFromCycleStart = cycleStartDate ? getDaysDifference(cycleStartDate, recordDate) : 0;
   const fishAgeNumber = initialAgeOffsetNumber + ageFromCycleStart;
   const defaultInitialAge = getDefaultInitialAge(farmType);
-  const currentStageLabel = FARM_TYPE_STAGE_LABEL[farmType] ?? 'ปลาดุก';
   const lastEntryAgeSummary = useMemo(() => {
     if (!lastEntrySnapshot) {
       return '-';
@@ -797,28 +791,14 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             <label className="block text-lg text-black">จำนวนบ่อ</label>
             <span className="text-xs text-gray-500">บ่อ</span>
           </div>
-          <div className="flex items-center bg-white border border-gray-300 rounded-2xl overflow-hidden">
-            <button
-              type="button"
-              onClick={() => handleStepChange(setPondCount, -1)}
-              className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
-            >
-              –
-            </button>
+          <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden">
             <input
               type="text"
               value={pondCount}
               onChange={(e) => handleNumericInput(e.target.value, setPondCount)}
               placeholder="เช่น 10"
-              className="flex-1 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
+              className="w-full px-4 py-3 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
             />
-            <button
-              type="button"
-              onClick={() => handleStepChange(setPondCount, 1)}
-              className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
-            >
-              +
-            </button>
           </div>
         </div>
 
@@ -827,28 +807,14 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             <label className="block text-lg text-black">จำนวนปลาที่เลี้ยง (ตัว)</label>
             <span className="text-xs text-gray-500">เพิ่ม/ลดครั้งละ 50 ตัว</span>
           </div>
-          <div className="flex items-center bg-white border border-gray-300 rounded-2xl overflow-hidden">
-            <button
-              type="button"
-              onClick={() => handleStepChange(setFishCount, -50)}
-              className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
-            >
-              –
-            </button>
+          <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden">
             <input
               type="text"
               value={fishCount}
               onChange={(e) => handleNumericInput(e.target.value, setFishCount)}
               placeholder="เช่น 250"
-              className="flex-1 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
+              className="w-full px-4 py-3 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
             />
-            <button
-              type="button"
-              onClick={() => handleStepChange(setFishCount, 50)}
-              className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
-            >
-              +
-            </button>
           </div>
         </div>
         
@@ -857,28 +823,14 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             <label className="block text-lg text-black">ปริมาณอาหาร (กิโลกรัม)</label>
             <span className="text-xs text-gray-500">เพิ่ม/ลดครั้งละ 0.5 กก.</span>
           </div>
-          <div className="flex items-center bg-white border border-gray-300 rounded-2xl overflow-hidden">
-            <button
-              type="button"
-              onClick={() => handleStepChange(setFoodAmount, -0.5, true)}
-              className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
-            >
-              –
-            </button>
+          <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden">
             <input
               type="text"
               value={foodAmount}
               onChange={(e) => handleNumericInput(e.target.value, setFoodAmount)}
               placeholder="เช่น 12"
-              className="flex-1 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
+              className="w-full px-4 py-3 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
             />
-            <button
-              type="button"
-              onClick={() => handleStepChange(setFoodAmount, 0.5, true)}
-              className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
-            >
-              +
-            </button>
           </div>
         </div>
 
