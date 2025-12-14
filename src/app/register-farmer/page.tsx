@@ -8,6 +8,8 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useLineUser } from "@/hooks/useLineUser"; 
 
+type FarmTypeOption = "SMALL" | "LARGE" | "MARKET";
+
 const MapPicker = dynamic(() => import("./MapPicker"), { 
   ssr: false,
   loading: () => <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500">กำลังโหลดแผนที่...</div>
@@ -21,13 +23,13 @@ export default function RegisterFarmerPage() {
     firstName: "",
     lastName: "",
     phone: "",
-    farmType: [] as string[],
+    farmType: [] as FarmTypeOption[],
     raiCount: "",
     pondCount: "",
     location: "",
   });
 
-  const farmOptions = [
+  const farmOptions: Array<{ value: FarmTypeOption; label: string; description: string }> = [
     { value: "SMALL", label: "ปลาตุ้ม", description: "อายุ 7-10 วัน" },
     { value: "LARGE", label: "ปลานิ้ว", description: "อายุ 11-30 วัน" },
     { value: "MARKET", label: "ปลาตลาด", description: "อายุ 31-180 วัน" },
@@ -43,33 +45,40 @@ export default function RegisterFarmerPage() {
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        const profile = parsedUser.farmerProfile;
-        if (profile) {
-            let newLocation = formData.location;
-            if (profile.farmLatitude && profile.farmLongitude) {
-                const lat = parseFloat(profile.farmLatitude);
-                const lng = parseFloat(profile.farmLongitude);
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    newLocation = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-                    setInitialCoords({ lat, lng });
-                    setTempCoords({ lat, lng });
-                }
-            }
-            
-            setFormData(prev => ({
-                ...prev,
-                // firstName: profile.firstName || prev.firstName, 
-                // lastName: profile.lastName || prev.lastName,   
-                // phone: profile.phone || prev.phone,             
-                location: newLocation
-            }));
-        }
-      } catch (error) {
-        console.error("Failed to parse user data", error);
+    if (!storedUser) {
+      return;
+    }
+
+    try {
+      const parsedUser = JSON.parse(storedUser);
+      const profile = parsedUser.farmerProfile;
+      if (!profile) {
+        return;
       }
+
+      let parsedCoords: { lat: number; lng: number } | null = null;
+
+      if (profile.farmLatitude && profile.farmLongitude) {
+        const lat = parseFloat(profile.farmLatitude);
+        const lng = parseFloat(profile.farmLongitude);
+        if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+          parsedCoords = { lat, lng };
+        }
+      }
+
+      if (parsedCoords) {
+        setInitialCoords(parsedCoords);
+        setTempCoords(parsedCoords);
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        location: parsedCoords
+          ? `${parsedCoords.lat.toFixed(6)}, ${parsedCoords.lng.toFixed(6)}`
+          : prev.location,
+      }));
+    } catch (error) {
+      console.error("Failed to parse user data", error);
     }
   }, []);
 
@@ -102,7 +111,7 @@ export default function RegisterFarmerPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectFarmType = (typeValue: string) => {
+  const handleSelectFarmType = (typeValue: FarmTypeOption) => {
     setFormData((prev) => {
       const currentTypes = prev.farmType;
       if (currentTypes.includes(typeValue)) {
@@ -142,14 +151,8 @@ export default function RegisterFarmerPage() {
 
       const [lat, lng] = formData.location.split(", ").map(Number);
       
-      const farmTypeMap: Record<string, string> = {
-        "SMALL": "NURSERY_SMALL",
-        "LARGE": "NURSERY_LARGE",
-        "MARKET": "GROWOUT" 
-      };
-
       // จัดลำดับความสำคัญของประเภทฟาร์ม (เพื่อหา Primary Type)
-      const priorityOrder = ["SMALL", "LARGE", "MARKET"];
+        const priorityOrder: FarmTypeOption[] = ["SMALL", "LARGE", "MARKET"];
       const sortedSelectedTypes = [...formData.farmType].sort((a, b) => {
           return priorityOrder.indexOf(a) - priorityOrder.indexOf(b);
       });
@@ -159,10 +162,8 @@ export default function RegisterFarmerPage() {
         firstName: formData.firstName,
         lastName: formData.lastName,
         phone: formData.phone,
-        
-        primaryFarmType: farmTypeMap[primaryTypeKey] || "NURSERY_SMALL",
-        
-        selectedFarmTypes: formData.farmType.map(t => farmTypeMap[t]),
+        primaryFarmType: primaryTypeKey || "SMALL",
+        selectedFarmTypes: formData.farmType,
         
         declaredRaiCount: parseInt(formData.raiCount),
         declaredPondCount: parseInt(formData.pondCount),
@@ -209,13 +210,13 @@ export default function RegisterFarmerPage() {
       setSubmitStatus('success');
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      const pathMap: Record<string, string> = {
-          "SMALL": "nursery-small",
-          "LARGE": "nursery-large",
-          "MARKET": "market-grower"
-      };
+        const pathMap: Record<FarmTypeOption, string> = {
+          SMALL: "small",
+          LARGE: "large",
+          MARKET: "market",
+        };
 
-      if (primaryTypeKey && pathMap[primaryTypeKey]) {
+        if (primaryTypeKey && pathMap[primaryTypeKey]) {
           router.push(`/${pathMap[primaryTypeKey]}`);
       } else {
           router.push('/');
@@ -302,11 +303,14 @@ export default function RegisterFarmerPage() {
           </div>
 
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-20 h-20 rounded-full border-4 border-white shadow-md overflow-hidden bg-gray-200">
-               <img 
-                 src={lineUser.pictureUrl} 
+            <div className="w-20 h-20 rounded-full border-4 border-white shadow-md overflow-hidden bg-gray-200 relative">
+               <Image 
+                 src={lineUser.pictureUrl || "https://placehold.co/200x200?text=Profile"}
                  alt="Profile" 
-                 className="w-full h-full object-cover" 
+                 fill
+                 sizes="80px"
+                 className="object-cover"
+                 unoptimized
                />
             </div>
             <div className="pt-2">

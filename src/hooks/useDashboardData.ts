@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dukefarm-backend.onrender.com/api";
 
-export type DashboardGroup = "GROWOUT" | "NURSERY_SMALL" | "NURSERY_LARGE";
+export type DashboardGroup = "SMALL" | "LARGE" | "MARKET";
 
 export interface DashboardResponse {
   group: string;

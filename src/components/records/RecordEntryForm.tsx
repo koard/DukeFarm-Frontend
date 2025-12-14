@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { Check, ChevronDown, ChevronLeft, X, Plus } from 'lucide-react';
 import { useLineUser } from '@/hooks/useLineUser';
 
+type FarmType = 'SMALL' | 'LARGE' | 'MARKET';
+
 const API_BASE_URL = 'https://dukefarm-backend.onrender.com/api';
 
 const AGE_OPTIONS = [
@@ -84,7 +86,7 @@ export type FormStateResponse = {
 };
 
 export type RecordEntryFormProps = {
-  farmType: 'NURSERY_LARGE' | 'GROWOUT' | 'NURSERY_SMALL';
+  farmType: FarmType;
   backHref: string;
 };
 
@@ -104,8 +106,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
   const [recordDate, setRecordDate] = useState(() => formatInputDate(now));
   const [recordTime, setRecordTime] = useState(() => formatInputTime(now));
   const [weatherSnapshot, setWeatherSnapshot] = useState<WeatherSnapshot | null>(null);
-  const [locationAvailable, setLocationAvailable] = useState(true);
-  const [formSeedLoading, setFormSeedLoading] = useState(true);
   const [formSeedError, setFormSeedError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -116,12 +116,20 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
   // Image State
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const successModalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (successModalTimerRef.current) {
+        clearTimeout(successModalTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
 
     const fetchFormState = async () => {
-      setFormSeedLoading(true);
       setFormSeedError(null);
       try {
         const token = localStorage.getItem('authToken');
@@ -157,12 +165,9 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         setRecordDate(formatInputDate(hydrated));
         setRecordTime(formatInputTime(hydrated));
         setWeatherSnapshot(payload.data.weather ?? null);
-        setLocationAvailable(payload.data.locationAvailable);
       } catch (error) {
         if (!isMounted) return;
         console.error(error);
-      } finally {
-        if (isMounted) setFormSeedLoading(false);
       }
     };
 
@@ -248,7 +253,14 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         throw new Error('บันทึกข้อมูลไม่สำเร็จ');
       }
 
-      setIsAnalysisView(true);
+      setShowSuccessModal(true);
+      if (successModalTimerRef.current) {
+        clearTimeout(successModalTimerRef.current);
+      }
+      successModalTimerRef.current = setTimeout(() => {
+        setShowSuccessModal(false);
+        setIsAnalysisView(true);
+      }, 1200);
 
     } catch (error) {
       console.error(error);

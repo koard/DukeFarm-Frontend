@@ -56,69 +56,6 @@ function CallbackContent() {
         console.log("→ Redirecting to root for routing logic");
         router.push("/");
         
-        /* Old logic - ไม่ใช้แล้ว
-        // เช็คสถานะการลงทะเบียนและ redirect
-        if (registrationStatus?.toUpperCase() === "PENDING") {
-          // ยังไม่ได้ลงทะเบียน - ต้องไปหน้าลงทะเบียนก่อน
-          console.log("→ Status: PENDING - Redirecting to registration page");
-          
-          if (role?.toLowerCase() === "researcher") {
-            console.log("→ Going to: /register-researcher");
-            router.push("/register-researcher");
-          } else {
-            // farmer หรือไม่มี role (default เป็น farmer)
-            console.log("→ Going to: /register-farmer");
-            router.push("/register-farmer");
-          }
-          
-        } else if (registrationStatus?.toUpperCase() === "COMPLETED") {
-          // ลงทะเบียนเรียบร้อยแล้ว - redirect ตาม role
-          console.log("→ Status: COMPLETED - Redirecting based on role");
-          
-          if (role?.toLowerCase() === "researcher") {
-            console.log("→ Researcher going to: /dashboard");
-            router.push("/dashboard");
-          } else {
-            // Farmer - ต้องดึงข้อมูล farmType จาก user profile
-            try {
-              const userDataFromStorage = localStorage.getItem("user");
-              if (userDataFromStorage) {
-                const userData = JSON.parse(userDataFromStorage);
-                const farmerProfile = userData.farmerProfile || {};
-                const farmType = farmerProfile.primaryFarmType;
-                
-                // แปลง farmType กลับเป็น route path
-                const farmTypeRoutes: Record<string, string> = {
-                  "NURSERY_SMALL": "/nursery-small",
-                  "NURSERY_LARGE": "/nursery-large",
-                  "GROWOUT": "/market-grower"
-                };
-                
-                const redirectPath = farmTypeRoutes[farmType] || "/nursery-small";
-                console.log("→ Farmer going to:", redirectPath);
-                router.push(redirectPath);
-              } else {
-                console.log("→ No user data, going to: /nursery-small (default)");
-                router.push("/nursery-small");
-              }
-            } catch (e) {
-              console.error("✗ Error parsing user data:", e);
-              router.push("/nursery-small");
-            }
-          }
-          
-        } else {
-          // ไม่มี registrationStatus หรือค่าไม่ถูกต้อง - ให้ไปลงทะเบียนเพื่อความปลอดภัย
-          console.log("→ Status: Unknown - Redirecting to registration (safe default)");
-          
-          if (role?.toLowerCase() === "researcher") {
-            router.push("/register-researcher");
-          } else {
-            router.push("/register-farmer");
-          }
-        }
-        */
-        
       } catch (error) {
         console.error("✗ Callback error:", error);
         setError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");

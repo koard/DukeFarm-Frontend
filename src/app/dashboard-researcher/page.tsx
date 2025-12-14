@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { FaChartPie, FaCloudSun } from "react-icons/fa";
 import { IoWaterOutline } from "react-icons/io5";
 import { PiPlant } from "react-icons/pi";
@@ -105,12 +106,14 @@ export default function Dashboard() {
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="flex items-center space-x-1 base:space-x-2 p-1 rounded-full hover:bg-emerald-900 transition-colors"
               >
-                <div className="w-10 h-10 base:w-14 base:h-14 bg-white rounded-full flex items-center justify-center overflow-hidden border-2 border-green-800">
-                  {/* Profile Image Placeholder */}
-                  <img 
-                    src="https://placehold.co/400x400.png?text=Profile" 
-                    alt="Profile" 
-                    className="w-full h-full object-cover"
+                <div className="w-10 h-10 base:w-14 base:h-14 bg-white rounded-full flex items-center justify-center overflow-hidden border-2 border-green-800 relative">
+                  <Image
+                    src="https://placehold.co/400x400.png?text=Profile"
+                    alt="Profile"
+                    fill
+                    sizes="56px"
+                    className="object-cover"
+                    unoptimized
                   />
                 </div>
                 <FiChevronDown className={`transition-transform text-base base:text-base ${dropdownOpen ? 'rotate-180' : ''}`} />
