@@ -86,8 +86,8 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, loading }: AgeAdvisoryCard
     <section className="rounded-3xl p-5 shadow-sm border border-[#FECBA9] bg-gradient-to-br from-[#FFF7ED] to-[#FFEAD5]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="text-xl font-bold text-[#8C3A0C]">{config.title}</h3>
-          <p className="text-lg font-semibold text-[#C2410C]">{config.subtitle}</p>
+          <h3 className="text-lg font-bold text-[#8C3A0C]">{config.title}</h3>
+          <p className="text-md font-semibold text-[#C2410C]">{config.subtitle}</p>
         </div>
       </div>
 
@@ -118,7 +118,7 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, loading }: AgeAdvisoryCard
                 }}
               />
             </div>
-            <div className="flex justify-between text-[11px] text-gray-500 mt-1">
+            <div className="flex justify-between text-sm text-gray-500 mt-1">
               <span>{config.stage.min} วัน</span>
               <span>{config.stage.max} วัน</span>
             </div>
