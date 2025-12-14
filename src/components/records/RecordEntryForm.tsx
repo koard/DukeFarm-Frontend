@@ -12,13 +12,10 @@ type FarmType = 'SMALL' | 'LARGE' | 'MARKET';
 const API_BASE_URL = 'https://dukefarm-backend.onrender.com/api';
 const LAST_ENTRY_STORAGE_KEY = 'recordEntry:lastSnapshot';
 
-const AGE_OPTIONS = [
-  '0–15 วัน (ระยะลูกปลา)',
-  '16–30 วัน (ลูกปลาขนาดกลาง)',
-  '31–60 วัน (ปลาขุนระยะต้น)',
-  '61–90 วัน (ปลาขุนระยะกลาง)',
-  '91–120 วัน (ปลาขุนระยะสุดท้าย)',
-  '>120 วัน (ขนาดตลาด)',
+const AGE_PHASES = [
+  { label: 'ปลาตุ้ม', min: 7, max: 10, accent: '#F97316' },
+  { label: 'ปลานิ้ว', min: 11, max: 30, accent: '#2563EB' },
+  { label: 'ปลาตลาด', min: 31, max: 180, accent: '#16A34A' },
 ];
 
 const DISEASE_LIST = [
@@ -53,14 +50,62 @@ const formatInputTime = (value: Date) => {
   return `${hours}:${minutes}`;
 };
 
-const getDisplayAge = (fullString: string) => fullString.split(' (')[0] ?? fullString;
-
 const getIsoDateFromString = (value: string): string => {
   const parsed = new Date(value);
   if (Number.isNaN(parsed.getTime())) {
     return new Date().toISOString();
   }
   return parsed.toISOString();
+};
+
+const getAgeStage = (days: number) => {
+  if (Number.isNaN(days) || days < 0) {
+    return null;
+  }
+  const matched = AGE_PHASES.find((phase) => days >= phase.min && days <= phase.max);
+  if (matched) {
+    return matched;
+  }
+  if (days < AGE_PHASES[0].min) {
+    return { label: 'ลูกปลาเพิ่งลงบ่อ', min: 0, max: AGE_PHASES[0].min - 1, accent: '#0F172A' };
+  }
+  return { label: 'เกินรอบปลาตลาด', min: AGE_PHASES[AGE_PHASES.length - 1].max + 1, max: Infinity, accent: '#7C3AED' };
+};
+
+const formatAgeSummary = (days: number | null | undefined) => {
+  if (days === null || days === undefined || Number.isNaN(days)) {
+    return '-';
+  }
+  const stage = getAgeStage(days);
+  return stage ? `${days} วัน (${stage.label})` : `${days} วัน`;
+};
+
+const clampAgeDays = (days: number) => {
+  if (Number.isNaN(days)) {
+    return 0;
+  }
+  return Math.max(0, Math.min(180, Math.round(days)));
+};
+
+const extractLegacyAgeDays = (value?: string) => {
+  if (!value) {
+    return null;
+  }
+  const digits = value.match(/\d+/);
+  if (!digits) {
+    return null;
+  }
+  return Number.parseInt(digits[0], 10);
+};
+
+const getDaysDifference = (fromDate: string, toDate: string) => {
+  const from = new Date(fromDate);
+  const to = new Date(toDate);
+  if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) {
+    return 0;
+  }
+  const diffMs = to.setHours(0, 0, 0, 0) - from.setHours(0, 0, 0, 0);
+  return Math.max(0, Math.round(diffMs / (1000 * 60 * 60 * 24)));
 };
 
 const safeNumber = (value: number | null | undefined, suffix: string) => {
@@ -100,12 +145,23 @@ export type FormStateResponse = {
 type LastEntrySnapshot = {
   recordDate: string;
   recordTime: string;
-  age: string;
+  ageDays?: number;
+  age?: string;
   pondType: string;
   pondCount: string;
   fishCount: string;
   foodAmount: string;
   diseases: string[];
+};
+
+const getSnapshotAgeDays = (snapshot?: LastEntrySnapshot | null) => {
+  if (!snapshot) {
+    return null;
+  }
+  if (typeof snapshot.ageDays === 'number') {
+    return snapshot.ageDays;
+  }
+  return extractLegacyAgeDays(snapshot.age);
 };
 
 export type RecordEntryFormProps = {
@@ -118,7 +174,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
   const lineUser = useLineUser();
   const now = useMemo(() => new Date(), []);
 
-  const [selectedAge, setSelectedAge] = useState('');
+  const [fishAgeDays, setFishAgeDays] = useState('');
   const [selectedPondType, setSelectedPondType] = useState('');
   const [pondCount, setPondCount] = useState('');
   const [fishCount, setFishCount] = useState('');
@@ -128,7 +184,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
   const [recordTime, setRecordTime] = useState(() => formatInputTime(now));
   const [weatherSnapshot, setWeatherSnapshot] = useState<WeatherSnapshot | null>(null);
   const [formSeedError, setFormSeedError] = useState<string | null>(null);
-  const [formSeedLoading, setFormSeedLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -140,6 +195,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const successModalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ageInputTouchedRef = useRef(false);
 
   useEffect(() => {
     return () => {
@@ -155,6 +211,10 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
       if (stored) {
         const snapshot: LastEntrySnapshot = JSON.parse(stored);
         setLastEntrySnapshot(snapshot);
+        const resolvedAgeDays = getSnapshotAgeDays(snapshot);
+        if (resolvedAgeDays !== null && !Number.isNaN(resolvedAgeDays)) {
+          setFishAgeDays(resolvedAgeDays.toString());
+        }
       }
     } catch (error) {
       console.error('Failed to parse last entry snapshot', error);
@@ -166,7 +226,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
     const fetchFormState = async () => {
       setFormSeedError(null);
-      setFormSeedLoading(true);
       try {
         const token = localStorage.getItem('authToken');
         if (!token) {
@@ -204,10 +263,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         if (!isMounted) return;
         console.error(error);
         setFormSeedError('ไม่สามารถดึงเวลาและสภาพอากาศล่าสุดได้ กรุณากรอกเอง');
-      } finally {
-        if (isMounted) {
-          setFormSeedLoading(false);
-        }
       }
     };
 
@@ -216,10 +271,60 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
     return () => { isMounted = false; };
   }, [farmType, router]);
 
+  const fishAgeNumber = fishAgeDays ? Number(fishAgeDays) : 0;
+  const ageStage = getAgeStage(fishAgeNumber);
+  const daysToStageBoundary = ageStage && Number.isFinite(ageStage.max)
+    ? Math.max(0, Math.round(ageStage.max - fishAgeNumber))
+    : null;
+  const showResetCyclePrompt = ageStage && Number.isFinite(ageStage.max)
+    ? fishAgeNumber >= ageStage.max
+    : false;
+  const lastEntryAgeSummary = useMemo(() => {
+    const days = getSnapshotAgeDays(lastEntrySnapshot);
+    if (days === null || Number.isNaN(days)) {
+      return '-';
+    }
+    return formatAgeSummary(days);
+  }, [lastEntrySnapshot]);
+
+  useEffect(() => {
+    if (!lastEntrySnapshot || !recordDate || ageInputTouchedRef.current) {
+      return;
+    }
+    const baseAge = getSnapshotAgeDays(lastEntrySnapshot);
+    if (baseAge === null || Number.isNaN(baseAge)) {
+      return;
+    }
+    const diffDays = getDaysDifference(lastEntrySnapshot.recordDate, recordDate);
+    const nextAge = clampAgeDays(baseAge + diffDays);
+    setFishAgeDays(nextAge.toString());
+  }, [lastEntrySnapshot, recordDate]);
+
   const handleNumericInput = (value: string, setter: (val: string) => void) => {
     if (/^\d*\.?\d*$/.test(value)) {
       setter(value);
     }
+  };
+
+  const handleAgeInput = (value: string) => {
+    if (/^\d*$/.test(value)) {
+      ageInputTouchedRef.current = true;
+      setFishAgeDays(value);
+    }
+  };
+
+  const bumpAgeBy = (delta: number) => {
+    ageInputTouchedRef.current = true;
+    setFishAgeDays((prev) => {
+      const parsed = Number(prev || '0');
+      return clampAgeDays(parsed + delta).toString();
+    });
+  };
+
+  const handleResetAgeCycle = () => {
+    ageInputTouchedRef.current = true;
+    setFishAgeDays('0');
+    setSubmitMessage({ type: 'success', text: 'เริ่มรอบใหม่แล้ว กรอกอายุปลาตามวันที่เริ่มต้นได้เลย' });
   };
 
   const adjustNumericByStep = (value: string, delta: number, allowDecimal = false) => {
@@ -243,7 +348,11 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
   const handleApplyLastEntry = () => {
     if (!lastEntrySnapshot) return;
-    setSelectedAge(lastEntrySnapshot.age);
+    const restoredAge = getSnapshotAgeDays(lastEntrySnapshot);
+    if (restoredAge !== null && !Number.isNaN(restoredAge)) {
+      setFishAgeDays(restoredAge.toString());
+    }
+    ageInputTouchedRef.current = true;
     setSelectedPondType(lastEntrySnapshot.pondType);
     setPondCount(lastEntrySnapshot.pondCount);
     setFishCount(lastEntrySnapshot.fishCount);
@@ -254,7 +363,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
   };
 
   const isFormValid = Boolean(
-    selectedAge &&
+    fishAgeDays &&
     selectedPondType &&
     pondCount &&
     fishCount &&
@@ -296,6 +405,9 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         allDiseases.push(otherDisease.trim());
       }
 
+      const normalizedAge = clampAgeDays(fishAgeNumber);
+      const ageSummary = formatAgeSummary(normalizedAge);
+
       const response = await fetch(`${API_BASE_URL}/records`, {
         method: 'POST',
         headers: {
@@ -307,7 +419,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             recordDate,
             recordTime,
             recordedAt: new Date(`${recordDate}T${recordTime}`).toISOString(), 
-            age: selectedAge,
+            age: ageSummary,
             pondType: selectedPondType,
             pondCount: Number(pondCount),
             fishCount: Number(fishCount),
@@ -327,7 +439,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
       const snapshot: LastEntrySnapshot = {
         recordDate,
         recordTime,
-        age: selectedAge,
+        ageDays: normalizedAge,
         pondType: selectedPondType,
         pondCount,
         fishCount,
@@ -400,7 +512,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                             <Image src="/nursery-large/famicons_fish-outline.svg" alt="age" width={18} height={18} />
                             <span>ช่วงอายุปลา</span>
                         </div>
-                        <p className="text-xl font-bold text-black text-center">{getDisplayAge(selectedAge)}</p>
+                        <p className="text-xl font-bold text-black text-center">{formatAgeSummary(fishAgeNumber)}</p>
                     </div>
                     <div className="w-[2px] bg-white" />
                     <div className="flex-1 p-4 flex flex-col items-center justify-center gap-2">
@@ -541,12 +653,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
           <div className="w-10 h-10 rounded-full bg-[#0F3B35]/10 flex items-center justify-center">
             <Image src="/nursery-large/formkit_time.svg" alt="clock" width={20} height={20} />
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-[#093832]">
-              {formSeedLoading ? 'กำลังตรวจสอบเวลาและสภาพอากาศล่าสุด...' : 'อัปเดตวันที่ เวลา และสภาพอากาศให้อัตโนมัติแล้ว'}
-            </p>
-            <p className="text-xs text-gray-500">สามารถแก้ไขเองได้ทุกช่องหากข้อมูลไม่ตรง</p>
-          </div>
         </div>
 
         {lastEntrySnapshot && (
@@ -562,7 +668,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               </button>
             </div>
             <div className="text-xs text-gray-700 grid grid-cols-2 gap-y-1">
-              <span>อายุปลา: {getDisplayAge(lastEntrySnapshot.age)}</span>
+              <span>อายุปลา: {lastEntryAgeSummary}</span>
               <span>ประเภทบ่อ: {lastEntrySnapshot.pondType || '-'}</span>
               <span>จำนวนบ่อ: {lastEntrySnapshot.pondCount || '-'}</span>
               <span>อาหาร: {lastEntrySnapshot.foodAmount || '-'} กก.</span>
@@ -637,31 +743,65 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
           </div>
         </div>
 
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="block text-lg text-black">เลือกช่วงอายุปลา</label>
-            <span className="text-xs text-gray-500">เลือกอย่างน้อย 1 ช่วง</span>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="block text-lg text-black">อายุปลา (จำนวนวัน)</label>
+            <span className="text-xs text-gray-500">ระบบจะเพิ่มให้อัตโนมัติทุกวัน</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {AGE_OPTIONS.map((option) => {
-              const isActive = selectedAge === option;
-              return (
+          <div className="flex items-center gap-3">
+            <div className="flex-1 flex items-center bg-white border border-gray-300 rounded-2xl overflow-hidden">
+              <button
+                type="button"
+                onClick={() => bumpAgeBy(-1)}
+                className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
+              >
+                –
+              </button>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={fishAgeDays}
+                onChange={(event) => handleAgeInput(event.target.value)}
+                placeholder="เช่น 7"
+                className="flex-1 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => bumpAgeBy(1)}
+                className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
+              >
+                +
+              </button>
+            </div>
+            {ageStage && (
+              <div className="rounded-2xl px-4 py-3 flex flex-col justify-center items-start border" style={{ borderColor: ageStage.accent }}>
+                <span className="text-[11px] uppercase tracking-wide text-gray-500">ช่วงอายุ</span>
+                <span className="text-base font-bold" style={{ color: ageStage.accent }}>
+                  {ageStage.label}
+                </span>
+                {daysToStageBoundary !== null && (
+                  <span className="text-xs text-gray-500">{daysToStageBoundary} วันก่อนเปลี่ยนช่วง</span>
+                )}
+              </div>
+            )}
+          </div>
+          {showResetCyclePrompt && (
+            <div className="bg-[#FFF4E5] border border-[#F4C58C] rounded-2xl px-4 py-3 flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-[#8C4A00]">ครบอายุช่วงปัจจุบันแล้ว</p>
                 <button
-                  key={option}
                   type="button"
-                  onClick={() => setSelectedAge(option)}
-                  className={`rounded-2xl border px-4 py-3 text-left shadow-sm transition-all ${
-                    isActive
-                      ? 'border-[#093832] bg-[#E4F5E7] text-[#093832]'
-                      : 'border-gray-200 bg-white text-gray-500 hover:border-[#0F3B35]/40'
-                  }`}
+                  onClick={handleResetAgeCycle}
+                  className="text-xs font-bold text-[#8C4A00] underline"
                 >
-                  <p className="text-sm font-semibold">{getDisplayAge(option)}</p>
-                  <p className="text-xs text-gray-500">{option.split('(')[1]?.replace(')', '') || 'ช่วงอายุ'}</p>
+                  เริ่มรอบใหม่
                 </button>
-              );
-            })}
-          </div>
+              </div>
+              <p className="text-xs text-gray-600">
+                เมื่อส่งต่อไปบ่อถัดไปหรือเริ่มเลี้ยงชุดใหม่ ให้กดเริ่มรอบใหม่เพื่อนับอายุจาก 0 อีกครั้ง
+              </p>
+            </div>
+          )}
         </div>
 
         <div>
