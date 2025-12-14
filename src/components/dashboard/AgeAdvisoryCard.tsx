@@ -26,8 +26,6 @@ type FarmProgressConfig = {
   stage: StageConfig;
   gradient: [string, string];
   accent: string;
-  tipTitle: string;
-  description: string;
   milestoneAction: string;
   milestoneDay: number;
   readyText: string;
@@ -35,37 +33,31 @@ type FarmProgressConfig = {
 
 const FARM_PROGRESS_CONFIG: Record<DashboardGroup, FarmProgressConfig> = {
   SMALL: {
-    title: "สถานะรอบอนุบาล",
+    title: "สถานะรอบปลาตุ้ม",
     subtitle: "ติดตามลูกปลาตุ้มก่อนย้ายไปบ่อปลานิ้ว",
     stage: { label: "ปลาตุ้ม (7-10 วัน)", min: 7, max: 10 },
     gradient: ["#FFEDD5", "#FDBA74"],
     accent: "#F97316",
-    tipTitle: "เตรียมย้ายบ่อ",
-    description: "รักษาอุณหภูมิให้นิ่ง ให้อาหารถี่และเบา เฝ้าดูพฤติกรรมการกินทุกมื้อเพื่อคัดลูกปลาที่อ่อนแรงออกก่อนแพร่เชื้อ",
     milestoneAction: " เตรียมย้ายไปบ่อปลานิ้ว",
     milestoneDay: 10,
     readyText: "ถึงรอบย้ายไปบ่อปลานิ้วหรือเริ่มรอบใหม่แล้ว",
   },
   LARGE: {
-    title: "ช่วงปลานิ้ว",
+    title: "สถานะรอบปลานิ้ว",
     subtitle: "เร่งโตให้พร้อมย้ายบ่อขุนใหญ่",
     stage: { label: "ปลานิ้ว (11-30 วัน)", min: 11, max: 30 },
     gradient: ["#DBEAFE", "#A5B4FC"],
     accent: "#2563EB",
-    tipTitle: "โฟกัสการเตรียมย้าย",
-    description: "คุมความหนาแน่นไม่ให้แออัด เพิ่มโปรตีนตามอัตราการกินจริง และติดตามค่าออกซิเจนละลายน้ำทุกวัน",
     milestoneAction: " เตรียมส่งต่อเข้าบ่อปลาตลาด",
     milestoneDay: 30,
     readyText: "พร้อมย้ายเข้าบ่อปลาตลาดแล้ว",
   },
   MARKET: {
-    title: "รอบขุนปลาตลาด",
+    title: "สถานะรอบปลาตลาด",
     subtitle: "วางแผนวันจับขายลอตถัดไป",
     stage: { label: "ปลาตลาด (31-180 วัน)", min: 31, max: 180 },
     gradient: ["#DCFCE7", "#86EFAC"],
     accent: "#16A34A",
-    tipTitle: "วางแผนจับขาย",
-    description: "ตรวจสุขภาพเหงือกและสีผิวสัปดาห์ละครั้ง จัดการอาหารให้ตรงกับเป้าหมาย FCR และติดตามน้ำหนักเฉลี่ยทุก 7 วัน",
     milestoneAction: " เตรียมจับขายล็อตแรก",
     milestoneDay: 90,
     readyText: "ถึงช่วงจับขายได้เลย จัดคิวรถขนส่งและแจ้งลูกค้าได้ทันที",
@@ -104,12 +96,12 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, loading }: AgeAdvisoryCard
   })();
 
   return (
-    <section className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
+    <section className="rounded-3xl p-5 shadow-sm border border-[#FECBA9] bg-gradient-to-br from-[#FFF7ED] to-[#FFEAD5]">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-[11px] uppercase tracking-[0.3em] text-gray-400">อายุรอบล่าสุด</p>
-          <h3 className="text-xl font-bold text-[#093832]">{config.title}</h3>
-          <p className="text-sm text-gray-600">{config.subtitle}</p>
+          <h3 className="text-xl font-bold text-[#8C3A0C]">{config.title}</h3>
+          <p className="text-xs font-semibold text-[#C2410C]">{config.subtitle}</p>
         </div>
         <span className={`text-xs font-semibold px-4 py-1 rounded-full ${statusBadge.className}`}>
           {statusBadge.label}
@@ -123,7 +115,7 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, loading }: AgeAdvisoryCard
           <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <p className="text-xs text-gray-500">อายุเฉลี่ยที่รายงาน</p>
-              <p className="text-3xl font-extrabold text-[#0F3B35]">
+              <p className="text-3xl font-extrabold text-[#7C2D12]">
                 {typeof ageDays === "number" ? ageDays : "-"}
                 <span className="text-base font-bold text-gray-500 ml-1">วัน</span>
               </p>
@@ -131,17 +123,17 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, loading }: AgeAdvisoryCard
                 {latestFishAgeLabel ?? "ยังไม่มีข้อมูลการบันทึกรอบล่าสุด"}
               </p>
             </div>
-            <div className="text-sm text-gray-600">
-              <p className="text-xs text-gray-500 text-right">ช่วงที่ต้องจับตา</p>
-              <p className="text-right text-base font-semibold text-[#093832]">
-                {config.stage.min} – {config.stage.max} วัน
+            <div className="text-sm text-gray-600 text-right">
+              <p className="text-xs text-gray-500">ช่วงเฝ้าดู</p>
+              <p className="text-base font-semibold text-[#B45309]">
+                {config.stage.min}-{config.stage.max} วัน
               </p>
-              <p className="text-right text-xs text-gray-500">{config.stage.label}</p>
+              <p className="text-[11px] text-gray-500">{config.stage.label}</p>
             </div>
           </div>
 
           <div className="mt-4">
-            <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
+            <div className="h-3 rounded-full bg-white/70 overflow-hidden">
               <div
                 className="h-full rounded-full transition-[width] duration-700"
                 style={{
@@ -156,12 +148,11 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, loading }: AgeAdvisoryCard
             </div>
           </div>
 
-          <div className="mt-4 rounded-2xl bg-[#F4FFFC] border border-emerald-50 p-4 text-sm text-[#0F3B35] space-y-2">
-            <p className="font-semibold text-[#093832]">{config.tipTitle}</p>
-            <p>{config.description}</p>
-            <p className="font-semibold text-[#0F614E]">
+          <div className="mt-4 rounded-2xl bg-white/70 border border-white/60 p-4 text-sm text-[#7C2D12]">
+            <p className="text-xs uppercase tracking-[0.2em] text-[#B45309] mb-1">Next step</p>
+            <p className="text-base font-semibold">
               {milestoneDelta === null
-                ? "ยังไม่มีข้อมูลอายุพอสำหรับคำแนะนำ"
+                ? "รอข้อมูลรอบล่าสุด"
                 : milestoneDelta > 0
                   ? `อีก ${milestoneDelta} วัน${config.milestoneAction}`
                   : config.readyText}
