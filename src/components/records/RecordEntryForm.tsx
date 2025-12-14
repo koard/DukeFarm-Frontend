@@ -26,9 +26,9 @@ const AGE_PHASES: AgePhase[] = [
 
 const POND_TYPE_OPTIONS = ['บ่อดิน', 'บ่อปูน'];
 const INITIAL_AGE_PRESETS = [
-  { label: 'ปลาตุ้ม (7 วัน)', value: 7 },
-  { label: 'ปลานิ้ว (11 วัน)', value: 11 },
-  { label: 'ปลาตลาด (31 วัน)', value: 31 },
+  { label: 'ปลาตุ้ม(7วัน)', value: 7 },
+  { label: 'ปลานิ้ว(11วัน)', value: 11 },
+  { label: 'ปลาตลาด(31วัน)', value: 31 },
 ];
 
 const formatInputDate = (value: Date) => {
@@ -734,7 +734,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             <div className="space-y-3">
               <span className="text-sm font-semibold text-[#093832]">วันที่เริ่มปล่อยปลาลงบ่อ</span>
               <div className="flex flex-col gap-1">
-                <span className="text-xs text-[#0F614E]/70">ระบุวันที่ปลาลงบ่อรอบนี้</span>
                 <input
                   type="date"
                   value={cycleStartDate}
@@ -749,7 +748,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               <div className="rounded-xl bg-[#E4F5E7] px-4 py-3 text-sm text-[#0F3B35] flex flex-col gap-1">
                 <span>ระบบคำนวณอายุอัตโนมัติ</span>
                 <strong className="text-2xl text-[#093832]">{fishAgeNumber} วัน</strong>
-                <span className="text-xs text-gray-500">จะเพิ่มตามวันที่บันทึกไว้ ไม่ต้องกรอกตัวเลขเอง</span>
               </div>
             </div>
           </div>
