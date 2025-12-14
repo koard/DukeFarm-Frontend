@@ -82,30 +82,13 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, loading }: AgeAdvisoryCard
     ? Math.ceil(config.milestoneDay - ageDays)
     : null;
 
-  const statusBadge = (() => {
-    if (typeof ageDays !== "number") {
-      return { label: "รอข้อมูลล่าสุด", className: "bg-gray-100 text-gray-600" };
-    }
-    if (ageDays < config.stage.min) {
-      return { label: "ยังไม่ถึงช่วงหลัก", className: "bg-amber-50 text-amber-700" };
-    }
-    if (ageDays > config.stage.max) {
-      return { label: "เกินช่วงแนะนำ", className: "bg-red-50 text-red-700" };
-    }
-    return { label: "อยู่ในช่วงเหมาะสม", className: "bg-emerald-50 text-emerald-700" };
-  })();
-
   return (
     <section className="rounded-3xl p-5 shadow-sm border border-[#FECBA9] bg-gradient-to-br from-[#FFF7ED] to-[#FFEAD5]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.3em] text-gray-400">อายุรอบล่าสุด</p>
           <h3 className="text-xl font-bold text-[#8C3A0C]">{config.title}</h3>
-          <p className="text-xs font-semibold text-[#C2410C]">{config.subtitle}</p>
+          <p className="text-lg font-semibold text-[#C2410C]">{config.subtitle}</p>
         </div>
-        <span className={`text-xs font-semibold px-4 py-1 rounded-full ${statusBadge.className}`}>
-          {statusBadge.label}
-        </span>
       </div>
 
       {loading ? (
@@ -114,7 +97,7 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, loading }: AgeAdvisoryCard
         <>
           <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <p className="text-xs text-gray-500">อายุเฉลี่ยที่รายงาน</p>
+              <p className="text-sm text-gray-500">อายุเฉลี่ยที่รายงาน</p>
               <p className="text-3xl font-extrabold text-[#7C2D12]">
                 {typeof ageDays === "number" ? ageDays : "-"}
                 <span className="text-base font-bold text-gray-500 ml-1">วัน</span>
@@ -122,13 +105,6 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, loading }: AgeAdvisoryCard
               <p className="text-sm text-gray-500 mt-1">
                 {latestFishAgeLabel ?? "ยังไม่มีข้อมูลการบันทึกรอบล่าสุด"}
               </p>
-            </div>
-            <div className="text-sm text-gray-600 text-right">
-              <p className="text-xs text-gray-500">ช่วงเฝ้าดู</p>
-              <p className="text-base font-semibold text-[#B45309]">
-                {config.stage.min}-{config.stage.max} วัน
-              </p>
-              <p className="text-[11px] text-gray-500">{config.stage.label}</p>
             </div>
           </div>
 
@@ -149,7 +125,7 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, loading }: AgeAdvisoryCard
           </div>
 
           <div className="mt-4 rounded-2xl bg-white/70 border border-white/60 p-4 text-sm text-[#7C2D12]">
-            <p className="text-xs uppercase tracking-[0.2em] text-[#B45309] mb-1">Next step</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-[#B45309] mb-1">ขั้นถัดไป</p>
             <p className="text-base font-semibold">
               {milestoneDelta === null
                 ? "รอข้อมูลรอบล่าสุด"
