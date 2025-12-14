@@ -11,12 +11,59 @@ type FarmType = 'SMALL' | 'LARGE' | 'MARKET';
 
 const API_BASE_URL = 'https://dukefarm-backend.onrender.com/api';
 const LAST_ENTRY_STORAGE_KEY = 'recordEntry:lastSnapshot';
+type AgePhase = {
+  label: string;
+  min: number;
+  max: number;
+  accent: string;
+};
 
-const AGE_PHASES = [
+const AGE_PHASES: AgePhase[] = [
   { label: 'ปลาตุ้ม', min: 7, max: 10, accent: '#F97316' },
   { label: 'ปลานิ้ว', min: 11, max: 30, accent: '#2563EB' },
   { label: 'ปลาตลาด', min: 31, max: 180, accent: '#16A34A' },
 ];
+
+const FALLBACK_PHASE: AgePhase = {
+  label: 'รอบทั่วไป',
+  min: 0,
+  max: 180,
+  accent: '#0F172A',
+};
+
+const findPhase = (label: string): AgePhase => AGE_PHASES.find((phase) => phase.label === label) ?? FALLBACK_PHASE;
+
+type PhasePreset = {
+  stage: AgePhase;
+  defaultStartAge: number;
+  description: string;
+  nextHint: string;
+  gradient: [string, string];
+};
+
+const ENTRY_PHASE_CONFIG: Record<FarmType, PhasePreset> = {
+  SMALL: {
+    stage: findPhase('ปลาตุ้ม'),
+    defaultStartAge: 7,
+    description: 'ช่วงอนุบาลลูกปลาหลังฟัก ต้องให้อาหารถี่และคุมคุณภาพน้ำใกล้ชิด',
+    nextHint: 'ครบ 10 วันส่งต่อไปบ่อปลานิ้วได้ทันที',
+    gradient: ['#FFF5EB', '#FFE5D2'],
+  },
+  LARGE: {
+    stage: findPhase('ปลานิ้ว'),
+    defaultStartAge: 12,
+    description: 'เร่งให้ตัวใหญ่และแข็งแรง เตรียมพร้อมย้ายเข้าบ่อขุนใหญ่',
+    nextHint: 'อายุ 28–30 วันย้ายไปบ่อปลาตลาดได้เลย',
+    gradient: ['#E6F3FF', '#F2F6FF'],
+  },
+  MARKET: {
+    stage: findPhase('ปลาตลาด'),
+    defaultStartAge: 31,
+    description: 'โฟกัสที่อัตราโตและสุขภาพจนถึงขนาดจำหน่าย',
+    nextHint: 'พร้อมจับขายตั้งแต่ 90 วัน หรือสูงสุด 180 วัน',
+    gradient: ['#EEFDEE', '#DFF7E7'],
+  },
+};
 
 const DISEASE_LIST = [
     'โรคลำไส้อักเสบปลาดุก',
@@ -170,11 +217,14 @@ export type RecordEntryFormProps = {
 };
 
 export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) => {
+  const phasePreset = ENTRY_PHASE_CONFIG[farmType];
   const router = useRouter();
   const lineUser = useLineUser();
   const now = useMemo(() => new Date(), []);
 
-  const [fishAgeDays, setFishAgeDays] = useState('');
+  const [fishAgeDays, setFishAgeDays] = useState(() => (
+    phasePreset ? phasePreset.defaultStartAge.toString() : ''
+  ));
   const [selectedPondType, setSelectedPondType] = useState('');
   const [pondCount, setPondCount] = useState('');
   const [fishCount, setFishCount] = useState('');
@@ -220,6 +270,15 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
       console.error('Failed to parse last entry snapshot', error);
     }
   }, []);
+
+  useEffect(() => {
+    if (lastEntrySnapshot || ageInputTouchedRef.current) {
+      return;
+    }
+    if (phasePreset) {
+      setFishAgeDays(phasePreset.defaultStartAge.toString());
+    }
+  }, [phasePreset, lastEntrySnapshot]);
 
   useEffect(() => {
     let isMounted = true;
@@ -273,12 +332,34 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
   const fishAgeNumber = fishAgeDays ? Number(fishAgeDays) : 0;
   const ageStage = getAgeStage(fishAgeNumber);
-  const daysToStageBoundary = ageStage && Number.isFinite(ageStage.max)
-    ? Math.max(0, Math.round(ageStage.max - fishAgeNumber))
+  const stageForDisplay = phasePreset?.stage ?? ageStage;
+  const daysToStageBoundary = stageForDisplay && Number.isFinite(stageForDisplay.max)
+    ? Math.max(0, Math.round(stageForDisplay.max - fishAgeNumber))
     : null;
-  const showResetCyclePrompt = ageStage && Number.isFinite(ageStage.max)
-    ? fishAgeNumber >= ageStage.max
-    : false;
+  const showResetCyclePrompt = phasePreset
+    ? fishAgeNumber >= phasePreset.stage.max
+    : stageForDisplay && Number.isFinite(stageForDisplay.max)
+      ? fishAgeNumber >= stageForDisplay.max
+      : false;
+  const phaseStatus = phasePreset
+    ? fishAgeNumber > phasePreset.stage.max
+      ? 'over'
+      : fishAgeNumber < phasePreset.stage.min
+        ? 'under'
+        : 'ready'
+    : null;
+  const phaseStatusCopy = phaseStatus === 'over'
+    ? 'เกินช่วงที่แนะนำ ควรส่งต่อหรือเริ่มรอบใหม่'
+    : phaseStatus === 'under'
+      ? 'ยังไม่ถึงช่วงอายุหลัก ตรวจสอบว่าข้อมูลถูกต้อง'
+      : 'อยู่ในช่วงที่เหมาะสม';
+  const phaseProgress = phasePreset
+    ? (() => {
+        const span = Math.max(1, phasePreset.stage.max - phasePreset.stage.min);
+        const raw = (fishAgeNumber - phasePreset.stage.min) / span;
+        return Math.max(0, Math.min(1, raw));
+      })()
+    : null;
   const lastEntryAgeSummary = useMemo(() => {
     const days = getSnapshotAgeDays(lastEntrySnapshot);
     if (days === null || Number.isNaN(days)) {
@@ -321,10 +402,17 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
     });
   };
 
-  const handleResetAgeCycle = () => {
+  const handleResetAgeCycle = (reason: 'cycle' | 'transfer' = 'cycle') => {
     ageInputTouchedRef.current = true;
-    setFishAgeDays('0');
-    setSubmitMessage({ type: 'success', text: 'เริ่มรอบใหม่แล้ว กรอกอายุปลาตามวันที่เริ่มต้นได้เลย' });
+    const nextAge = phasePreset?.defaultStartAge ?? 0;
+    setFishAgeDays(nextAge.toString());
+    setSubmitMessage({
+      type: 'success',
+      text:
+        reason === 'transfer'
+          ? 'ย้ายรอบสำเร็จแล้ว สามารถบันทึกอายุชุดถัดไปได้ทันที'
+          : 'รีเซ็ตรอบนี้แล้ว กรอกอายุใหม่ตามวันเริ่มต้นรอบล่าสุดได้เลย',
+    });
   };
 
   const adjustNumericByStep = (value: string, delta: number, allowDecimal = false) => {
@@ -737,17 +825,17 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <label className="block text-lg text-black">อายุปลา (จำนวนวัน)</label>
             <span className="text-xs text-gray-500">ระบบจะเพิ่มให้อัตโนมัติทุกวัน</span>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex-1 flex items-center bg-white border border-gray-300 rounded-2xl overflow-hidden">
+          <div className="flex flex-col gap-3 lg:flex-row">
+            <div className="flex-1 flex items-center bg-white border border-gray-300 rounded-2xl overflow-hidden shadow-sm">
               <button
                 type="button"
                 onClick={() => bumpAgeBy(-1)}
-                className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
+                className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-50"
               >
                 –
               </button>
@@ -762,40 +850,99 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               <button
                 type="button"
                 onClick={() => bumpAgeBy(1)}
-                className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
+                className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-50"
               >
                 +
               </button>
             </div>
-            {ageStage && (
-              <div className="rounded-2xl px-4 py-3 flex flex-col justify-center items-start border" style={{ borderColor: ageStage.accent }}>
-                <span className="text-[11px] uppercase tracking-wide text-gray-500">ช่วงอายุ</span>
-                <span className="text-base font-bold" style={{ color: ageStage.accent }}>
-                  {ageStage.label}
-                </span>
-                {daysToStageBoundary !== null && (
-                  <span className="text-xs text-gray-500">{daysToStageBoundary} วันก่อนเปลี่ยนช่วง</span>
+            {stageForDisplay && (
+              <div
+                className="flex-1 rounded-2xl p-4 border shadow-sm text-[#0F3B35]"
+                style={{
+                  background: phasePreset
+                    ? `linear-gradient(140deg, ${phasePreset.gradient[0]}, ${phasePreset.gradient[1]})`
+                    : 'linear-gradient(140deg, #F8FAFF, #FFFFFF)',
+                  borderColor: stageForDisplay.accent,
+                }}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-black/50">รอบปัจจุบัน</p>
+                    <p className="text-xl font-bold" style={{ color: stageForDisplay.accent }}>
+                      {phasePreset?.stage.label ?? stageForDisplay.label}
+                    </p>
+                    <p className="text-xs text-black/70">
+                      ช่วงแนะนำ {stageForDisplay.min}–{Number.isFinite(stageForDisplay.max) ? stageForDisplay.max : 180} วัน
+                    </p>
+                  </div>
+                  {phasePreset && (
+                    <span
+                      className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                        phaseStatus === 'over'
+                          ? 'bg-red-100 text-red-700'
+                          : phaseStatus === 'under'
+                            ? 'bg-amber-100 text-amber-800'
+                            : 'bg-emerald-100 text-emerald-700'
+                      }`}
+                    >
+                      {phaseStatusCopy}
+                    </span>
+                  )}
+                </div>
+                {phasePreset ? (
+                  <p className="mt-2 text-sm text-black/70">{phasePreset.description}</p>
+                ) : (
+                  <p className="mt-2 text-sm text-black/70">ระบบจะบอกช่วงที่เหมาะสมตามวันที่คุณกรอก</p>
+                )}
+                {phaseProgress !== null && (
+                  <div className="mt-4">
+                    <div className="flex items-center justify-between text-[11px] text-black/60 mb-1">
+                      <span>{Math.max(0, stageForDisplay.min)} วัน</span>
+                      <span>{Number.isFinite(stageForDisplay.max) ? stageForDisplay.max : '∞'} วัน</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-white/60 overflow-hidden">
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${phaseProgress * 100}%`, backgroundColor: stageForDisplay.accent }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {phasePreset && (
+                  <p className="mt-3 text-xs font-semibold text-[#0F3B35] flex items-center gap-1">
+                    <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: stageForDisplay.accent }} />
+                    {phasePreset.nextHint}
+                  </p>
+                )}
+                {daysToStageBoundary !== null && daysToStageBoundary <= 3 && daysToStageBoundary >= 0 && (
+                  <p className="mt-2 text-xs text-[#8C4A00]">
+                    เหลืออีก {daysToStageBoundary} วันก่อนครบช่วงนี้ เตรียมส่งต่อหรือเริ่มรอบใหม่ได้เลย
+                  </p>
+                )}
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleResetAgeCycle('cycle')}
+                    className="px-4 py-2 rounded-xl text-sm font-semibold bg-white/80 text-[#093832] shadow-sm hover:bg-white"
+                  >
+                    เริ่มรอบใหม่
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleResetAgeCycle('transfer')}
+                    className="px-4 py-2 rounded-xl text-sm font-semibold border border-dashed border-[#093832]/40 text-[#093832] hover:bg-white/70"
+                  >
+                    ย้ายรอบ/ส่งต่อก่อนกำหนด
+                  </button>
+                </div>
+                {showResetCyclePrompt && (
+                  <div className="mt-3 bg-white/80 border border-[#F4C58C] text-xs text-[#8C4A00] rounded-xl px-3 py-2">
+                    อายุถึงเพดานสูงสุดของช่วงนี้แล้ว กดปุ่มเริ่มรอบใหม่เพื่อบันทึกชุดถัดไป
+                  </div>
                 )}
               </div>
             )}
           </div>
-          {showResetCyclePrompt && (
-            <div className="bg-[#FFF4E5] border border-[#F4C58C] rounded-2xl px-4 py-3 flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-[#8C4A00]">ครบอายุช่วงปัจจุบันแล้ว</p>
-                <button
-                  type="button"
-                  onClick={handleResetAgeCycle}
-                  className="text-xs font-bold text-[#8C4A00] underline"
-                >
-                  เริ่มรอบใหม่
-                </button>
-              </div>
-              <p className="text-xs text-gray-600">
-                เมื่อส่งต่อไปบ่อถัดไปหรือเริ่มเลี้ยงชุดใหม่ ให้กดเริ่มรอบใหม่เพื่อนับอายุจาก 0 อีกครั้ง
-              </p>
-            </div>
-          )}
         </div>
 
         <div>
