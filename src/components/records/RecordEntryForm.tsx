@@ -649,12 +649,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
            </div>
         )}
 
-        <div className="rounded-2xl border border-dashed border-[#0F3B35]/30 bg-white/70 px-4 py-3 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#0F3B35]/10 flex items-center justify-center">
-            <Image src="/nursery-large/formkit_time.svg" alt="clock" width={20} height={20} />
-          </div>
-        </div>
-
         {lastEntrySnapshot && (
           <div className="rounded-2xl bg-[#FFF4E5] border border-[#F4C58C] px-4 py-4 flex flex-col gap-2">
             <div className="flex items-center justify-between">
