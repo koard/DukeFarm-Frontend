@@ -25,6 +25,11 @@ const AGE_PHASES: AgePhase[] = [
 ];
 
 const POND_TYPE_OPTIONS = ['บ่อดิน', 'บ่อปูน'];
+const INITIAL_AGE_PRESETS = [
+  { label: 'เริ่ม 0 วัน', value: 0 },
+  { label: 'ปลาตุ้ม (7 วัน)', value: 7 },
+  { label: 'ปลานิ้ว (30 วัน)', value: 30 },
+];
 
 const formatInputDate = (value: Date) => {
   const year = value.getFullYear();
@@ -135,6 +140,7 @@ type LastEntrySnapshot = {
   recordDate: string;
   recordTime: string;
   cycleStartDate: string;
+  initialAgeOffsetDays?: number;
   ageDays?: number;
   age?: string;
   pondType: string;
@@ -177,6 +183,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
   const now = useMemo(() => new Date(), []);
 
   const [cycleStartDate, setCycleStartDate] = useState(() => formatInputDate(now));
+  const [initialAgeOffsetDays, setInitialAgeOffsetDays] = useState('0');
   const [selectedPondType, setSelectedPondType] = useState('');
   const [pondCount, setPondCount] = useState('');
   const [fishCount, setFishCount] = useState('');
@@ -215,6 +222,9 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             setCycleStartDate(deriveCycleStartDate(snapshot.recordDate, resolvedAgeDays));
           }
         }
+          if (typeof snapshot.initialAgeOffsetDays === 'number' && !Number.isNaN(snapshot.initialAgeOffsetDays)) {
+            setInitialAgeOffsetDays(Math.max(0, snapshot.initialAgeOffsetDays).toString());
+          }
       }
     } catch (error) {
       console.error('Failed to parse last entry snapshot', error);
@@ -271,7 +281,16 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
     return () => { isMounted = false; };
   }, [farmType, router]);
 
-  const fishAgeNumber = cycleStartDate ? getDaysDifference(cycleStartDate, recordDate) : 0;
+  const initialAgeOffsetNumber = useMemo(() => {
+    const parsed = Number.parseInt(initialAgeOffsetDays || '0', 10);
+    if (Number.isNaN(parsed)) {
+      return 0;
+    }
+    return Math.max(0, parsed);
+  }, [initialAgeOffsetDays]);
+
+  const ageFromCycleStart = cycleStartDate ? getDaysDifference(cycleStartDate, recordDate) : 0;
+  const fishAgeNumber = initialAgeOffsetNumber + ageFromCycleStart;
   const lastEntryAgeSummary = useMemo(() => {
     if (!lastEntrySnapshot) {
       return '-';
@@ -289,6 +308,12 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
   const handleNumericInput = (value: string, setter: (val: string) => void) => {
     if (/^\d*\.?\d*$/.test(value)) {
+      setter(value);
+    }
+  };
+
+  const handleIntegerInput = (value: string, setter: (val: string) => void) => {
+    if (/^\d*$/.test(value)) {
       setter(value);
     }
   };
@@ -322,6 +347,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         setCycleStartDate(deriveCycleStartDate(lastEntrySnapshot.recordDate, restoredAge));
       }
     }
+    setInitialAgeOffsetDays((lastEntrySnapshot.initialAgeOffsetDays ?? 0).toString());
     setSelectedPondType(lastEntrySnapshot.pondType);
     setPondCount(lastEntrySnapshot.pondCount);
     setFishCount(lastEntrySnapshot.fishCount);
@@ -361,10 +387,12 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         },
         body: JSON.stringify({
             farmType,
+          cycleStartDate,
             recordDate,
             recordTime,
             recordedAt: new Date(`${recordDate}T${recordTime}`).toISOString(), 
             age: ageSummary,
+          initialAgeOffsetDays: initialAgeOffsetNumber,
             pondType: selectedPondType,
             pondCount: Number(pondCount),
             fishCount: Number(fishCount),
@@ -385,6 +413,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         recordDate,
         recordTime,
         cycleStartDate,
+        initialAgeOffsetDays: initialAgeOffsetNumber,
         ageDays: normalizedAge,
         pondType: selectedPondType,
         pondCount,
@@ -590,6 +619,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             <div className="text-xs text-gray-700 grid grid-cols-2 gap-y-1">
               <span>อายุปลา: {lastEntryAgeSummary}</span>
               <span>เริ่มรอบ: {lastEntrySnapshot.cycleStartDate ?? '-'}</span>
+              <span>อายุเริ่มต้น: {lastEntrySnapshot.initialAgeOffsetDays ?? 0} วัน</span>
               <span>ประเภทบ่อ: {lastEntrySnapshot.pondType || '-'}</span>
               <span>จำนวนบ่อ: {lastEntrySnapshot.pondCount || '-'}</span>
               <span>อาหาร: {lastEntrySnapshot.foodAmount || '-'} กก.</span>
@@ -685,6 +715,45 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               <strong className="text-2xl text-[#093832]">{fishAgeNumber} วัน</strong>
               <span className="text-xs text-gray-500">จะเพิ่มตามวันที่บันทึกไว้ ไม่ต้องกรอกตัวเลขเอง</span>
               <span className="text-xs text-gray-500">ช่วงอายุปัจจุบัน: {formatAgeSummary(fishAgeNumber)}</span>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-[#6CCF9C]/40 bg-white/80 px-4 py-4 space-y-3 shadow-sm">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-semibold text-[#093832]">ปลาอายุกี่วันตอนรับมา?</span>
+              <div className="flex flex-wrap gap-2">
+                {INITIAL_AGE_PRESETS.map((preset) => (
+                  <button
+                    type="button"
+                    key={preset.label}
+                    onClick={() => setInitialAgeOffsetDays(preset.value.toString())}
+                    className={`rounded-full px-3 py-1 text-xs font-semibold border transition-colors ${
+                      Number(initialAgeOffsetDays || '0') === preset.value
+                        ? 'bg-[#093832] text-white border-[#093832]'
+                        : 'bg-white text-[#093832] border-[#093832]/30 hover:border-[#093832]'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={initialAgeOffsetDays}
+                onChange={(event) => handleIntegerInput(event.target.value, setInitialAgeOffsetDays)}
+                placeholder="เช่น 7"
+                className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-lg text-[#093832] focus:outline-none focus:ring-2 focus:ring-[#0F614E]"
+              />
+              <span className="text-sm text-gray-600 font-semibold">วัน</span>
+            </div>
+            <div className="rounded-xl bg-[#E4F5E7] px-4 py-3 text-xs text-[#0F3B35] space-y-1">
+              <p>ระบบจะบวกอายุเริ่มต้นกับจำนวนวันที่ผ่านไปอัตโนมัติ</p>
+              <p>
+                รวมทั้งหมด: <strong>{initialAgeOffsetNumber}</strong> วัน (เริ่มต้น) + <strong>{ageFromCycleStart}</strong> วัน (หลังลงบ่อ) = <strong>{fishAgeNumber}</strong> วัน
+              </p>
             </div>
           </div>
         </div>
