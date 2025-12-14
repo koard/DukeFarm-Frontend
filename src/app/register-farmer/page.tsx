@@ -21,15 +21,16 @@ export default function RegisterFarmerPage() {
     firstName: "",
     lastName: "",
     phone: "",
-    farmType: "", 
+    farmType: [] as string[],
+    raiCount: "",
     pondCount: "",
     location: "",
   });
 
   const farmOptions = [
-    { value: "nursery-small", label: "กลุ่มอนุบาลขนาดเล็ก" },
-    { value: "nursery-large", label: "กลุ่มอนุบาลขนาดใหญ่" },
-    { value: "market-grower", label: "กลุ่มผู้เลี้ยงขนาดตลาด" },
+    { value: "SMALL", label: "ปลาตุ้ม", description: "อายุ 7-10 วัน" },
+    { value: "LARGE", label: "ปลานิ้ว", description: "อายุ 11-30 วัน" },
+    { value: "MARKET", label: "ปลาตลาด", description: "อายุ 31-180 วัน" },
   ];
 
   const [isFormValid, setIsFormValid] = useState(false);
@@ -37,61 +38,53 @@ export default function RegisterFarmerPage() {
   
   const [initialCoords, setInitialCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [tempCoords, setTempCoords] = useState({ lat: 0, lng: 0 });
-   
+    
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success'>('idle');
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
-        
         const profile = parsedUser.farmerProfile;
-        
         if (profile) {
             let newLocation = formData.location;
-            let newInitialCoords = null;
-
             if (profile.farmLatitude && profile.farmLongitude) {
                 const lat = parseFloat(profile.farmLatitude);
                 const lng = parseFloat(profile.farmLongitude);
-                
                 if (!isNaN(lat) && !isNaN(lng)) {
                     newLocation = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-                    newInitialCoords = { lat, lng };
-                    
-                    setInitialCoords(newInitialCoords);
-                    setTempCoords(newInitialCoords);
+                    setInitialCoords({ lat, lng });
+                    setTempCoords({ lat, lng });
                 }
             }
-
+            
             setFormData(prev => ({
                 ...prev,
-                firstName: profile.firstName || prev.firstName,
-                lastName: profile.lastName || prev.lastName,
-                phone: profile.phone || prev.phone,
+                // firstName: profile.firstName || prev.firstName, 
+                // lastName: profile.lastName || prev.lastName,   
+                // phone: profile.phone || prev.phone,             
                 location: newLocation
             }));
         }
       } catch (error) {
-        console.error("Failed to parse user data from localStorage", error);
+        console.error("Failed to parse user data", error);
       }
     }
   }, []);
 
   useEffect(() => {
-    const { firstName, lastName, phone, farmType, pondCount, location } = formData;
+    const { firstName, lastName, phone, farmType, pondCount, raiCount, location } = formData;
     setIsFormValid(
       firstName.trim() !== "" &&
       lastName.trim() !== "" &&
       phone.trim() !== "" &&
-      farmType !== "" &&
+      farmType.length > 0 && 
+      raiCount.trim() !== "" &&
       pondCount.trim() !== "" &&
       location.trim() !== ""
     );
   }, [formData]);
-
 
   useEffect(() => {
     if (submitStatus !== 'idle' || showMap) {
@@ -99,7 +92,6 @@ export default function RegisterFarmerPage() {
     } else {
       document.body.style.overflow = 'unset';
     }
-
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -111,7 +103,14 @@ export default function RegisterFarmerPage() {
   };
 
   const handleSelectFarmType = (typeValue: string) => {
-    setFormData((prev) => ({ ...prev, farmType: typeValue }));
+    setFormData((prev) => {
+      const currentTypes = prev.farmType;
+      if (currentTypes.includes(typeValue)) {
+        return { ...prev, farmType: currentTypes.filter(t => t !== typeValue) };
+      } else {
+        return { ...prev, farmType: [...currentTypes, typeValue] };
+      }
+    });
   };
 
   const handleLocationSelect = (lat: number, lng: number) => {
@@ -123,11 +122,9 @@ export default function RegisterFarmerPage() {
           ...prev, 
           location: `${tempCoords.lat.toFixed(6)}, ${tempCoords.lng.toFixed(6)}`
       }));
-      // อัปเดต initialCoords ด้วย เผื่อผู้ใช้กดเปิดแผนที่อีกรอบ จะได้อยู่ที่ล่าสุดที่เลือก
       setInitialCoords({ lat: tempCoords.lat, lng: tempCoords.lng });
       setShowMap(false);
   };
-
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,7 +134,6 @@ export default function RegisterFarmerPage() {
     
     try {
       const token = localStorage.getItem("authToken");
-      
       if (!token) {
         alert("ไม่พบ Token กรุณาเข้าสู่ระบบใหม่");
         router.push("/login");
@@ -145,37 +141,51 @@ export default function RegisterFarmerPage() {
       }
 
       const [lat, lng] = formData.location.split(", ").map(Number);
-
+      
       const farmTypeMap: Record<string, string> = {
-        "nursery-small": "NURSERY_SMALL",
-        "nursery-large": "NURSERY_LARGE",
-        "market-grower": "GROWOUT" 
+        "SMALL": "NURSERY_SMALL",
+        "LARGE": "NURSERY_LARGE",
+        "MARKET": "GROWOUT" 
       };
+
+      // จัดลำดับความสำคัญของประเภทฟาร์ม (เพื่อหา Primary Type)
+      const priorityOrder = ["SMALL", "LARGE", "MARKET"];
+      const sortedSelectedTypes = [...formData.farmType].sort((a, b) => {
+          return priorityOrder.indexOf(a) - priorityOrder.indexOf(b);
+      });
+      const primaryTypeKey = sortedSelectedTypes[0];
 
       const requestBody = {
         firstName: formData.firstName,
         lastName: formData.lastName,
-        phone: formData.phone, 
-        primaryFarmType: farmTypeMap[formData.farmType] || "NURSERY_SMALL", 
-        declaredPondCount: parseInt(formData.pondCount), 
-        farmLatitude: lat, 
-        farmLongitude: lng 
+        phone: formData.phone,
+        
+        primaryFarmType: farmTypeMap[primaryTypeKey] || "NURSERY_SMALL",
+        
+        selectedFarmTypes: formData.farmType.map(t => farmTypeMap[t]),
+        
+        declaredRaiCount: parseInt(formData.raiCount),
+        declaredPondCount: parseInt(formData.pondCount),
+        
+        farmLatitude: lat,
+        farmLongitude: lng
       };
-
-      console.log("Sending farmer registration:", requestBody);
 
       const response = await fetch("https://dukefarm-backend.onrender.com/api/register/farmer", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${token}` 
         },
         body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Registration failed:", errorData);
+        if (response.status === 401) {
+            router.push('/login');
+            return;
+        }
+        const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || "ไม่สามารถบันทึกข้อมูลได้");
       }
 
@@ -184,7 +194,6 @@ export default function RegisterFarmerPage() {
 
       if (result.data) {
         const { user, profile } = result.data;
-        
         const currentUserStr = localStorage.getItem("user");
         const currentUser = currentUserStr ? JSON.parse(currentUserStr) : {};
         
@@ -194,21 +203,28 @@ export default function RegisterFarmerPage() {
           registrationStatus: user.registrationStatus,
           farmerProfile: profile 
         };
-        
         localStorage.setItem("user", JSON.stringify(updatedUser));
-        
-        console.log("✅ User data updated in localStorage:", updatedUser);
       }
       
       setSubmitStatus('success');
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      router.push(`/${formData.farmType}`);
+      const pathMap: Record<string, string> = {
+          "SMALL": "nursery-small",
+          "LARGE": "nursery-large",
+          "MARKET": "market-grower"
+      };
+
+      if (primaryTypeKey && pathMap[primaryTypeKey]) {
+          router.push(`/${pathMap[primaryTypeKey]}`);
+      } else {
+          router.push('/');
+      }
       
     } catch (error) {
       console.error("❌ Registration error:", error);
       setSubmitStatus('idle');
-      alert(error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการลงทะเบียน กรุณาลองใหม่อีกครั้ง");
+      alert(error instanceof Error ? error.message : "เกิดข้อผิดพลาดในการลงทะเบียน");
     }
   };
 
@@ -218,14 +234,12 @@ export default function RegisterFarmerPage() {
       {submitStatus !== 'idle' && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
            <div className="bg-white rounded-2xl p-8 flex flex-col items-center justify-center shadow-2xl w-64 h-48 animate-in fade-in zoom-in duration-300">
-              
               {submitStatus === 'loading' && (
                 <>
                   <div className="w-12 h-12 border-4 border-emerald-100 border-t-[#0F3B35] rounded-full animate-spin mb-4"></div>
                   <span className="text-lg font-medium text-gray-600">กำลังดำเนินการ</span>
                 </>
               )}
-
               {submitStatus === 'success' && (
                 <>
                   <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mb-3 animate-in zoom-in duration-300">
@@ -234,15 +248,14 @@ export default function RegisterFarmerPage() {
                   <span className="text-lg font-bold text-green-700">ลงทะเบียนสำเร็จ</span>
                 </>
               )}
-
            </div>
         </div>
       )}
 
-      {/* ส่วน Popup แผนที่ */}
+      {/* Map Popup */}
       {showMap && (
         <div className="fixed inset-0 z-50 flex justify-center bg-gray-50"> 
-            <div className="w-full max-w-md md:max-w-full lg:max-w-fullbg-white flex flex-col h-full relative shadow-xl">
+            <div className="w-full max-w-md md:max-w-full lg:max-w-full bg-white flex flex-col h-full relative shadow-xl">
                 <div className="bg-[#0F3B35] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-20 flex items-center gap-3"> 
                     <button onClick={() => setShowMap(false)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
                         <ChevronLeft className="w-8 h-8" />
@@ -253,7 +266,6 @@ export default function RegisterFarmerPage() {
                     </div>
                 </div>
                 <div className="flex-1 relative z-10">
-                    {/* ✅ ส่ง initialPosition ไปให้ MapPicker */}
                     <MapPicker onLocationSelect={handleLocationSelect} initialPosition={initialCoords} />
                 </div>
                 <div className="absolute bottom-0 left-0 right-0 p-6 pointer-events-none flex justify-center z-30">
@@ -268,9 +280,10 @@ export default function RegisterFarmerPage() {
         </div>
       )}
 
-      {/* ส่วนฟอร์มหลัก */}
+      {/* Main Form */}
       <div className=" w-full max-w-md md:max-w-full lg:max-w-full bg-white min-h-screen shadow-xl relative pb-10">
         
+        {/* Header */}
         <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10">
           <div className="flex items-center gap-2 mb-2">
             <Link href="/login" className="p-1 hover:bg-white/10 rounded-full transition-colors">
@@ -320,38 +333,51 @@ export default function RegisterFarmerPage() {
             <div className="space-y-1.5">
               <label className="text-base font-bold text-black">เบอร์โทร</label>
               <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="ระบุข้อมูล" 
-                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500" />
+                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500" />
             </div>
 
             <div className="space-y-3 pt-2">
-              <label className="text-base font-bold text-black">ประเภทกลุ่มการเลี้ยง</label>
+              <label className="text-base font-bold text-black">ประเภทกลุ่มการเลี้ยง (เลือกได้มากกว่า 1)</label>
               <div className="space-y-3 pl-1">
-                {farmOptions.map((option, index) => (
-                  <div 
-                    key={index} 
-                    onClick={() => handleSelectFarmType(option.value)} 
-                    className="flex items-start gap-3 cursor-pointer group"
-                  >
-                    <div className={`mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 ${
-                        formData.farmType === option.value 
-                        ? "border-[#093832]" 
-                        : "border-gray-300"
-                    }`}>
-                        {formData.farmType === option.value && (<div className="w-2.5 h-2.5 rounded-full bg-[#093832]"></div>)}
+                {farmOptions.map((option, index) => {
+                  const isSelected = formData.farmType.includes(option.value);
+                  return (
+                    <div 
+                      key={index} 
+                      onClick={() => handleSelectFarmType(option.value)} 
+                      className="flex items-start gap-3 cursor-pointer group select-none"
+                    >
+                      {/* Checkbox UI */}
+                      <div className={`mt-1 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${
+                          isSelected
+                          ? "bg-[#72B544] border-[#72B544]" 
+                          : "border-gray-300 bg-white"
+                      }`}>
+                          {isSelected && (<Check className="w-4 h-4 text-white" strokeWidth={3} />)}
+                      </div>
+                      
+                      <div>
+                          <span className="text-base text-black font-medium block">{option.label}</span>
+                          <span className="text-xs text-gray-400">({option.description})</span>
+                      </div>
                     </div>
-                    <div>
-                        <span className="text-base text-black font-medium block">{option.label}</span>
-                        <span className="text-xs text-gray-400">(รอใส่ข้อความขยาย)</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
-            <div className="space-y-1.5 pt-2">
-              <label className="text-base font-bold text-black">จำนวนบ่อ</label>
-              <input type="number" name="pondCount" value={formData.pondCount} onChange={handleChange} placeholder="ระบุข้อมูล เช่น 4, 8, 12 เป็นต้น" 
-                     className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500" />
+            {/* จำนวนไร่ และ จำนวนบ่อต่อไร่ */}
+            <div className="grid grid-cols-2 gap-4 pt-2">
+                <div className="space-y-1.5">
+                    <label className="text-base font-bold text-black">จำนวนไร่</label>
+                    <input type="number" name="raiCount" value={formData.raiCount} onChange={handleChange} placeholder="ระบุข้อมูล" 
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500" />
+                </div>
+                <div className="space-y-1.5">
+                    <label className="text-base font-bold text-black">จำนวนบ่อ ต่อไร่</label>
+                    <input type="number" name="pondCount" value={formData.pondCount} onChange={handleChange} placeholder="ระบุข้อมูล" 
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500" />
+                </div>
             </div>
 
             <div className="space-y-1.5 pt-2">
