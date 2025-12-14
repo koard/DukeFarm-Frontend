@@ -627,7 +627,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <label className="bg-[#E4F5E7] rounded-xl py-3 px-4 flex flex-col gap-1 shadow-sm border border-[#6CCF9C]/30 relative">
             <span className="text-xs text-[#0F614E]/70">วันที่บันทึก</span>
             <div className="relative flex items-center">
@@ -841,7 +841,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <label className="block text-lg text-black">ปริมาณอาหาร (กิโลกรัม.)</label>
+            <label className="block text-lg text-black">ปริมาณอาหาร (กิโลกรัม)</label>
             <span className="text-xs text-gray-500">เพิ่ม/ลดครั้งละ 0.5 กก.</span>
           </div>
           <div className="flex items-center bg-white border border-gray-300 rounded-2xl overflow-hidden">
