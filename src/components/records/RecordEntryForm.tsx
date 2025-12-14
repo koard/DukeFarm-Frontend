@@ -716,11 +716,11 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                   type="button"
                   aria-label="ลดอายุเริ่มต้น"
                   onClick={() => handleStepChange(setInitialAgeOffsetDays, -1)}
-                  className="w-14 h-12 flex items-center justify-center text-[#093832] hover:bg-gray-50"
+                  className="shrink-0 px-4 py-3 h-full flex items-center justify-center text-[#093832] hover:bg-gray-50"
                 >
                   <Minus className="w-4 h-4" />
                 </button>
-                <span className="h-6 w-px bg-gray-200" aria-hidden="true" />
+                <span className="h-10 w-px bg-gray-200" aria-hidden="true" />
                 <input
                   type="text"
                   inputMode="numeric"
@@ -728,14 +728,14 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                   value={initialAgeOffsetDays}
                   onChange={(event) => handleIntegerInput(event.target.value, setInitialAgeOffsetDays)}
                   placeholder={defaultInitialAge.toString()}
-                  className="flex-1 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
+                  className="flex-1 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none py-3"
                 />
-                <span className="h-6 w-px bg-gray-200" aria-hidden="true" />
+                <span className="h-10 w-px bg-gray-200" aria-hidden="true" />
                 <button
                   type="button"
                   aria-label="เพิ่มอายุเริ่มต้น"
                   onClick={() => handleStepChange(setInitialAgeOffsetDays, 1)}
-                  className="w-14 h-12 flex items-center justify-center text-[#093832] hover:bg-gray-50"
+                  className="shrink-0 px-4 py-3 h-full flex items-center justify-center text-[#093832] hover:bg-gray-50"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
