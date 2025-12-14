@@ -1,15 +1,16 @@
 'use client';
 
-import { useEffect, useMemo, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef, Dispatch, SetStateAction } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Check, ChevronDown, ChevronLeft, X, Plus } from 'lucide-react';
+import { Check, ChevronLeft, X, Plus } from 'lucide-react';
 import { useLineUser } from '@/hooks/useLineUser';
 
 type FarmType = 'SMALL' | 'LARGE' | 'MARKET';
 
 const API_BASE_URL = 'https://dukefarm-backend.onrender.com/api';
+const LAST_ENTRY_STORAGE_KEY = 'recordEntry:lastSnapshot';
 
 const AGE_OPTIONS = [
   '0–15 วัน (ระยะลูกปลา)',
@@ -69,6 +70,17 @@ const safeNumber = (value: number | null | undefined, suffix: string) => {
   return `${Math.round(value * 10) / 10}${suffix}`;
 };
 
+const formatObservedAt = (value: string | null) => {
+  if (!value) {
+    return null;
+  }
+  const iso = getIsoDateFromString(value);
+  return new Date(iso).toLocaleTimeString('th-TH', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
+
 export type WeatherSnapshot = {
   observedAt: string | null;
   temperatureC: number | null;
@@ -83,6 +95,17 @@ export type FormStateResponse = {
   farmType: string;
   locationAvailable: boolean;
   weather: WeatherSnapshot | null;
+};
+
+type LastEntrySnapshot = {
+  recordDate: string;
+  recordTime: string;
+  age: string;
+  pondType: string;
+  pondCount: string;
+  fishCount: string;
+  foodAmount: string;
+  diseases: string[];
 };
 
 export type RecordEntryFormProps = {
@@ -101,17 +124,17 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
   const [fishCount, setFishCount] = useState('');
   const [foodAmount, setFoodAmount] = useState('');
   const [otherDisease, setOtherDisease] = useState('');
-  const [isAgeOpen, setIsAgeOpen] = useState(false);
-  const [isPondTypeOpen, setIsPondTypeOpen] = useState(false);
   const [recordDate, setRecordDate] = useState(() => formatInputDate(now));
   const [recordTime, setRecordTime] = useState(() => formatInputTime(now));
   const [weatherSnapshot, setWeatherSnapshot] = useState<WeatherSnapshot | null>(null);
   const [formSeedError, setFormSeedError] = useState<string | null>(null);
+  const [formSeedLoading, setFormSeedLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [isAnalysisView, setIsAnalysisView] = useState(false);
   const [selectedDiseases, setSelectedDiseases] = useState<string[]>([]);
+  const [lastEntrySnapshot, setLastEntrySnapshot] = useState<LastEntrySnapshot | null>(null);
 
   // Image State
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
@@ -127,10 +150,23 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
   }, []);
 
   useEffect(() => {
+    try {
+      const stored = localStorage.getItem(LAST_ENTRY_STORAGE_KEY);
+      if (stored) {
+        const snapshot: LastEntrySnapshot = JSON.parse(stored);
+        setLastEntrySnapshot(snapshot);
+      }
+    } catch (error) {
+      console.error('Failed to parse last entry snapshot', error);
+    }
+  }, []);
+
+  useEffect(() => {
     let isMounted = true;
 
     const fetchFormState = async () => {
       setFormSeedError(null);
+      setFormSeedLoading(true);
       try {
         const token = localStorage.getItem('authToken');
         if (!token) {
@@ -153,7 +189,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
              return;
            }
            console.log("API Fetch failed");
-           setFormSeedLoading(false);
            return; 
         }
 
@@ -168,6 +203,11 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
       } catch (error) {
         if (!isMounted) return;
         console.error(error);
+        setFormSeedError('ไม่สามารถดึงเวลาและสภาพอากาศล่าสุดได้ กรุณากรอกเอง');
+      } finally {
+        if (isMounted) {
+          setFormSeedLoading(false);
+        }
       }
     };
 
@@ -180,6 +220,37 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
     if (/^\d*\.?\d*$/.test(value)) {
       setter(value);
     }
+  };
+
+  const adjustNumericByStep = (value: string, delta: number, allowDecimal = false) => {
+    const parsed = parseFloat(value || '0');
+    const base = Number.isNaN(parsed) ? 0 : parsed;
+    const next = Math.max(0, base + delta);
+    if (allowDecimal) {
+      const normalized = Math.round(next * 10) / 10;
+      return normalized.toFixed(1).replace(/\.0$/, '');
+    }
+    return Math.round(next).toString();
+  };
+
+  const handleStepChange = (
+    setter: Dispatch<SetStateAction<string>>,
+    delta: number,
+    allowDecimal = false,
+  ) => {
+    setter((prev) => adjustNumericByStep(prev, delta, allowDecimal));
+  };
+
+  const handleApplyLastEntry = () => {
+    if (!lastEntrySnapshot) return;
+    setSelectedAge(lastEntrySnapshot.age);
+    setSelectedPondType(lastEntrySnapshot.pondType);
+    setPondCount(lastEntrySnapshot.pondCount);
+    setFishCount(lastEntrySnapshot.fishCount);
+    setFoodAmount(lastEntrySnapshot.foodAmount);
+    setSelectedDiseases(lastEntrySnapshot.diseases);
+    setOtherDisease('');
+    setSubmitMessage({ type: 'success', text: 'เติมข้อมูลครั้งล่าสุดให้แล้ว ปรับแก้ได้ตามต้องการ' });
   };
 
   const isFormValid = Boolean(
@@ -253,6 +324,19 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         throw new Error('บันทึกข้อมูลไม่สำเร็จ');
       }
 
+      const snapshot: LastEntrySnapshot = {
+        recordDate,
+        recordTime,
+        age: selectedAge,
+        pondType: selectedPondType,
+        pondCount,
+        fishCount,
+        foodAmount,
+        diseases: allDiseases,
+      };
+      localStorage.setItem(LAST_ENTRY_STORAGE_KEY, JSON.stringify(snapshot));
+      setLastEntrySnapshot(snapshot);
+
       setShowSuccessModal(true);
       if (successModalTimerRef.current) {
         clearTimeout(successModalTimerRef.current);
@@ -269,6 +353,8 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
       setSubmitting(false);
     }
   };
+
+  const observedAtDisplay = formatObservedAt(weatherSnapshot?.observedAt ?? null);
 
   if (isAnalysisView) {
       return (
@@ -414,7 +500,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
           <Link href={backHref} className="p-1 hover:bg-white/10 rounded-full transition-colors">
             <ChevronLeft className="w-8 h-8" />
           </Link>
-          <h1 className="text-2xl font-bold">กรอกข้อมูล</h1>
+          <h1 className="text-2xl font-bold">บันทึกข้อมูล</h1>
         </div>
         <div className="flex items-center gap-3">
           <div className="text-right">
@@ -439,13 +525,52 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             {formSeedError}
           </div>
         )}
-        {submitMessage && submitMessage.type === 'error' && (
-           <div className="rounded-xl px-4 py-3 text-sm border bg-red-50 border-red-200 text-red-700">
+        {submitMessage && (
+           <div
+             className={`rounded-xl px-4 py-3 text-sm border shadow-sm ${
+               submitMessage.type === 'error'
+                 ? 'bg-red-50 border-red-200 text-red-700'
+                 : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+             }`}
+           >
              {submitMessage.text}
            </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="rounded-2xl border border-dashed border-[#0F3B35]/30 bg-white/70 px-4 py-3 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-[#0F3B35]/10 flex items-center justify-center">
+            <Image src="/nursery-large/formkit_time.svg" alt="clock" width={20} height={20} />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-[#093832]">
+              {formSeedLoading ? 'กำลังตรวจสอบเวลาและสภาพอากาศล่าสุด...' : 'อัปเดตวันที่ เวลา และสภาพอากาศให้อัตโนมัติแล้ว'}
+            </p>
+            <p className="text-xs text-gray-500">สามารถแก้ไขเองได้ทุกช่องหากข้อมูลไม่ตรง</p>
+          </div>
+        </div>
+
+        {lastEntrySnapshot && (
+          <div className="rounded-2xl bg-[#FFF4E5] border border-[#F4C58C] px-4 py-4 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-[#8C4A00]">ข้อมูลที่บันทึกล่าสุด</p>
+              <button
+                type="button"
+                onClick={handleApplyLastEntry}
+                className="text-xs font-bold text-[#8C4A00] underline"
+              >
+                เติมให้เลย
+              </button>
+            </div>
+            <div className="text-xs text-gray-700 grid grid-cols-2 gap-y-1">
+              <span>อายุปลา: {getDisplayAge(lastEntrySnapshot.age)}</span>
+              <span>ประเภทบ่อ: {lastEntrySnapshot.pondType || '-'}</span>
+              <span>จำนวนบ่อ: {lastEntrySnapshot.pondCount || '-'}</span>
+              <span>อาหาร: {lastEntrySnapshot.foodAmount || '-'} กก.</span>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="bg-[#E4F5E7] rounded-xl py-3 px-4 flex flex-col gap-1 shadow-sm border border-[#6CCF9C]/30 relative">
             <span className="text-xs text-[#0F614E]/70">วันที่บันทึก</span>
             <div className="relative flex items-center">
@@ -479,7 +604,12 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         </div>
 
         <div>
-          <h2 className="text-lg font-bold text-black mb-2">สภาพอากาศปัจจุบัน</h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-bold text-black">สภาพอากาศปัจจุบัน</h2>
+            <span className="text-xs text-gray-500">
+              {observedAtDisplay ? `อัปเดต ${observedAtDisplay} น.` : 'ยังไม่มีข้อมูลล่าสุด'}
+            </span>
+          </div>
           <div className="flex items-center bg-[#D8EFFF] rounded-xl overflow-hidden shadow-sm">
             <div className="flex-1 py-4 flex flex-col items-center justify-center">
               <div className="flex items-center gap-1 mb-1">
@@ -507,97 +637,147 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
           </div>
         </div>
 
-        <div className="relative">
-          <label className="block text-lg text-black mb-2">เลือกช่วงอายุปลา</label>
-          <button
-            type="button"
-            onClick={() => setIsAgeOpen((prev) => !prev)}
-            className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 flex items-center justify-between text-lg text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#093832]"
-          >
-            <span className={selectedAge ? 'text-black' : 'text-gray-400'}>
-              {selectedAge ? getDisplayAge(selectedAge) : 'เลือกข้อมูลช่วงอายุ'}
-            </span>
-            <ChevronDown className={`w-6 h-6 text-gray-400 transition-transform ${isAgeOpen ? 'rotate-180' : ''}`} />
-          </button>
-          {isAgeOpen && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-20 max-h-60 overflow-y-auto">
-              {AGE_OPTIONS.map((option) => (
-                <div
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-lg text-black">เลือกช่วงอายุปลา</label>
+            <span className="text-xs text-gray-500">เลือกอย่างน้อย 1 ช่วง</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {AGE_OPTIONS.map((option) => {
+              const isActive = selectedAge === option;
+              return (
+                <button
                   key={option}
-                  onClick={() => {
-                    setSelectedAge(option);
-                    setIsAgeOpen(false);
-                  }}
-                  className="px-4 py-3 text-lg text-black hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-none"
+                  type="button"
+                  onClick={() => setSelectedAge(option)}
+                  className={`rounded-2xl border px-4 py-3 text-left shadow-sm transition-all ${
+                    isActive
+                      ? 'border-[#093832] bg-[#E4F5E7] text-[#093832]'
+                      : 'border-gray-200 bg-white text-gray-500 hover:border-[#0F3B35]/40'
+                  }`}
                 >
-                  {getDisplayAge(option)}
-                </div>
-              ))}
-            </div>
-          )}
+                  <p className="text-sm font-semibold">{getDisplayAge(option)}</p>
+                  <p className="text-xs text-gray-500">{option.split('(')[1]?.replace(')', '') || 'ช่วงอายุ'}</p>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        <div className="relative">
-          <label className="block text-lg text-black mb-2">ประเภทบ่อ</label>
-          <button
-            type="button"
-            onClick={() => setIsPondTypeOpen((prev) => !prev)}
-            className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 flex items-center justify-between text-lg text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#093832]"
-          >
-            <span className={selectedPondType ? 'text-black' : 'text-gray-400'}>
-              {selectedPondType || 'ระบุข้อมูล เช่น บ่อดิน, บ่อปูน'}
-            </span>
-            <ChevronDown className={`w-6 h-6 text-gray-400 transition-transform ${isPondTypeOpen ? 'rotate-180' : ''}`} />
-          </button>
-          {isPondTypeOpen && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-20">
-              {POND_TYPE_OPTIONS.map((option) => (
-                <div
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-lg text-black">ประเภทบ่อ</label>
+            <span className="text-xs text-gray-500">แตะเพื่อเลือก</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {POND_TYPE_OPTIONS.map((option) => {
+              const isActive = selectedPondType === option;
+              return (
+                <button
                   key={option}
-                  onClick={() => {
-                    setSelectedPondType(option);
-                    setIsPondTypeOpen(false);
-                  }}
-                  className="px-4 py-3 text-lg text-black hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-none"
+                  type="button"
+                  onClick={() => setSelectedPondType(option)}
+                  className={`rounded-2xl border px-4 py-4 text-center text-base font-medium transition-all ${
+                    isActive
+                      ? 'border-[#093832] bg-[#093832] text-white'
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-[#093832]/40'
+                  }`}
                 >
                   {option}
-                </div>
-              ))}
-            </div>
-          )}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        <div>
-          <label className="block text-lg text-black mb-2">จำนวนบ่อ</label>
-          <input
-            type="text"
-            value={pondCount}
-            onChange={(e) => handleNumericInput(e.target.value, setPondCount)}
-            placeholder="ระบุจำนวน เช่น 10, 15, 20"
-            className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-lg text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#093832]"
-          />
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <label className="block text-lg text-black">จำนวนบ่อ</label>
+            <span className="text-xs text-gray-500">บ่อ</span>
+          </div>
+          <div className="flex items-center bg-white border border-gray-300 rounded-2xl overflow-hidden">
+            <button
+              type="button"
+              onClick={() => handleStepChange(setPondCount, -1)}
+              className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
+            >
+              –
+            </button>
+            <input
+              type="text"
+              value={pondCount}
+              onChange={(e) => handleNumericInput(e.target.value, setPondCount)}
+              placeholder="เช่น 10"
+              className="flex-1 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => handleStepChange(setPondCount, 1)}
+              className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
+            >
+              +
+            </button>
+          </div>
         </div>
 
-        <div>
-          <label className="block text-lg text-black mb-2">จำนวนปลาที่เลี้ยง (ตัว)</label>
-          <input
-            type="text"
-            value={fishCount}
-            onChange={(e) => handleNumericInput(e.target.value, setFishCount)}
-            placeholder="ระบุข้อมูล เช่น 250, 250-350"
-            className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-lg text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#093832]"
-          />
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <label className="block text-lg text-black">จำนวนปลาที่เลี้ยง (ตัว)</label>
+            <span className="text-xs text-gray-500">เพิ่ม/ลดครั้งละ 50 ตัว</span>
+          </div>
+          <div className="flex items-center bg-white border border-gray-300 rounded-2xl overflow-hidden">
+            <button
+              type="button"
+              onClick={() => handleStepChange(setFishCount, -50)}
+              className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
+            >
+              –
+            </button>
+            <input
+              type="text"
+              value={fishCount}
+              onChange={(e) => handleNumericInput(e.target.value, setFishCount)}
+              placeholder="เช่น 250"
+              className="flex-1 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => handleStepChange(setFishCount, 50)}
+              className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
+            >
+              +
+            </button>
+          </div>
         </div>
         
-        <div>
-          <label className="block text-lg text-black mb-2">ปริมาณอาหาร (กิโลกรัม.)</label>
-          <input
-            type="text"
-            value={foodAmount}
-            onChange={(e) => handleNumericInput(e.target.value, setFoodAmount)}
-            placeholder="ระบุจำนวน เช่น 10, 15, 20"
-            className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 text-lg text-black placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#093832]"
-          />
+        <div className="space-y-1">
+          <div className="flex items-center justify-between">
+            <label className="block text-lg text-black">ปริมาณอาหาร (กิโลกรัม.)</label>
+            <span className="text-xs text-gray-500">เพิ่ม/ลดครั้งละ 0.5 กก.</span>
+          </div>
+          <div className="flex items-center bg-white border border-gray-300 rounded-2xl overflow-hidden">
+            <button
+              type="button"
+              onClick={() => handleStepChange(setFoodAmount, -0.5, true)}
+              className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
+            >
+              –
+            </button>
+            <input
+              type="text"
+              value={foodAmount}
+              onChange={(e) => handleNumericInput(e.target.value, setFoodAmount)}
+              placeholder="เช่น 12"
+              className="flex-1 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => handleStepChange(setFoodAmount, 0.5, true)}
+              className="w-12 h-12 text-2xl text-[#093832] hover:bg-gray-100"
+            >
+              +
+            </button>
+          </div>
         </div>
 
         <div>

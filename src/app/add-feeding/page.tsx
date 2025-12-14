@@ -78,7 +78,7 @@ export default function AddFeedingPage() {
           </button>
           <h1 className="text-lg font-semibold flex items-center">
             <FiPackage className="mr-2" />
-            กรอกข้อมูล
+            บันทึกข้อมูล
           </h1>
         </div>
       </header>
