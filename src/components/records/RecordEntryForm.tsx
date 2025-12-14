@@ -695,59 +695,62 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         </div>
 
         <div className="space-y-3">
-          <label className="block text-lg text-black">วันที่เริ่มเลี้ยงรอบนี้</label>
-          <div className="rounded-2xl border border-[#6CCF9C]/40 bg-white/80 px-4 py-4 space-y-3 shadow-sm">
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-[#0F614E]/70">เลือกวันที่เริ่มปล่อยปลาลงบ่อ</span>
-              <input
-                type="date"
-                value={cycleStartDate}
-                max={recordDate}
-                onChange={(event) => setCycleStartDate(event.target.value)}
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-lg text-[#093832] focus:outline-none focus:ring-2 focus:ring-[#0F614E]"
-              />
-              {!isCycleStartValid && (
-                <span className="text-xs text-red-600">วันที่เริ่มรอบต้องไม่เกินวันที่บันทึก</span>
-              )}
-            </div>
-            <div className="rounded-xl bg-[#E4F5E7] px-4 py-3 text-sm text-[#0F3B35] flex flex-col gap-1">
-              <span>ระบบคำนวณอายุอัตโนมัติ</span>
-              <strong className="text-2xl text-[#093832]">{fishAgeNumber} วัน</strong>
-              <span className="text-xs text-gray-500">จะเพิ่มตามวันที่บันทึกไว้ ไม่ต้องกรอกตัวเลขเอง</span>
-              <span className="text-xs text-gray-500">ช่วงอายุปัจจุบัน: {formatAgeSummary(fishAgeNumber)}</span>
-            </div>
-          </div>
-          <div className="rounded-2xl border border-[#6CCF9C]/40 bg-white/80 px-4 py-4 space-y-3 shadow-sm">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-semibold text-[#093832]">ปลาอายุกี่วันตอนรับมา?</span>
-              <div className="flex flex-wrap gap-2">
-                {INITIAL_AGE_PRESETS.map((preset) => (
-                  <button
-                    type="button"
-                    key={preset.label}
-                    onClick={() => setInitialAgeOffsetDays(preset.value.toString())}
-                    className={`rounded-full px-3 py-1 text-xs font-semibold border transition-colors ${
-                      Number(initialAgeOffsetDays || '0') === preset.value
-                        ? 'bg-[#093832] text-white border-[#093832]'
-                        : 'bg-white text-[#093832] border-[#093832]/30 hover:border-[#093832]'
-                    }`}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
+          <label className="block text-lg text-black">ตั้งค่าการเริ่มรอบนี้</label>
+          <div className="rounded-2xl border border-[#6CCF9C]/40 bg-white/80 px-4 py-4 space-y-4 shadow-sm">
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-semibold text-[#093832]">ปลาอายุกี่วันตอนรับมา?</span>
+                <div className="flex flex-wrap gap-2">
+                  {INITIAL_AGE_PRESETS.map((preset) => (
+                    <button
+                      type="button"
+                      key={preset.label}
+                      onClick={() => setInitialAgeOffsetDays(preset.value.toString())}
+                      className={`rounded-full px-3 py-1 text-xs font-semibold border transition-colors ${
+                        Number(initialAgeOffsetDays || '0') === preset.value
+                          ? 'bg-[#093832] text-white border-[#093832]'
+                          : 'bg-white text-[#093832] border-[#093832]/30 hover:border-[#093832]'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={initialAgeOffsetDays}
+                  onChange={(event) => handleIntegerInput(event.target.value, setInitialAgeOffsetDays)}
+                  placeholder="เช่น 7"
+                  className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-lg text-[#093832] focus:outline-none focus:ring-2 focus:ring-[#0F614E]"
+                />
+                <span className="text-sm text-gray-600 font-semibold">วัน</span>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
-                value={initialAgeOffsetDays}
-                onChange={(event) => handleIntegerInput(event.target.value, setInitialAgeOffsetDays)}
-                placeholder="เช่น 7"
-                className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-lg text-[#093832] focus:outline-none focus:ring-2 focus:ring-[#0F614E]"
-              />
-              <span className="text-sm text-gray-600 font-semibold">วัน</span>
+            <div className="h-px bg-[#6CCF9C]/30" />
+            <div className="space-y-3">
+              <span className="text-sm font-semibold text-[#093832]">วันที่เริ่มปล่อยปลาลงบ่อ</span>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-[#0F614E]/70">ระบุวันที่ปลาลงบ่อรอบนี้</span>
+                <input
+                  type="date"
+                  value={cycleStartDate}
+                  max={recordDate}
+                  onChange={(event) => setCycleStartDate(event.target.value)}
+                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-lg text-[#093832] focus:outline-none focus:ring-2 focus:ring-[#0F614E]"
+                />
+                {!isCycleStartValid && (
+                  <span className="text-xs text-red-600">วันที่เริ่มรอบต้องไม่เกินวันที่บันทึก</span>
+                )}
+              </div>
+              <div className="rounded-xl bg-[#E4F5E7] px-4 py-3 text-sm text-[#0F3B35] flex flex-col gap-1">
+                <span>ระบบคำนวณอายุอัตโนมัติ</span>
+                <strong className="text-2xl text-[#093832]">{fishAgeNumber} วัน</strong>
+                <span className="text-xs text-gray-500">จะเพิ่มตามวันที่บันทึกไว้ ไม่ต้องกรอกตัวเลขเอง</span>
+              </div>
             </div>
           </div>
         </div>
