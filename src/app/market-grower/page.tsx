@@ -5,8 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
-
-// Types
+import FarmNavigation from "@/components/navigation/FarmNavigation"; 
 
 interface GraphDataPoint {
   month: string;
@@ -65,10 +64,8 @@ interface DashboardData {
   feedingPlan: ForecastData[];
 }
 
-// Constants
 const MARKET_GROWER_COMFORT_ZONE = "26-36°C";
 
-// Utility functions
 const getWeatherIconFromCode = (code: number): string => {
   if (code <= 1) return 'fluent_weather-sunny.svg';
   if (code <= 3) return 'fluent-color_weather-sunny.svg';
@@ -142,24 +139,6 @@ const formatGraphWeight = (value?: number | null): string => {
   return `${formatter.format(value)} กรัม`;
 };
 
-const formatGrowthRate = (value?: number | null): string => {
-  if (typeof value !== "number" || Number.isNaN(value)) {
-    return "-";
-  }
-  const formatted = `${value >= 0 ? "+" : ""}${value.toFixed(1)}%`;
-  return formatted;
-};
-
-const describeGrowthTrend = (value?: number | null): string => {
-  if (typeof value !== "number" || Number.isNaN(value)) {
-    return "ไม่มีข้อมูล";
-  }
-  if (value === 0) {
-    return "คงที่";
-  }
-  return value > 0 ? "เพิ่มขึ้น" : "ลดลง";
-};
-
 const formatFishAgeLabel = (label?: string | null): string => {
   if (!label || !label.trim().length) {
     return "-";
@@ -189,7 +168,6 @@ export default function MarketGrowerPage() {
 
   const summary = dashboardData?.summary;
   const averageFishWeightValue = summary?.averageFishWeight ?? null;
-  const weightChangeValue = summary?.weightChange ?? null;
   const latestFishAgeLabel = summary?.latestFishAgeLabel ?? null;
 
   const MAX_GRAPH_VALUE = 2000; // grams
@@ -229,27 +207,24 @@ export default function MarketGrowerPage() {
     <div className="min-h-screen bg-white pb-10">
       
       <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-30">
-              <div className="max-w-7xl mx-auto flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <Image src="/nursery-large/Group.svg" alt="Overview" width={24} height={24} />
-                  <h1 className="text-2xl font-bold">ภาพรวมฟาร์ม</h1>
-                </div>
-                
-                <ProfileDropdownMenu />
-              </div>
-            </div>
-
-      <div className="px-5 mt-4 relative z-10 max-w-7xl mx-auto space-y-5">
-        
-        <div className="">
-          <span className="inline-flex items-center gap-2 bg-[#9DFFEB] text-[#007066] px-4 py-1.5 rounded-full text-sm font-bold shadow-sm border border-blue-200">
-              <Image src="/nursery-large/famicons_fish-mg.svg" alt="fish" width={20} height={20}/> 
-              กลุ่มผู้เลี้ยงขนาดตลาด
-          </span>
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <Image src="/nursery-large/Group.svg" alt="Overview" width={24} height={24} />
+            <h1 className="text-2xl font-bold">ภาพรวมฟาร์ม</h1>
+          </div>
+          
+          <ProfileDropdownMenu />
         </div>
+      </div>
 
+      <div className="relative z-20 -mt-6 mx-4">
+         <FarmNavigation />
+      </div>
+
+      <div className="px-5 relative z-10 max-w-7xl mx-auto space-y-5">
+        
         {/* 1. ข้อมูลวันที่ & อุณหภูมิ */}
-        <div className="bg-[#F4FFFC] rounded-2xl p-4 shadow-sm border border-emerald-50 flex items-center justify-center h-full">
+        <div className="bg-[#F4FFFC] rounded-2xl p-4 shadow-sm border border-emerald-50 flex items-center justify-center h-full mt-2">
             <div className="flex-1 flex flex-col items-center justify-center">
                 <div className="flex items-center gap-2 mb-3">
                     <Image src="/nursery-large/solar_calendar-outline.svg" alt="date" width={20} height={20} />
@@ -327,7 +302,20 @@ export default function MarketGrowerPage() {
             </div>
         </div>
 
-        {/* 4. กราฟ (เหมือนเดิม) */}
+        {/* 4. ช่วงอายุที่เหมาะกับการจับขาย (เอา E badge ออกแล้ว) */}
+        <div className="bg-[#DDF8C2] rounded-2xl p-4 shadow-sm border border-emerald-50 flex items-center justify-center relative min-h-[100px]">
+            <div className="flex flex-col items-center justify-center">
+                <div className="flex items-center gap-2 mb-2">
+                    <Image src="/nursery-large/solar_calendar-outline.svg" alt="calendar" width={20} height={20} />
+                    <span className="text-black text-base font-medium">ช่วงอายุที่เหมาะกับการจับขาย</span>
+                </div>
+                <p className="text-2xl font-bold text-black">
+                   2-6 เดือน
+                </p>
+            </div>
+        </div>
+
+        {/* 5. กราฟ */}
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
             <div className="w-full h-40 relative">
                 {hoverData && (
@@ -399,9 +387,9 @@ export default function MarketGrowerPage() {
                   </div>
                 )}
             </div>
-        </div>
+        </div> 
 
-        {/* 5. รูปปลา & น้ำหนักเฉลี่ย (ส่วนล่าง) */}
+        {/* 6. รูปปลา & อัตราการรอดชีวิต */}
         <div className="grid grid-cols-2 gap-4 items-stretch">
             <div className="bg-[#EEF8FF] rounded-2xl p-2 flex items-center justify-center h-full min-h-[120px]">
                 <Image 
@@ -412,25 +400,28 @@ export default function MarketGrowerPage() {
                     className="object-contain drop-shadow-sm"
                 />
             </div>
-            <div className="bg-[#FFE3E3] rounded-2xl p-5 flex flex-col justify-center h-full text-center">
-                <div className="mb-2">
-                  <span className="text-black text-base font-semibold">การเติบโตของปลา</span>
+            
+            <div className="bg-[#FFE3E3] rounded-2xl p-5 flex flex-col justify-center h-full text-center relative">
+                <div className="mb-2 flex items-center justify-center gap-2">
+                  <Image src="/nursery-large/famicons_fish-outline.svg" alt="survival-rate" width={24} height={24} className="text-black shrink-0" />
+                  <span className="text-black text-base font-semibold leading-tight text-left">
+                      อัตราการรอดชีวิต (ตัว)
+                  </span>
                 </div>
+
                 <div className="flex flex-col items-center gap-1 mt-1">
-                  <span className="text-3xl font-bold text-[#FF2424]">
-                    {loading ? "..." : formatGrowthRate(weightChangeValue)}
+
+                  <span className="text-3xl font-bold text-black">
+                     -
                   </span>
-                  <span className="text-[#FF2424] text-xs font-bold">
-                    {loading ? "..." : describeGrowthTrend(weightChangeValue)}
-                  </span>
-                  <span className="text-xs text-gray-600">
-                    {loading ? "..." : `น้ำหนักเฉลี่ย ${formatAverageWeight(averageFishWeightValue)}`}
+                   <span className="text-[#FF2424] text-xs font-bold">
+                    ไม่มีข้อมูล
                   </span>
                 </div>
             </div>
         </div>
 
-        {/* 6. ตารางพยากรณ์ */}
+        {/* 7. ตารางพยากรณ์ */}
         <div>
             <div className="flex items-center gap-2 mb-3">
                 <Image src="/nursery-large/fluent_weather-hail-day.svg" alt="forecast" width={24} height={24} />
@@ -478,7 +469,7 @@ export default function MarketGrowerPage() {
             </div>
         </div> 
 
-        {/* 7. Action Buttons */}
+        {/* 8. Action Buttons */}
         <div className="pt-2 space-y-3 md:space-y-0 md:grid md:grid-cols-3 md:gap-4 md:col-span-2 lg:col-span-4">
             <Link href="/market-grower/weather-market" className="block w-full">
                 <button className="w-full bg-[#0084FF] hover:bg-blue-700 text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
@@ -498,6 +489,14 @@ export default function MarketGrowerPage() {
                 <button className="w-full bg-[#EF6E11] hover:bg-orange-700 text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
                     <Image src="/nursery-large/fluent_food-grains-w.svg" alt="icon" width={24} height={24} />
                     การให้อาหาร
+                </button>
+            </Link>
+
+            {/* เพิ่มปุ่มใหม่ สีม่วง */}
+            <Link href="/market-grower/disease-info-market" className="block w-full">
+                <button className="w-full bg-[#A530FF] hover:bg-[#8a2be2] text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
+                    <Image src="/nursery-large/famicons_fish-w.svg" alt="icon" width={24} height={24} />
+                    ข้อมูลการรักษาโรค
                 </button>
             </Link>
 
