@@ -55,12 +55,11 @@ interface DashboardSummary {
   comfortRangeC: { min: number; max: number };
   recommendedFeedAdjustmentPct: number | null;
   weather: WeatherData | null;
-  averageFishWeight: number | null;
-  weightChange: number | null;
   latestFishAgeLabel: string | null;
   pelletFoodCost: number;
   freshFoodCost: number;
-  monthlyFeedingData: GraphDataPoint[];
+  survivalRatePct: number;
+  survivalSeries: GraphDataPoint[];
 }
 
 interface DashboardData {
@@ -125,14 +124,14 @@ const buildFeedAdviceText = (adjustmentPct?: number | null): string => {
 };
 
 
-const formatGraphWeight = (value?: number | null): string => {
+const formatSurvivalPct = (value?: number | null): string => {
   if (typeof value !== "number" || Number.isNaN(value)) {
     return "-";
   }
   const formatter = new Intl.NumberFormat("th-TH", {
     maximumFractionDigits: 0,
   });
-  return `${formatter.format(value)} กรัม`;
+  return `${formatter.format(value)}%`;
 };
 
 
@@ -142,23 +141,26 @@ export default function NurserySmallPage() {
 
   const hasDashboardData = dashboardData?.hasData;
 
-  const graphDataRaw: GraphDataPoint[] = hasDashboardData
-    ? dashboardData?.summary?.monthlyFeedingData ?? []
+  const survivalSeries: GraphDataPoint[] = hasDashboardData
+    ? dashboardData?.summary?.survivalSeries ?? []
     : [];
 
-  const graphData: GraphDataPoint[] = graphDataRaw.map((point) => ({
+  const graphData: GraphDataPoint[] = (survivalSeries.length ? survivalSeries : [{ month: "เริ่มต้น", value: 100 }]).map((point) => ({
     ...point,
-    value:
-      typeof point.value === "number" && Number.isFinite(point.value)
-        ? point.value * 1000
-        : 0,
+    value: typeof point.value === "number" && Number.isFinite(point.value)
+      ? Math.max(0, Math.min(100, point.value))
+      : 0,
   }));
 
   const forecastData: ForecastData[] = hasDashboardData ? dashboardData?.feedingPlan || [] : [];
 
+  const survivalRate = hasDashboardData
+    ? dashboardData?.summary?.survivalRatePct ?? 100
+    : 100;
 
-  const MAX_GRAPH_VALUE = 2000; // grams
-  const axisValues = [2000, 1500, 1000, 500, 0];
+
+  const MAX_GRAPH_VALUE = 100; // percent
+  const axisValues = [100, 75, 50, 25, 0];
   const getY = (val: number): number => {
     const clamped = Math.max(0, Math.min(MAX_GRAPH_VALUE, val));
     return 130 - (clamped / MAX_GRAPH_VALUE) * 110;
@@ -287,7 +289,7 @@ export default function NurserySmallPage() {
                         }}
                     >
                         <div className="text-xs text-gray-600 font-medium">ค่าเฉลี่ย</div>
-                    <div className="text-sm font-bold text-[#10B981]">{formatGraphWeight(hoverData.value)}</div>
+                    <div className="text-sm font-bold text-[#10B981]">{formatSurvivalPct(hoverData.value)}</div>
                         <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white drop-shadow-sm"></div>
                     </div>
                 )}
@@ -296,7 +298,7 @@ export default function NurserySmallPage() {
                     {axisValues.map((val) => (
                         <g key={val}>
                             <line x1="35" y1={getY(val)} x2="310" y2={getY(val)} stroke="#f0f0f0" strokeWidth="1" />
-                        <text x="25" y={getY(val) + 3} fontSize="10" fill="#999" textAnchor="end">{formatGraphWeight(val)}</text>
+                        <text x="25" y={getY(val) + 3} fontSize="10" fill="#999" textAnchor="end">{formatSurvivalPct(val)}</text>
                         </g>
                     ))}
                     <path 
@@ -371,10 +373,10 @@ export default function NurserySmallPage() {
                 <div className="flex flex-col items-center gap-1 mt-1">
 
                   <span className="text-3xl font-bold text-black">
-                     -
+                    {formatSurvivalPct(survivalRate)}
                   </span>
                    <span className="text-[#FF2424] text-xs font-bold">
-                    ไม่มีข้อมูล
+                    {survivalRate < 100 ? 'ลดลงจากครั้งแรก' : 'จากค่าตั้งต้น 100%'}
                   </span>
                 </div>
             </div>
