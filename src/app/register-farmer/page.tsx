@@ -7,19 +7,81 @@ import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 import dynamic from "next/dynamic"; 
 import { useRouter } from "next/navigation";
 import { useLineUser } from "@/hooks/useLineUser"; 
-
-type FarmTypeOption = "SMALL" | "LARGE" | "MARKET";
+import {
+  FarmTypeOption,
+  FarmTypeProfileLike,
+  FARM_TYPE_PRIORITY,
+  deriveFarmTypesFromProfile,
+  mapFarmTypeToRoute,
+} from "@/utils/farmTypes";
 
 const MapPicker = dynamic(() => import("./MapPicker"), { 
   ssr: false,
   loading: () => <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500">กำลังโหลดแผนที่...</div>
 });
 
+type FarmerProfile = FarmTypeProfileLike & {
+  firstName?: string | null;
+  lastName?: string | null;
+  phone?: string | null;
+  farmAreaRai?: number | string | null;
+  totalFarmAreaRai?: number | string | null;
+  declaredRaiCount?: number | string | null;
+  declaredPondCount?: number | string | null;
+  totalPondCount?: number | string | null;
+  pondsPerRai?: number | string | null;
+  farmLatitude?: number | string | null;
+  farmLongitude?: number | string | null;
+};
+
+type RegisterFormState = {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  farmType: FarmTypeOption[];
+  raiCount: string;
+  pondCount: string;
+  location: string;
+};
+
+const formatNumericInput = (value: unknown): string => {
+  if (typeof value === "number" && !Number.isNaN(value)) {
+    return String(value);
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  return "";
+};
+
+const parseCoordinate = (value: unknown): number | null => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = parseFloat(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return null;
+};
+
+const parseLocationValue = (value: string): { lat: number; lng: number } | null => {
+  const [latStr, lngStr] = value.split(",").map((part) => part.trim());
+  const lat = parseFloat(latStr || "");
+  const lng = parseFloat(lngStr || "");
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    return { lat, lng };
+  }
+  return null;
+};
+
 export default function RegisterFarmerPage() {
   const router = useRouter();
   const lineUser = useLineUser();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegisterFormState>({
     firstName: "",
     lastName: "",
     phone: "",
@@ -51,31 +113,32 @@ export default function RegisterFarmerPage() {
 
     try {
       const parsedUser = JSON.parse(storedUser);
-      const profile = parsedUser.farmerProfile;
+      const profile: FarmerProfile | undefined = parsedUser.farmerProfile;
       if (!profile) {
         return;
       }
 
-      let parsedCoords: { lat: number; lng: number } | null = null;
-
-      if (profile.farmLatitude && profile.farmLongitude) {
-        const lat = parseFloat(profile.farmLatitude);
-        const lng = parseFloat(profile.farmLongitude);
-        if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
-          parsedCoords = { lat, lng };
-        }
+      const lat = parseCoordinate(profile.farmLatitude);
+      const lng = parseCoordinate(profile.farmLongitude);
+      const coords = lat !== null && lng !== null ? { lat, lng } : null;
+      if (coords) {
+        setInitialCoords(coords);
+        setTempCoords(coords);
       }
 
-      if (parsedCoords) {
-        setInitialCoords(parsedCoords);
-        setTempCoords(parsedCoords);
-      }
+      const farmTypes = deriveFarmTypesFromProfile(profile);
+      const areaSource = profile.totalFarmAreaRai ?? profile.farmAreaRai ?? profile.declaredRaiCount;
+      const pondSource = profile.totalPondCount ?? profile.declaredPondCount ?? profile.pondsPerRai;
 
       setFormData((prev) => ({
         ...prev,
-        location: parsedCoords
-          ? `${parsedCoords.lat.toFixed(6)}, ${parsedCoords.lng.toFixed(6)}`
-          : prev.location,
+        firstName: profile.firstName ?? prev.firstName,
+        lastName: profile.lastName ?? prev.lastName,
+        phone: profile.phone ?? prev.phone,
+        farmType: farmTypes.length > 0 ? farmTypes : prev.farmType,
+        raiCount: formatNumericInput(areaSource) || prev.raiCount,
+        pondCount: formatNumericInput(pondSource) || prev.pondCount,
+        location: coords ? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}` : prev.location,
       }));
     } catch (error) {
       console.error("Failed to parse user data", error);
@@ -149,7 +212,12 @@ export default function RegisterFarmerPage() {
         return;
       }
 
-      const [lat, lng] = formData.location.split(", ").map(Number);
+      const coords = parseLocationValue(formData.location);
+      if (!coords) {
+        alert("กรุณาเลือกตำแหน่งฟาร์มบนแผนที่");
+        setSubmitStatus('idle');
+        return;
+      }
 
       const farmAreaRai = parseFloat(formData.raiCount);
       if (Number.isNaN(farmAreaRai)) {
@@ -166,9 +234,8 @@ export default function RegisterFarmerPage() {
       }
       
       // จัดลำดับความสำคัญของประเภทฟาร์ม (เพื่อหา Primary Type)
-      const priorityOrder: FarmTypeOption[] = ["SMALL", "LARGE", "MARKET"];
       const sortedSelectedTypes = [...formData.farmType].sort((a, b) => {
-        return priorityOrder.indexOf(a) - priorityOrder.indexOf(b);
+        return FARM_TYPE_PRIORITY.indexOf(a) - FARM_TYPE_PRIORITY.indexOf(b);
       });
       const primaryTypeKey = sortedSelectedTypes[0];
 
@@ -178,13 +245,12 @@ export default function RegisterFarmerPage() {
         phone: formData.phone,
         primaryFarmType: primaryTypeKey || "SMALL",
         farmTypes: formData.farmType,
-        selectedFarmTypes: formData.farmType,
         
         declaredPondCount,
         farmAreaRai,
         
-        farmLatitude: lat,
-        farmLongitude: lng
+        farmLatitude: coords.lat,
+        farmLongitude: coords.lng
       };
 
       const response = await fetch("https://dukefarm-backend.onrender.com/api/register/farmer", {
@@ -225,17 +291,8 @@ export default function RegisterFarmerPage() {
       setSubmitStatus('success');
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-        const pathMap: Record<FarmTypeOption, string> = {
-          SMALL: "small",
-          LARGE: "large",
-          MARKET: "market",
-        };
-
-        if (primaryTypeKey && pathMap[primaryTypeKey]) {
-          router.push(`/${pathMap[primaryTypeKey]}`);
-      } else {
-          router.push('/');
-      }
+      const destination = mapFarmTypeToRoute(primaryTypeKey);
+      router.push(destination);
       
     } catch (error) {
       console.error("❌ Registration error:", error);

@@ -6,8 +6,13 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight, Check } from "lucide-react";
 import { useLineUser } from "@/hooks/useLineUser";
 import dynamic from "next/dynamic";
-
-type FarmTypeOption = "SMALL" | "LARGE" | "MARKET";
+import {
+  FarmTypeOption,
+  FarmTypeProfileLike,
+  FARM_TYPE_PRIORITY,
+  deriveFarmTypesFromProfile,
+  mapFarmTypeToRoute,
+} from "@/utils/farmTypes";
 
 type ProfileFormState = {
   firstName: string;
@@ -19,16 +24,17 @@ type ProfileFormState = {
   location: string;
 };
 
-type FarmerProfile = {
+type FarmerProfile = FarmTypeProfileLike & {
   firstName?: string | null;
   lastName?: string | null;
   phone?: string | null;
   primaryFarmType?: string | null;
-  selectedFarmTypes?: string[] | null;
   declaredRaiCount?: number | string | null;
   declaredPondCount?: number | string | null;
   farmAreaRai?: number | string | null;
   pondsPerRai?: number | string | null;
+  totalFarmAreaRai?: number | string | null;
+  totalPondCount?: number | string | null;
   farmLatitude?: number | string | null;
   farmLongitude?: number | string | null;
 };
@@ -39,24 +45,6 @@ const FARM_TYPE_INFO: Record<FarmTypeOption, { label: string; description: strin
   MARKET: { label: "ปลาตลาด", description: "อายุ 31-180 วัน" },
 };
 
-const FARM_TYPE_PRIORITY: FarmTypeOption[] = ["SMALL", "LARGE", "MARKET"];
-
-const FARM_TYPE_ROUTES: Record<FarmTypeOption, string> = {
-  SMALL: "/small",
-  LARGE: "/large",
-  MARKET: "/market",
-};
-
-const resolveFarmType = (value?: string | null): FarmTypeOption | null => {
-  if (!value) return null;
-  const normalized = value.toUpperCase();
-
-  if (normalized === "SMALL" || normalized === "NURSERY_SMALL") return "SMALL";
-  if (normalized === "LARGE" || normalized === "NURSERY_LARGE") return "LARGE";
-  if (normalized === "MARKET" || normalized === "GROWOUT") return "MARKET";
-
-  return null;
-};
 
 const MapPicker = dynamic(() => import("../register-farmer/MapPicker"), { 
   ssr: false,
@@ -100,27 +88,18 @@ const buildFormStateFromProfile = (profile?: FarmerProfile) => {
   const lat = parseCoordinate(profile?.farmLatitude);
   const lng = parseCoordinate(profile?.farmLongitude);
   const coords = lat !== null && lng !== null ? { lat, lng } : null;
+  const farmTypes = deriveFarmTypesFromProfile(profile);
 
-  const selectedFarmTypes = Array.isArray(profile?.selectedFarmTypes)
-    ? profile.selectedFarmTypes
-        .map((value: unknown) => (typeof value === "string" ? resolveFarmType(value) : null))
-        .filter((type): type is FarmTypeOption => Boolean(type))
-    : [];
-
-  const fallbackPrimary = resolveFarmType(profile?.primaryFarmType);
-  const farmTypes = selectedFarmTypes.length > 0
-    ? selectedFarmTypes
-    : fallbackPrimary
-      ? [fallbackPrimary]
-      : [];
+  const areaSource = profile?.totalFarmAreaRai ?? profile?.farmAreaRai ?? profile?.declaredRaiCount;
+  const pondSource = profile?.totalPondCount ?? profile?.declaredPondCount ?? profile?.pondsPerRai;
 
   const formValues: ProfileFormState = {
     firstName: profile?.firstName || "",
     lastName: profile?.lastName || "",
     phone: profile?.phone || "",
     farmTypes,
-    raiCount: formatNumericInput(profile?.farmAreaRai ?? profile?.declaredRaiCount),
-    pondCount: formatNumericInput(profile?.declaredPondCount ?? profile?.pondsPerRai),
+    raiCount: formatNumericInput(areaSource),
+    pondCount: formatNumericInput(pondSource),
     location: coords ? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}` : "",
   };
 
@@ -286,7 +265,6 @@ export default function ProfilePage() {
         phone: formData.phone,
         primaryFarmType,
         farmTypes: formData.farmTypes,
-        selectedFarmTypes: formData.farmTypes,
         declaredPondCount,
         farmAreaRai,
         farmLatitude: coords.lat,
@@ -334,8 +312,7 @@ export default function ProfilePage() {
         populateFormFromProfile(latestFarmProfile);
       }
 
-      const resolvedFarmType = resolveFarmType(latestFarmProfile?.primaryFarmType || primaryFarmType);
-      const destination = resolvedFarmType ? FARM_TYPE_ROUTES[resolvedFarmType] : "/small";
+      const destination = mapFarmTypeToRoute(latestFarmProfile?.primaryFarmType || primaryFarmType);
 
       setSubmitStatus('success');
       await new Promise((resolve) => setTimeout(resolve, 1000));

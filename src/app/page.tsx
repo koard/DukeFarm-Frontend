@@ -2,26 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-
-const mapFarmTypeToRoute = (value?: string | null) => {
-  if (!value) {
-    return "/small";
-  }
-
-  const normalized = value.toUpperCase();
-
-  if (normalized === "SMALL" || normalized === "NURSERY_SMALL") {
-    return "/small";
-  }
-  if (normalized === "LARGE" || normalized === "NURSERY_LARGE") {
-    return "/large";
-  }
-  if (normalized === "MARKET" || normalized === "GROWOUT") {
-    return "/market";
-  }
-
-  return "/small";
-};
+import { deriveFarmTypesFromProfile, mapFarmTypeToRoute } from "@/utils/farmTypes";
 
 export default function Home() {
   const router = useRouter();
@@ -60,14 +41,15 @@ export default function Home() {
         return;
       }
 
-      // Redirect ตาม farm type (สำหรับ farmer)
-      if (user.farmerProfile?.primaryFarmType) {
-        router.push(mapFarmTypeToRoute(user.farmerProfile.primaryFarmType));
-      } 
-      // ถ้าไม่มี farm profile -> default ไปหน้า small
-      else {
-        router.push("/small");
+      const farmerProfile = user.farmerProfile;
+      if (farmerProfile) {
+        const farmTypes = deriveFarmTypesFromProfile(farmerProfile);
+        const preferredType = farmerProfile.primaryFarmType || farmTypes[0];
+        router.push(mapFarmTypeToRoute(preferredType));
+        return;
       }
+
+      router.push("/small");
     } catch (error) {
       console.error("Error parsing user data:", error);
       router.push("/login");

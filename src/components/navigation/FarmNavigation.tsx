@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
+import { FarmTypeOption, deriveFarmTypesFromProfile } from "@/utils/farmTypes";
 
-type FarmType = "SMALL" | "LARGE" | "MARKET";
+type FarmType = FarmTypeOption;
 
 interface NavItem {
   type: FarmType;
@@ -31,41 +32,19 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-const normalizeFarmType = (value: string | undefined): FarmType | null => {
-  if (!value) return null;
-  const normalized = value.toUpperCase();
-  if (normalized === "SMALL" || normalized === "NURSERY_SMALL") return "SMALL";
-  if (normalized === "LARGE" || normalized === "NURSERY_LARGE") return "LARGE";
-  if (normalized === "MARKET" || normalized === "GROWOUT") return "MARKET";
-  return null;
-};
-
 export default function FarmNavigation() {
   const pathname = usePathname();
   const [displayItems, setDisplayItems] = useState<NavItem[]>(NAV_ITEMS);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    const allowed: FarmType[] = [];
+    let allowed: FarmType[] = [];
 
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser);
         const profile = user.farmerProfile || {};
-
-        if (Array.isArray(profile.selectedFarmTypes) && profile.selectedFarmTypes.length > 0) {
-          profile.selectedFarmTypes.forEach((typeValue: string) => {
-            const normalized = normalizeFarmType(typeValue);
-            if (normalized) {
-              allowed.push(normalized);
-            }
-          });
-        } else if (profile.primaryFarmType) {
-          const normalizedPrimary = normalizeFarmType(profile.primaryFarmType);
-          if (normalizedPrimary) {
-            allowed.push(normalizedPrimary);
-          }
-        }
+        allowed = deriveFarmTypesFromProfile(profile);
       } catch (e) {
         console.error("Parse error", e);
       }
