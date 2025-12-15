@@ -85,26 +85,29 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
         const token = localStorage.getItem("authToken");
         if (!token) return;
 
-        const response = await fetch("https://dukefarm-backend.onrender.com/api/feed-formulas?limit=100", {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json"
-          }
-        });
+                const response = await fetch("https://dukefarm-backend.onrender.com/api/feed-formulas?limit=100", {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    }
+                });
 
-        if (response.ok) {
-          const result = await response.json();
-          const formulas = Array.isArray(result.data?.data) ? result.data.data : [];
-          setFeedFormulas(formulas);
-        }
+                if (response.ok) {
+                    const result = await response.json();
+                    const formulas = Array.isArray(result.data?.data) ? result.data.data : [];
+                    const filteredFormulas = formulas.filter(
+                        (formula: FeedFormula) => formula.farmType?.toUpperCase() === farmType
+                    );
+                    setFeedFormulas(filteredFormulas);
+                }
       } catch (err) {
         console.error("Failed to fetch feed formulas:", err);
       }
     };
 
-    fetchFeedFormulas();
-  }, []);
+        fetchFeedFormulas();
+    }, [farmType]);
 
   const handleViewData = () => {
       if (!selectedFormula) return;
