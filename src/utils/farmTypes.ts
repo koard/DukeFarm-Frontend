@@ -58,6 +58,12 @@ export const deriveFarmTypesFromProfile = (profile?: FarmTypeProfileLike): FarmT
   ];
 
   const primary = resolveFarmType(profile.primaryFarmType);
+  
+  // Ensure primary farm type is included in the list
+  if (primary && !collected.includes(primary)) {
+    collected.push(primary);
+  }
+
   const dedupOrdered = Array.from(new Set(collected));
 
   const sorted = dedupOrdered.sort(
