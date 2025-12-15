@@ -696,14 +696,6 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
                   <span>ดูข้อมูลโรคทั้งหมด</span>
                 </div>
               </button>
-              
-              {(selectedTags.length > 0 || symptomInput.trim() || imagePreview) && (
-                <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4">
-                  <p className="text-amber-800 text-sm text-center font-semibold">
-                    💡 ข้อมูลที่บันทึกสามารถใช้อ้างอิงได้ในภายหลัง
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         )}
