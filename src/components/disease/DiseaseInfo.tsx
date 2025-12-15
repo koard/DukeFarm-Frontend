@@ -189,7 +189,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
                       type="button"
                       key={tag}
                       onClick={() => toggleTag(tag)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                      className={`px-3 py-1.5 rounded-full text-md font-semibold border ${
                         active
                           ? 'bg-[#093832] text-white border-[#093832]'
                           : 'bg-white text-[#093832] border-gray-300'

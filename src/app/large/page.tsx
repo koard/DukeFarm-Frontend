@@ -1,86 +1,41 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useDashboardData } from "@/hooks/useDashboardData";
-import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
+import { useState } from "react";
 import AgeAdvisoryCard from "@/components/dashboard/AgeAdvisoryCard";
-import FarmNavigation from "@/components/navigation/FarmNavigation"; 
+import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
+import FarmNavigation from "@/components/navigation/FarmNavigation";
+import { useDashboardData } from "@/hooks/useDashboardData";
 
-interface GraphDataPoint {
-  month: string;
-  value: number;
-}
-
-interface HoverData {
-  x: number;
-  y: number;
-  value: number;
-  month?: string;
-}
-
-interface Coordinate {
-  x: number;
-  y: number;
-}
-
-interface ComfortRange {
-  min: number;
-  max: number;
-}
-
-interface ForecastData {
+type ComfortRange = { min: number; max: number };
+type GraphDataPoint = { month: string; value: number };
+type ForecastData = {
   date: string;
   highTemperatureC: number;
   lowTemperatureC: number;
   feedAdjustmentPct: number;
-  feedingRecommendation: "increase" | "decrease" | "normal";
-  weatherCode: number;
-}
-
-interface WeatherData {
-  time: string;
-  temperatureC: number;
-  humidityPct: number;
-  windSpeedKph: number;
-  rainMm: number;
-  conditionText: string;
-}
-
-interface DashboardSummary {
-  asOf: string;
-  airTemperatureC: number | null;
-  temperatureDeltaC: number | null;
-  comfortRangeC: { min: number; max: number };
-  recommendedFeedAdjustmentPct: number | null;
-  weather: WeatherData | null;
-  averageFishWeight: number | null;
-  weightChange: number | null;
-  latestFishAgeLabel: string | null;
-  pelletFoodCost: number;
-  freshFoodCost: number;
-  monthlyFeedingData: GraphDataPoint[];
-}
+  weatherCode?: number | string;
+};
+type HoverData = { x: number; y: number; value: number; month: string };
+type Coordinate = { x: number; y: number };
 
 interface DashboardData {
-  group: string;
-  hasData: boolean;
-  summary: DashboardSummary;
-  feedingPlan: ForecastData[];
+  hasData?: boolean;
+  summary?: {
+    asOf?: string | null;
+    airTemperatureC?: number | null;
+    recommendedFeedAdjustmentPct?: number | null;
+    monthlyFeedingData?: GraphDataPoint[];
+    latestFishAgeLabel?: string | null;
+    latestFishAgeDays?: number | null;
+    survivalRatePct?: number | null;
+  };
+  feedingPlan?: ForecastData[];
 }
 
-const LARGE_STAGE_COMFORT_RANGE: ComfortRange = { min: 27, max: 35 };
-const LARGE_STAGE_COMFORT_ZONE = `${LARGE_STAGE_COMFORT_RANGE.min}-${LARGE_STAGE_COMFORT_RANGE.max}°C`;
-
-const getWeatherIconFromCode = (code: number): string => {
-  if (code <= 1) return 'fluent_weather-sunny.svg';
-  if (code <= 3) return 'fluent-color_weather-sunny.svg';
-  if (code >= 51 && code <= 67) return 'fluent_weather-rain-snow.svg';
-  if (code >= 80 && code <= 82) return 'fluent_weather-rain-snow.svg';
-  if (code >= 95 && code <= 99) return 'fluent_weather-hail-day.svg';
-  return 'fluent-color_weather-sunny.svg';
-};
+const LARGE_STAGE_COMFORT_RANGE: ComfortRange = { min: 26, max: 32 };
+const LARGE_STAGE_COMFORT_ZONE = "26°C - 32°C";
 
 const formatThaiDate = (isoDate?: string | null): string => {
   if (!isoDate) return "-";
@@ -133,6 +88,21 @@ const formatGraphWeight = (value?: number | null): string => {
     maximumFractionDigits: 0,
   });
   return `${formatter.format(value)} กรัม`;
+};
+
+const getWeatherIconFromCode = (code?: number | string) => {
+  const numericCode = typeof code === "string" ? Number.parseInt(code, 10) : code;
+  if (Number.isNaN(numericCode) || numericCode === undefined || numericCode === null) {
+    return "fluent_weather-hail-day.svg";
+  }
+  if (numericCode === 0) return "fluent_weather-sunny.svg";
+  if (numericCode >= 1 && numericCode <= 3) return "fluent_weather-partly-cloudy-day.svg";
+  if (numericCode >= 45 && numericCode <= 48) return "fluent_weather-fog.svg";
+  if (numericCode >= 51 && numericCode <= 67) return "fluent_weather-rain.svg";
+  if (numericCode >= 71 && numericCode <= 77) return "fluent_weather-snow.svg";
+  if (numericCode >= 80 && numericCode <= 82) return "fluent_weather-rain.svg";
+  if (numericCode >= 95) return "fluent_weather-thunderstorm.svg";
+  return "fluent_weather-hail-day.svg";
 };
 
 
@@ -274,7 +244,35 @@ export default function NurseryLargePage() {
           loading={loading}
         />
 
-        {/* 5. กราฟ */}
+        {/* 5. กราฟอัตราการรอด (0-100%) */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-base font-bold text-[#093832]">อัตราการรอด</h3>
+            <span className="text-sm text-gray-500">0 - 100%</span>
+          </div>
+          <div className="space-y-2">
+            <div className="h-5 rounded-full bg-gray-100 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-[#16A34A] via-[#84CC16] to-[#F59E0B] transition-[width] duration-700"
+                style={{ width: `${Math.max(0, Math.min(100, dashboardData?.summary?.survivalRatePct ?? 0))}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-gray-500">
+              <span>0%</span>
+              <span>50%</span>
+              <span>100%</span>
+            </div>
+            <div className="text-center text-xl font-bold text-[#093832]">
+              {typeof dashboardData?.summary?.survivalRatePct === "number"
+                ? `${dashboardData.summary.survivalRatePct.toFixed(1)}%`
+                : loading
+                  ? "..."
+                  : "ไม่มีข้อมูล"}
+            </div>
+          </div>
+        </div>
+
+        {/* 6. กราฟ */}
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
             <div className="w-full h-40 relative">
                 {hoverData && (
@@ -369,12 +367,13 @@ export default function NurseryLargePage() {
                 </div>
 
                 <div className="flex flex-col items-center gap-1 mt-1">
-
                   <span className="text-3xl font-bold text-black">
-                     -
+                     {typeof dashboardData?.summary?.survivalRatePct === "number"
+                       ? `${dashboardData.summary.survivalRatePct.toFixed(1)}%`
+                       : loading ? "..." : "-"}
                   </span>
-                   <span className="text-[#FF2424] text-xs font-bold">
-                    ไม่มีข้อมูล
+                   <span className={`text-xs font-bold ${typeof dashboardData?.summary?.survivalRatePct === "number" ? 'text-[#009D64]' : 'text-[#FF2424]'}`}>
+                    {typeof dashboardData?.summary?.survivalRatePct === "number" ? 'มีข้อมูลล่าสุด' : loading ? 'กำลังโหลด' : 'ไม่มีข้อมูล'}
                   </span>
                 </div>
             </div>
