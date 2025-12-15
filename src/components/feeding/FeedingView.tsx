@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronDown } from "lucide-react";
@@ -71,21 +71,13 @@ interface FeedingViewProps {
 }
 
 export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
-  const [selectedAge, setSelectedAge] = useState<string>("");
+  const [selectedFormula, setSelectedFormula] = useState<FeedFormula | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showResult, setShowResult] = useState(false);
 
   const { data: dashboardData, loading, error } = useDashboardData<DashboardData>(farmType);
   const [feedingInfo, setFeedingInfo] = useState<FeedingInfo | null>(null);
   const [feedFormulas, setFeedFormulas] = useState<FeedFormula[]>([]);
-
-  const ageOptions = useMemo(() => {
-    const allStages = feedFormulas.map(formula => formula.targetStage);
-    
-    return allStages
-      .filter((stage): stage is string => !!stage) 
-      .filter((value, index, self) => self.indexOf(value) === index);
-  }, [feedFormulas]);
 
   useEffect(() => {
     const fetchFeedFormulas = async () => {
@@ -115,36 +107,22 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
   }, []);
 
   const handleViewData = () => {
-      if (!selectedAge) return;
+      if (!selectedFormula) return;
       
-      const matchedFormula = feedFormulas.find(formula => 
-        formula.targetStage === selectedAge
-      );
+      const recommendations = selectedFormula.recommendations 
+        ? selectedFormula.recommendations.split('\n').filter((line: string) => line.trim())
+        : [];
 
-      if (matchedFormula) {
-        const recommendations = matchedFormula.recommendations 
-          ? matchedFormula.recommendations.split('\n').filter((line: string) => line.trim())
-          : [];
-
-        setFeedingInfo({
-          name: matchedFormula.name,
-          targetStage: matchedFormula.targetStage,
-          description: matchedFormula.description,
-          feedCharacteristics: matchedFormula.description 
-            ? matchedFormula.description.split('\n').filter((line: string) => line.trim())
-            : [],
-          advice: recommendations,
-          weightRange: "N/A"
-        });
-      } else {
-        setFeedingInfo({
-          name: "ข้อมูลทั่วไป",
-          targetStage: selectedAge,
-          weightRange: "N/A",
-          feedCharacteristics: ["ไม่พบข้อมูลสูตรอาหารสำหรับช่วงอายุนี้"],
-          advice: ["กรุณาติดต่อผู้ดูแลระบบเพื่อเพิ่มข้อมูลสูตรอาหาร"]
-        });
-      }
+      setFeedingInfo({
+        name: selectedFormula.name,
+        targetStage: selectedFormula.targetStage,
+        description: selectedFormula.description,
+        feedCharacteristics: selectedFormula.description 
+          ? selectedFormula.description.split('\n').filter((line: string) => line.trim())
+          : [],
+        advice: recommendations,
+        weightRange: "N/A"
+      });
 
       setShowResult(true);
       setIsDropdownOpen(false);
@@ -229,30 +207,30 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 flex items-center justify-between text-lg text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#093832]"
             >
-                <span className={selectedAge ? "text-black" : "text-gray-400"}>
-                    {selectedAge || "เลือกข้อมูลช่วงอายุ"}
+                <span className={selectedFormula ? "text-black" : "text-gray-400"}>
+                    {selectedFormula?.name || "เลือกข้อมูลช่วงอายุ"}
                 </span>
                 <ChevronDown className={`w-6 h-6 text-gray-400 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`} />
             </button>
 
             {isDropdownOpen && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-20 max-h-64 overflow-y-auto">
-                    {ageOptions.length > 0 ? (
-                        ageOptions.map((option, index) => (
+                    {feedFormulas.length > 0 ? (
+                        feedFormulas.map((formula) => (
                             <div 
-                                key={index}
+                                key={formula.id}
                                 onClick={() => {
-                                    setSelectedAge(option);
+                                    setSelectedFormula(formula);
                                     setIsDropdownOpen(false);
                                     setShowResult(false);
                                 }}
                                 className="px-4 py-3 text-lg text-black hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-none"
                             >
-                                {option}
+                                {formula.name}
                             </div>
                         ))
                     ) : (
-                        <div className="px-4 py-3 text-gray-400 text-center">ไม่พบข้อมูลช่วงอายุ</div>
+                        <div className="px-4 py-3 text-gray-400 text-center">ไม่พบข้อมูลสูตรอาหาร</div>
                     )}
                 </div>
             )}
@@ -261,9 +239,9 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
         {/* Button */}
         <button
             onClick={handleViewData}
-            disabled={!selectedAge}
+            disabled={!selectedFormula}
             className={`w-full py-4 rounded-xl text-xl font-bold text-white transition-all duration-200 shadow-md mb-8 ${
-                selectedAge 
+                selectedFormula 
                 ? "bg-[#EF6E11] hover:bg-[#d65d0a] active:scale-95" 
                 : "bg-[#A0A0A0] cursor-not-allowed" 
             }`}
@@ -300,7 +278,7 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                             <span className="text-base font-medium text-center">อายุปลา</span>
                         </div>
                         <p className="text-xl font-bold text-black text-center">
-                            {selectedAge}
+                            {feedingInfo?.targetStage || 'N/A'}
                         </p>
                     </div>
                 </div>
