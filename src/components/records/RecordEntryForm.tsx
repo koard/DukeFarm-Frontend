@@ -732,12 +732,12 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-md font-semibold text-[#093832]">ปลาอายุกี่วันตอนรับมา?</span>
               </div>
-              <div className="flex items-center bg-white border border-gray-200 rounded-2xl overflow-hidden">
+              <div className="flex items-center bg-white border border-gray-200 rounded-2xl overflow-hidden h-14">
                 <button
                   type="button"
                   aria-label="ลดอายุเริ่มต้น"
                   onClick={() => handleStepChange(setInitialAgeOffsetDays, -1)}
-                  className="shrink-0 px-4 py-3 h-full flex items-center justify-center text-[#093832] hover:bg-gray-50"
+                  className="shrink-0 w-14 h-full flex items-center justify-center text-lg text-[#093832] hover:bg-gray-50"
                 >
                   <Minus className="w-4 h-4" />
                 </button>
@@ -749,21 +749,21 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                   value={initialAgeOffsetDays}
                   onChange={(event) => handleIntegerInput(event.target.value, setInitialAgeOffsetDays)}
                   placeholder={defaultInitialAge.toString()}
-                  className="flex-1 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none py-3"
+                  className="flex-1 h-full text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
                 />
                 <span className="h-10 w-px bg-gray-200" aria-hidden="true" />
                 <button
                   type="button"
                   aria-label="เพิ่มอายุเริ่มต้น"
                   onClick={() => handleStepChange(setInitialAgeOffsetDays, 1)}
-                  className="shrink-0 px-4 py-3 h-full flex items-center justify-center text-[#093832] hover:bg-gray-50"
+                  className="shrink-0 w-14 h-full flex items-center justify-center text-lg text-[#093832] hover:bg-gray-50"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
               </div>
             </div>
             <div className="h-px bg-[#6CCF9C]/30" />
-            <div className="space-y-3">
+            <div className="space-y-4 pt-1">
               <span className="text-md font-semibold text-[#093832]">วันที่เริ่มปล่อยปลาลงบ่อ</span>
               <div className="flex flex-col gap-2">
                 <input
