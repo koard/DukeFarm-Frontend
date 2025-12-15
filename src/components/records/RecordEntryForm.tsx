@@ -24,7 +24,15 @@ const AGE_PHASES: AgePhase[] = [
   { label: 'ปลาตลาด', min: 31, max: 180, accent: '#16A34A' },
 ];
 
-const POND_TYPE_OPTIONS = ['บ่อดิน', 'บ่อปูน'];
+const POND_TYPE_OPTIONS = [
+  { value: 'EARTHEN', label: 'บ่อดิน' },
+  { value: 'CONCRETE', label: 'บ่อปูน' },
+];
+
+const getPondTypeLabel = (value?: string | null) => {
+  const found = POND_TYPE_OPTIONS.find((item) => item.value === value);
+  return found?.label ?? value ?? '-';
+};
 const FARM_TYPE_INITIAL_AGE: Record<FarmType, number> = {
   SMALL: 7,
   LARGE: 11,
@@ -643,7 +651,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               <span>อายุปลา: {lastEntryAgeSummary}</span>
               <span>เริ่มรอบ: {lastEntrySnapshot.cycleStartDate ?? '-'}</span>
               <span>อายุเริ่มต้น: {lastEntrySnapshot.initialAgeOffsetDays ?? 0} วัน</span>
-              <span>ประเภทบ่อ: {lastEntrySnapshot.pondType || '-'}</span>
+              <span>ประเภทบ่อ: {getPondTypeLabel(lastEntrySnapshot.pondType)}</span>
               <span>จำนวนบ่อ: {lastEntrySnapshot.pondCount || '-'}</span>
               <span>อาหาร: {lastEntrySnapshot.foodAmount || '-'} กก.</span>
             </div>
@@ -784,19 +792,19 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {POND_TYPE_OPTIONS.map((option) => {
-              const isActive = selectedPondType === option;
+              const isActive = selectedPondType === option.value;
               return (
                 <button
-                  key={option}
+                  key={option.value}
                   type="button"
-                  onClick={() => setSelectedPondType(option)}
+                  onClick={() => setSelectedPondType(option.value)}
                   className={`rounded-2xl border px-4 py-4 text-center text-base font-medium transition-all ${
                     isActive
                       ? 'border-[#093832] bg-[#093832] text-white'
                       : 'border-gray-200 bg-white text-gray-600 hover:border-[#093832]/40'
                   }`}
                 >
-                  {option}
+                  {option.label}
                 </button>
               );
             })}
