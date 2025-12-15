@@ -267,6 +267,10 @@ export default function NurseryLargePage() {
         <AgeAdvisoryCard
           group="LARGE"
           latestFishAgeLabel={dashboardData?.summary?.latestFishAgeLabel ?? null}
+          latestFishAgeDays={(() => {
+            const value = (dashboardData?.summary as { latestFishAgeDays?: unknown })?.latestFishAgeDays;
+            return typeof value === "number" ? value : null;
+          })()}
           loading={loading}
         />
 

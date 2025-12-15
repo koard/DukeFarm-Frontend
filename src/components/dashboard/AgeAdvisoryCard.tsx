@@ -67,12 +67,15 @@ const FARM_PROGRESS_CONFIG: Record<DashboardGroup, FarmProgressConfig> = {
 type AgeAdvisoryCardProps = {
   group: DashboardGroup;
   latestFishAgeLabel?: string | null;
+  latestFishAgeDays?: number | null;
   loading: boolean;
 };
 
-const AgeAdvisoryCard = ({ group, latestFishAgeLabel, loading }: AgeAdvisoryCardProps) => {
+const AgeAdvisoryCard = ({ group, latestFishAgeLabel, latestFishAgeDays, loading }: AgeAdvisoryCardProps) => {
   const config = FARM_PROGRESS_CONFIG[group];
-  const ageDays = extractAgeDays(latestFishAgeLabel);
+  const ageDays = typeof latestFishAgeDays === "number" && !Number.isNaN(latestFishAgeDays)
+    ? latestFishAgeDays
+    : extractAgeDays(latestFishAgeLabel);
   const stageSpan = Math.max(1, config.stage.max - config.stage.min);
   const progressRatio = typeof ageDays === "number"
     ? clamp((ageDays - config.stage.min) / stageSpan)
@@ -102,7 +105,7 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, loading }: AgeAdvisoryCard
                 <span className="text-base font-bold text-gray-500 ml-1">วัน</span>
               </p>
               <p className="text-sm text-gray-500 mt-1">
-                {latestFishAgeLabel ?? "ยังไม่มีข้อมูลการบันทึกรอบล่าสุด"}
+                {latestFishAgeLabel || (typeof ageDays === "number" ? `${ageDays} วัน` : "ยังไม่มีข้อมูลการบันทึกรอบล่าสุด")}
               </p>
             </div>
           </div>
