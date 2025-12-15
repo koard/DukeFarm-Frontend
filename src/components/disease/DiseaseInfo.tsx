@@ -174,12 +174,12 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
         {mode === 'form' && (
           <div className="space-y-5">
             <div className="space-y-2">
-              <p className="text-sm text-[#093832] font-semibold">ลักษณะปลา (กรณีมีอาการผิดปกติ)</p>
+              <p className="text-lg text-[#093832] font-semibold">ลักษณะปลา (กรณีมีอาการผิดปกติ)</p>
               <input
                 value={symptomInput}
                 onChange={(e) => setSymptomInput(e.target.value)}
                 placeholder="ระบุเพิ่มเติม"
-                className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-xl border border-gray-300 px-3 py-3 text-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
               <div className="flex flex-wrap gap-2">
                 {SYMPTOM_TAGS.map((tag) => {
