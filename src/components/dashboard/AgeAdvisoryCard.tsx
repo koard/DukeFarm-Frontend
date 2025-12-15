@@ -104,9 +104,6 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, latestFishAgeDays, loading
                 {typeof ageDays === "number" ? ageDays : "-"}
                 <span className="text-base font-bold text-gray-500 ml-1">วัน</span>
               </p>
-              <p className="text-sm text-gray-500 mt-1">
-                {latestFishAgeLabel || (typeof ageDays === "number" ? `${ageDays} วัน` : "ยังไม่มีข้อมูลการบันทึกรอบล่าสุด")}
-              </p>
             </div>
           </div>
 
