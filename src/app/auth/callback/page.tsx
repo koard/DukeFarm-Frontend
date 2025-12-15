@@ -44,9 +44,42 @@ function CallbackContent() {
         const userParam = searchParams.get("user");
         if (userParam) {
           try {
-            const fullUserData = JSON.parse(decodeURIComponent(userParam));
-            localStorage.setItem("user", JSON.stringify(fullUserData));
-            console.log("✓ Full user data saved:", fullUserData);
+            const incoming = JSON.parse(decodeURIComponent(userParam));
+
+            // ถ้า payload ใหม่ไม่มีฟิลด์ farmTypes/selectedFarmTypes ให้ดึงจากค่าเก่าไว้ป้องกันหายหลังล็อกอินใหม่
+            const existingRaw = localStorage.getItem("user");
+            if (existingRaw) {
+              try {
+                const existing = JSON.parse(existingRaw);
+                const incomingProfile = incoming?.farmerProfile ?? {};
+                const existingProfile = existing?.farmerProfile ?? {};
+
+                const hasIncomingFarmTypes = Array.isArray(incomingProfile.farmTypes) && incomingProfile.farmTypes.length > 0;
+                const hasIncomingSelected = Array.isArray(incomingProfile.selectedFarmTypes) && incomingProfile.selectedFarmTypes.length > 0;
+
+                const mergedProfile = {
+                  ...existingProfile,
+                  ...incomingProfile,
+                  farmTypes: hasIncomingFarmTypes ? incomingProfile.farmTypes : existingProfile.farmTypes,
+                  selectedFarmTypes: hasIncomingSelected ? incomingProfile.selectedFarmTypes : existingProfile.selectedFarmTypes,
+                };
+
+                const mergedUser = {
+                  ...existing,
+                  ...incoming,
+                  farmerProfile: mergedProfile,
+                };
+
+                localStorage.setItem("user", JSON.stringify(mergedUser));
+                console.log("✓ Full user data merged and saved:", mergedUser);
+              } catch (mergeErr) {
+                console.warn("Merge user data failed, fallback to incoming", mergeErr);
+                localStorage.setItem("user", JSON.stringify(incoming));
+              }
+            } else {
+              localStorage.setItem("user", JSON.stringify(incoming));
+              console.log("✓ Full user data saved:", incoming);
+            }
           } catch (e) {
             console.error("✗ Error parsing user data:", e);
           }

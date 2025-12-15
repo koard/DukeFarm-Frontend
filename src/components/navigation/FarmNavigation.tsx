@@ -50,12 +50,15 @@ export default function FarmNavigation() {
       }
     }
 
-    if (allowed.length === 0) {
+    // ถ้า login กลับมาแล้วดึงได้ฟาร์มไทป์ไม่ครบ (เช่นเหลือ 1 จาก primary อย่างเดียว)
+    // ให้ fallback เป็นเมนูครบทั้ง 3 เพื่อไม่ล็อคผู้ใช้ไว้ที่ชนิดเดียว
+    if (allowed.length <= 1) {
       setDisplayItems(NAV_ITEMS);
-    } else {
-      const filtered = NAV_ITEMS.filter((item) => allowed.includes(item.type));
-      setDisplayItems(filtered.length > 0 ? filtered : NAV_ITEMS);
+      return;
     }
+
+    const filtered = NAV_ITEMS.filter((item) => allowed.includes(item.type));
+    setDisplayItems(filtered.length > 0 ? filtered : NAV_ITEMS);
   }, []);
 
   return (
