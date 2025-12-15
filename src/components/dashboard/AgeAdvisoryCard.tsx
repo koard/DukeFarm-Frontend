@@ -99,10 +99,10 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, latestFishAgeDays, loading
         <>
           <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-500">อายุเฉลี่ยปลาปัจจุบัน</p>
+              <p className="text-sm text-gray-500">อายุปลาปัจจุบัน</p>
               <p className="text-3xl font-extrabold text-[#7C2D12]">
                 {typeof ageDays === "number" ? ageDays : "-"}
-                <span className="text-base font-bold text-gray-500 ml-1">วัน</span>
+                <span className="text-base font-bold text-gray-500 ml-1"> วัน</span>
               </p>
             </div>
           </div>
