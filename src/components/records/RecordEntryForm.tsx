@@ -28,11 +28,6 @@ const POND_TYPE_OPTIONS = [
   { value: 'EARTHEN', label: 'บ่อดิน' },
   { value: 'CONCRETE', label: 'บ่อปูน' },
 ];
-
-const getPondTypeLabel = (value?: string | null) => {
-  const found = POND_TYPE_OPTIONS.find((item) => item.value === value);
-  return found?.label ?? value ?? '-';
-};
 const FARM_TYPE_INITIAL_AGE: Record<FarmType, number> = {
   SMALL: 7,
   LARGE: 11,
@@ -309,26 +304,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
   const ageFromCycleStart = cycleStartDate ? getDaysDifference(cycleStartDate, recordDate) : 0;
   const fishAgeNumber = initialAgeOffsetNumber + ageFromCycleStart;
   const defaultInitialAge = getDefaultInitialAge(farmType);
-  const lastEntryAgeSummary = useMemo(() => {
-    if (!lastEntrySnapshot) {
-      return '-';
-    }
-
-    // Prefer stored age days when available; otherwise derive from cycle start + initial offset.
-    const days = getSnapshotAgeDays(lastEntrySnapshot);
-    if (days !== null && !Number.isNaN(days)) {
-      return formatAgeSummary(days);
-    }
-
-    if (lastEntrySnapshot.cycleStartDate) {
-      const derived = getDaysDifference(lastEntrySnapshot.cycleStartDate, lastEntrySnapshot.recordDate);
-      const offset = Math.max(0, lastEntrySnapshot.initialAgeOffsetDays ?? 0);
-      return formatAgeSummary(derived + offset);
-    }
-
-    return '-';
-  }, [lastEntrySnapshot]);
-
   const handleNumericInput = (value: string, setter: (val: string) => void) => {
     if (/^\d*\.?\d*$/.test(value)) {
       setter(value);
@@ -358,24 +333,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
     allowDecimal = false,
   ) => {
     setter((prev) => adjustNumericByStep(prev, delta, allowDecimal));
-  };
-
-  const handleApplyLastEntry = () => {
-    if (!lastEntrySnapshot) return;
-    if (lastEntrySnapshot.cycleStartDate) {
-      setCycleStartDate(lastEntrySnapshot.cycleStartDate);
-    } else {
-      const restoredAge = getSnapshotAgeDays(lastEntrySnapshot);
-      if (restoredAge !== null && !Number.isNaN(restoredAge)) {
-        setCycleStartDate(deriveCycleStartDate(lastEntrySnapshot.recordDate, restoredAge));
-      }
-    }
-    setInitialAgeOffsetDays((lastEntrySnapshot.initialAgeOffsetDays ?? 0).toString());
-    setSelectedPondType(lastEntrySnapshot.pondType);
-    setPondCount(lastEntrySnapshot.pondCount);
-    setFishCount(lastEntrySnapshot.fishCount);
-    setFoodAmount(lastEntrySnapshot.foodAmount);
-    setSubmitMessage({ type: 'success', text: 'เติมข้อมูลครั้งล่าสุดให้แล้ว ปรับแก้ได้ตามต้องการ' });
   };
 
   const isCycleStartValid = Boolean(cycleStartDate && cycleStartDate <= recordDate);
@@ -638,29 +595,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
            >
              {submitMessage.text}
            </div>
-        )}
-
-        {lastEntrySnapshot && (
-          <div className="rounded-2xl bg-[#FFF4E5] border border-[#F4C58C] px-4 py-4 flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-semibold text-[#8C4A00]">ข้อมูลที่บันทึกล่าสุด</p>
-              <button
-                type="button"
-                onClick={handleApplyLastEntry}
-                className="text-xs font-bold text-[#8C4A00] underline"
-              >
-                เติมให้เลย
-              </button>
-            </div>
-            <div className="text-xs text-gray-700 grid grid-cols-2 gap-y-1">
-              <span>อายุปลา: {lastEntryAgeSummary}</span>
-              <span>เริ่มรอบ: {lastEntrySnapshot.cycleStartDate ?? '-'}</span>
-              <span>อายุเริ่มต้น: {lastEntrySnapshot.initialAgeOffsetDays ?? 0} วัน</span>
-              <span>ประเภทบ่อ: {getPondTypeLabel(lastEntrySnapshot.pondType)}</span>
-              <span>จำนวนบ่อ: {lastEntrySnapshot.pondCount || '-'}</span>
-              <span>อาหาร: {lastEntrySnapshot.foodAmount || '-'} กก.</span>
-            </div>
-          </div>
         )}
 
         <div className="grid grid-cols-2 gap-4">
