@@ -109,27 +109,29 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
         fetchFeedFormulas();
     }, [farmType]);
 
-  const handleViewData = () => {
-      if (!selectedFormula) return;
-      
-      const recommendations = selectedFormula.recommendations 
-        ? selectedFormula.recommendations.split('\n').filter((line: string) => line.trim())
-        : [];
+    const handleViewData = (formula?: FeedFormula) => {
+        const target = formula ?? selectedFormula;
+        if (!target) return;
 
-      setFeedingInfo({
-        name: selectedFormula.name,
-        targetStage: selectedFormula.targetStage,
-        description: selectedFormula.description,
-        feedCharacteristics: selectedFormula.description 
-          ? selectedFormula.description.split('\n').filter((line: string) => line.trim())
-          : [],
-        advice: recommendations,
-        weightRange: "N/A"
-      });
+        const recommendations = target.recommendations
+            ? target.recommendations.split('\n').filter((line: string) => line.trim())
+            : [];
 
-      setShowResult(true);
-      setIsDropdownOpen(false);
-  };
+        setSelectedFormula(target);
+        setFeedingInfo({
+            name: target.name,
+            targetStage: target.targetStage,
+            description: target.description,
+            feedCharacteristics: target.description
+                ? target.description.split('\n').filter((line: string) => line.trim())
+                : [],
+            advice: recommendations,
+            weightRange: "N/A"
+        });
+
+        setShowResult(true);
+        setIsDropdownOpen(false);
+    };
   
   const getFeedingRecommendationText = () => {
     if (loading) return "กำลังโหลด...";
@@ -222,11 +224,7 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                         feedFormulas.map((formula) => (
                             <div 
                                 key={formula.id}
-                                onClick={() => {
-                                    setSelectedFormula(formula);
-                                    setIsDropdownOpen(false);
-                                    setShowResult(false);
-                                }}
+                                onClick={() => handleViewData(formula)}
                                 className="px-4 py-3 text-lg text-black hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-none"
                             >
                                 {formula.name}
@@ -238,19 +236,6 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                 </div>
             )}
         </div>
-
-        {/* Button */}
-        <button
-            onClick={handleViewData}
-            disabled={!selectedFormula}
-            className={`w-full py-4 rounded-xl text-xl font-bold text-white transition-all duration-200 shadow-md mb-8 ${
-                selectedFormula 
-                ? "bg-[#EF6E11] hover:bg-[#d65d0a] active:scale-95" 
-                : "bg-[#A0A0A0] cursor-not-allowed" 
-            }`}
-        >
-            ดูข้อมูลการให้อาหาร
-        </button>
 
         {showResult && (
             <div className="animate-in fade-in slide-in-from-top-4 duration-500 w-full">
