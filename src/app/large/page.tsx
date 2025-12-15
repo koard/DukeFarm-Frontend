@@ -157,7 +157,8 @@ export default function NurseryLargePage() {
   const survivalRateRaw = hasDashboardData
     ? dashboardData?.summary?.survivalRatePct
     : null;
-  const hasSurvival = typeof survivalRateRaw === "number" && !Number.isNaN(survivalRateRaw);
+  const hasSurvivalData = hasDashboardData && survivalSeries.length > 0;
+  const hasSurvival = hasSurvivalData && typeof survivalRateRaw === "number" && !Number.isNaN(survivalRateRaw);
   const survivalRate = hasSurvival ? survivalRateRaw! : null;
 
 
@@ -374,16 +375,11 @@ export default function NurseryLargePage() {
 
                 <div className="flex flex-col items-center gap-1 mt-1">
                   {hasSurvival ? (
-                    <>
-                      <span className="text-3xl font-bold text-green-700">
-                        {formatSurvivalPct(survivalRate)}
-                      </span>
-                    </>
+                    <span className="text-3xl font-bold text-green-700">
+                      {formatSurvivalPct(survivalRate)}
+                    </span>
                   ) : (
-                    <>
-                      <span className="text-3xl font-bold text-black">-</span>
-                      <span className="text-[#FF2424] text-xs font-bold">ไม่มีข้อมูล</span>
-                    </>
+                    <span className="text-3xl font-bold text-black">-</span>
                   )}
                 </div>
             </div>
