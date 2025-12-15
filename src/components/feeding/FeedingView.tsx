@@ -179,6 +179,25 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                 <ChevronDown className={`w-6 h-6 text-gray-400 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`} />
             </button>
 
+            {isDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-20 max-h-64 overflow-y-auto">
+                    {feedFormulas.length > 0 ? (
+                        feedFormulas.map((formula) => (
+                            <div 
+                                key={formula.id}
+                                onClick={() => handleViewData(formula)}
+                                className="px-4 py-3 text-lg text-black hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-none"
+                            >
+                                {formula.name}
+                            </div>
+                        ))
+                    ) : (
+                        <div className="px-4 py-3 text-gray-400 text-center">ไม่พบข้อมูลสูตรอาหาร</div>
+                    )}
+                </div>
+            )}
+        </div>
+
         {/* สภาพอากาศปัจจุบัน */}
         {!showResult && (
            <div className="mb-6">
@@ -218,25 +237,6 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                 )}
             </div>
         )}
-
-            {isDropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-20 max-h-64 overflow-y-auto">
-                    {feedFormulas.length > 0 ? (
-                        feedFormulas.map((formula) => (
-                            <div 
-                                key={formula.id}
-                                onClick={() => handleViewData(formula)}
-                                className="px-4 py-3 text-lg text-black hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-none"
-                            >
-                                {formula.name}
-                            </div>
-                        ))
-                    ) : (
-                        <div className="px-4 py-3 text-gray-400 text-center">ไม่พบข้อมูลสูตรอาหาร</div>
-                    )}
-                </div>
-            )}
-        </div>
 
         {showResult && (
             <div className="animate-in fade-in slide-in-from-top-4 duration-500 w-full">
