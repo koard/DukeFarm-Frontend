@@ -86,34 +86,57 @@ const DISEASE_DATA: DiseaseInfo[] = [
 ];
 
 interface DiseaseInfoProps {
-  backHref: string; 
+  backHref: string;
 }
+
+type ViewMode = 'form' | 'list' | 'detail';
+
+const SYMPTOM_TAGS = ['หัวโต', 'ตัวลีบ', 'ครีบเหลือง', 'ตาลึก', 'ตกใจง่าย'];
 
 export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
   const router = useRouter();
   const lineUser = useLineUser();
+  const [mode, setMode] = useState<ViewMode>('form');
   const [selectedDisease, setSelectedDisease] = useState<DiseaseInfo | null>(null);
+  const [symptomInput, setSymptomInput] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) =>
+      prev.includes(tag) ? prev.filter((item) => item !== tag) : [...prev, tag],
+    );
+  };
 
   const handleBack = () => {
-    if (selectedDisease) {
+    if (mode === 'detail') {
       setSelectedDisease(null);
-    } else {
-      router.push(backHref);
+      setMode('list');
+      return;
     }
+    if (mode === 'list') {
+      setMode('form');
+      return;
+    }
+    router.push(backHref);
+  };
+
+  const openDisease = (disease: DiseaseInfo) => {
+    setSelectedDisease(disease);
+    setMode('detail');
   };
 
   return (
     <div className="min-h-screen bg-white pb-10 relative">
       <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <button 
-            onClick={handleBack} 
+          <button
+            onClick={handleBack}
             className="p-1 rounded-full transition-colors hover:bg-white/10"
           >
             <ChevronLeft className="w-8 h-8" />
           </button>
           <h1 className="text-2xl font-bold">
-            {selectedDisease ? selectedDisease.name : 'ข้อมูลการรักษาโรค'}
+            {mode === 'detail' && selectedDisease ? selectedDisease.name : 'ข้อมูลการรักษาโรค'}
           </h1>
         </div>
         <div className="flex items-center gap-3">
@@ -133,14 +156,62 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
         </div>
       </div>
 
-      <div className="px-6 mt-8 w-full max-w-md mx-auto flex flex-col min-h-[calc(100vh-180px)] justify-between">
-        
-        {!selectedDisease && (
+      <div className="px-6 mt-8 w-full max-w-md mx-auto flex flex-col min-h-[calc(100vh-180px)] justify-between gap-6">
+        {mode === 'form' && (
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <p className="text-sm text-[#093832] font-semibold">ลักษณะปลา (กรณีมีอาการผิดปกติ)</p>
+              <input
+                value={symptomInput}
+                onChange={(e) => setSymptomInput(e.target.value)}
+                placeholder="ระบุเพิ่มเติม"
+                className="w-full rounded-xl border border-gray-300 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+              <div className="flex flex-wrap gap-2">
+                {SYMPTOM_TAGS.map((tag) => {
+                  const active = selectedTags.includes(tag);
+                  return (
+                    <button
+                      type="button"
+                      key={tag}
+                      onClick={() => toggleTag(tag)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                        active
+                          ? 'bg-[#093832] text-white border-[#093832]'
+                          : 'bg-white text-[#093832] border-gray-300'
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                type="button"
+                className="w-full py-3.5 rounded-xl text-base font-bold text-white bg-[#0E9A67] shadow-sm hover:brightness-105"
+              >
+                ถ่ายรูป / อัปโหลดรูป
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('list')}
+                className="w-full py-3.5 rounded-xl text-base font-bold text-[#0E9A67] border border-[#0E9A67] bg-white hover:bg-emerald-50"
+              >
+                ดูข้อมูลโรคอื่นๆ
+              </button>
+            </div>
+          </div>
+        )}
+
+        {mode === 'list' && (
           <div className="flex flex-col gap-3">
             {DISEASE_DATA.map((disease, index) => (
               <button
                 key={index}
-                onClick={() => setSelectedDisease(disease)}
+                onClick={() => openDisease(disease)}
                 className="bg-[#DDF8C2] p-4 rounded-2xl text-left text-[#093832] font-bold text-lg shadow-sm hover:bg-[#cceeaf] transition-colors"
               >
                 {disease.name}
@@ -149,7 +220,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
           </div>
         )}
 
-        {selectedDisease && (
+        {mode === 'detail' && selectedDisease && (
           <div className="space-y-6">
             <div className="bg-[#FFF6DB] p-5 rounded-2xl shadow-sm">
               <h3 className="font-bold text-black mb-3 text-lg">ลักษณะที่พบ</h3>
@@ -167,16 +238,15 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
           </div>
         )}
 
-        <div className="mt-8">
-            <button
-              type="button"
-              onClick={() => router.push(backHref)} 
-              className="w-full py-3.5 rounded-xl text-xl font-bold text-[#EF6E11] border-2 border-[#EF6E11] bg-white hover:bg-orange-50 transition-colors"
-            >
-              ปิด
-            </button>
+        <div className="mt-auto">
+          <button
+            type="button"
+            onClick={() => router.push(backHref)}
+            className="w-full py-3.5 rounded-xl text-xl font-bold text-[#EF6E11] border-2 border-[#EF6E11] bg-white hover:bg-orange-50 transition-colors"
+          >
+            ปิด
+          </button>
         </div>
-
       </div>
     </div>
   );
