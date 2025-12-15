@@ -674,7 +674,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         <div className="space-y-3">
           <label className="block text-lg font-bold text-black">ตั้งค่ารอบการเลี้ยง</label>
           {!lastEntrySnapshot ? (
-            <div className="rounded-2xl border border-[#6CCF9C]/40 bg-white/80 px-4 py-4 space-y-4 shadow-sm">
+            <div className="rounded-3xl border border-[#6CCF9C]/40 bg-white/90 px-4 py-5 space-y-5 shadow-sm overflow-hidden">
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-md font-semibold text-[#093832]">ปลาอายุกี่วันตอนรับมา?</span>
@@ -724,24 +724,24 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                     <span className="text-xs text-red-600">วันที่เริ่มรอบต้องไม่เกินวันที่บันทึก</span>
                   )}
                 </div>
-                <div className="rounded-xl bg-[#E4F5E7] px-4 py-3 text-sm text-[#0F3B35] flex flex-col gap-1">
-                  <span>ระบบคำนวณอายุอัตโนมัติ</span>
-                  <strong className="text-2xl text-[#093832]">{fishAgeNumber} วัน</strong>
+                <div className="rounded-2xl bg-[#E4F5E7] px-4 py-3 text-sm text-[#0F3B35] flex flex-col gap-1">
+                  <span className="text-[#0F3B35]/80">ระบบคำนวณอายุอัตโนมัติ</span>
+                  <strong className="text-2xl text-[#093832] leading-tight">{fishAgeNumber} วัน</strong>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="rounded-2xl border border-[#6CCF9C]/40 bg-gradient-to-br from-[#E4F5E7] to-white px-4 py-4 space-y-3 shadow-sm">
+            <div className="rounded-3xl border border-[#6CCF9C]/40 bg-gradient-to-br from-[#E4F5E7] to-white px-4 py-5 space-y-4 shadow-sm overflow-hidden">
               <div className="flex items-center justify-between">
                 <span className="text-md font-semibold text-[#093832]">อายุปลาปัจจุบัน</span>
                 <span className="text-xs text-gray-500">ปรับจากรอบก่อนอัตโนมัติ</span>
               </div>
               <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-white border border-gray-200 px-4 py-3 flex-1 flex items-center justify-between">
-                  <strong className="text-2xl text-[#093832]">{fishAgeNumber} วัน</strong>
+                <div className="rounded-2xl bg-white border border-gray-200 px-4 py-3 flex-1 flex items-center justify-between">
+                  <strong className="text-2xl text-[#093832] leading-tight">{fishAgeNumber} วัน</strong>
                 </div>
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 leading-relaxed">
                 หากต้องการแก้ไขอายุเริ่มต้นหรือวันที่เริ่มรอบใหม่ ให้ล้างข้อมูลรอบก่อนและเริ่มบันทึกใหม่
               </p>
             </div>
