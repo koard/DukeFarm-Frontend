@@ -375,7 +375,7 @@ export default function NurserySmallPage() {
                 <div className="flex flex-col items-center gap-1 mt-1">
                   {hasSurvival ? (
                     <>
-                      <span className="text-3xl font-bold text-black">
+                      <span className="text-3xl font-bold text-green-700">
                         {formatSurvivalPct(survivalRate)}
                       </span>
                     </>

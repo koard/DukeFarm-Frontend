@@ -375,11 +375,8 @@ export default function NurseryLargePage() {
                 <div className="flex flex-col items-center gap-1 mt-1">
                   {hasSurvival ? (
                     <>
-                      <span className="text-3xl font-bold text-black">
+                      <span className="text-3xl font-bold text-green-700">
                         {formatSurvivalPct(survivalRate)}
-                      </span>
-                      <span className="text-[#FF2424] text-xs font-bold">
-                        {survivalRate! < 100 ? "ลดลงจากครั้งแรก" : "จากค่าตั้งต้น 100%"}
                       </span>
                     </>
                   ) : (
