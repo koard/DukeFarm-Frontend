@@ -145,7 +145,7 @@ export default function NurseryLargePage() {
     ? dashboardData?.summary?.survivalSeries ?? []
     : [];
 
-  const graphData: GraphDataPoint[] = (survivalSeries.length ? survivalSeries : [{ month: "เริ่มต้น", value: 100 }]).map((point) => ({
+  const graphData: GraphDataPoint[] = (survivalSeries.length ? survivalSeries : []).map((point) => ({
     ...point,
     value: typeof point.value === "number" && Number.isFinite(point.value)
       ? Math.max(0, Math.min(100, point.value))
@@ -154,9 +154,11 @@ export default function NurseryLargePage() {
 
   const forecastData: ForecastData[] = hasDashboardData ? dashboardData?.feedingPlan || [] : [];
 
-  const survivalRate = hasDashboardData
-    ? dashboardData?.summary?.survivalRatePct ?? 100
-    : 100;
+  const survivalRateRaw = hasDashboardData
+    ? dashboardData?.summary?.survivalRatePct
+    : null;
+  const hasSurvival = typeof survivalRateRaw === "number" && !Number.isNaN(survivalRateRaw);
+  const survivalRate = hasSurvival ? survivalRateRaw! : null;
 
 
   const MAX_GRAPH_VALUE = 100; // percent
@@ -371,13 +373,21 @@ export default function NurseryLargePage() {
                 </div>
 
                 <div className="flex flex-col items-center gap-1 mt-1">
-
-                  <span className="text-3xl font-bold text-black">
-                    {formatSurvivalPct(survivalRate)}
-                  </span>
-                   <span className="text-[#FF2424] text-xs font-bold">
-                    {survivalRate < 100 ? 'ลดลงจากครั้งแรก' : 'จากค่าตั้งต้น 100%'}
-                  </span>
+                  {hasSurvival ? (
+                    <>
+                      <span className="text-3xl font-bold text-black">
+                        {formatSurvivalPct(survivalRate)}
+                      </span>
+                      <span className="text-[#FF2424] text-xs font-bold">
+                        {survivalRate! < 100 ? "ลดลงจากครั้งแรก" : "จากค่าตั้งต้น 100%"}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-3xl font-bold text-black">-</span>
+                      <span className="text-[#FF2424] text-xs font-bold">ไม่มีข้อมูล</span>
+                    </>
+                  )}
                 </div>
             </div>
         </div>
