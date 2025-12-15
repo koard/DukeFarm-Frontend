@@ -608,7 +608,6 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
             {/* Symptom Input */}
             <div className="space-y-3">
               <label className="flex items-center gap-2 text-base text-[#093832] font-semibold">
-                <span className="text-xl">📝</span>
                 อาการที่พบ
               </label>
               <textarea
@@ -623,7 +622,6 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
             {/* Symptom Tags */}
             <div className="space-y-3">
               <label className="flex items-center gap-2 text-base text-[#093832] font-semibold">
-                <span className="text-xl">🏷️</span>
                 เลือกอาการด่วน
               </label>
               <div className="flex flex-wrap gap-2">
@@ -651,7 +649,6 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
             {/* Image Upload */}
             <div className="space-y-3">
               <label className="flex items-center gap-2 text-base text-[#093832] font-semibold">
-                <span className="text-xl">📸</span>
                 รูปภาพประกอบ
               </label>
               <div className="w-full">
@@ -660,7 +657,6 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
                   className="block w-full text-center py-4 rounded-xl text-base font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 shadow-md hover:shadow-lg hover:from-emerald-600 hover:to-teal-600 cursor-pointer transition-all"
                 >
                   <div className="flex items-center justify-center gap-2">
-                    <span className="text-2xl">📷</span>
                     <span>ถ่ายรูป / อัปโหลดรูปปลา</span>
                   </div>
                 </label>
@@ -697,7 +693,6 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
                 className="w-full py-4 rounded-xl text-base font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-500 shadow-md hover:shadow-lg hover:from-blue-600 hover:to-indigo-600 transition-all"
               >
                 <div className="flex items-center justify-center gap-2">
-                  <span className="text-xl">📚</span>
                   <span>ดูข้อมูลโรคทั้งหมด</span>
                 </div>
               </button>
