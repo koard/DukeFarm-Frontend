@@ -731,7 +731,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               </div>
               <div className="flex items-center gap-3">
                 <div className="rounded-xl bg-white border border-gray-200 px-4 py-3 flex-1 flex items-center justify-between">
-                  <span className="text-sm text-gray-600">อายุปลา</span>
                   <strong className="text-2xl text-[#093832]">{fishAgeNumber} วัน</strong>
                 </div>
               </div>
