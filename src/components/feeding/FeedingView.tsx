@@ -163,6 +163,22 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
 
       <div className="px-6 mt-4 w-full max-w-5xl mx-auto">
 
+        
+        <label className="block text-lg font-bold text-black mb-2 mt-4">
+            เลือกสูตรอาหารที่ต้องการดูข้อมูล
+        </label>
+
+        <div className="relative mb-6">
+            <button 
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 flex items-center justify-between text-lg text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#093832]"
+            >
+                <span className={selectedFormula ? "text-black" : "text-gray-400"}>
+                    {selectedFormula?.name || "เลือกข้อมูลช่วงอายุ"}
+                </span>
+                <ChevronDown className={`w-6 h-6 text-gray-400 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`} />
+            </button>
+
         {/* สภาพอากาศปัจจุบัน */}
         {!showResult && (
            <div className="mb-6">
@@ -202,21 +218,6 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                 )}
             </div>
         )}
-        
-        <label className="block text-lg font-bold text-black mb-2 mt-4">
-            เลือกสูตรอาหารที่ต้องการดูข้อมูล
-        </label>
-
-        <div className="relative mb-6">
-            <button 
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 flex items-center justify-between text-lg text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#093832]"
-            >
-                <span className={selectedFormula ? "text-black" : "text-gray-400"}>
-                    {selectedFormula?.name || "เลือกข้อมูลช่วงอายุ"}
-                </span>
-                <ChevronDown className={`w-6 h-6 text-gray-400 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`} />
-            </button>
 
             {isDropdownOpen && (
                 <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-20 max-h-64 overflow-y-auto">
