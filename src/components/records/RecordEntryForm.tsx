@@ -387,36 +387,48 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
       }
 
       const normalizedAge = clampAgeDays(fishAgeNumber);
-      const ageSummary = formatAgeSummary(normalizedAge);
+      const fishAgeLabel = formatAgeSummary(normalizedAge); // ส่ง label ที่ backend ต้องการ
+      const recordedAtIso = new Date(`${recordDate}T${recordTime}`).toISOString();
+
+      const payload = {
+        farmType,
+        recordedAt: recordedAtIso,
+        fishAgeLabel,
+        pondType: selectedPondType,
+        pondCount: Number(pondCount),
+        fishCountText: fishCount || undefined,
+        weather: weatherSnapshot
+          ? {
+              temperatureC: weatherSnapshot.temperatureC,
+              rainMm: weatherSnapshot.rainMm,
+              humidityPct: weatherSnapshot.humidityPct,
+            }
+          : undefined,
+        // บันทึกข้อมูลประกอบเพิ่มเติมเผื่อใช้งานต่อ
+        metadata: {
+          cycleStartDate,
+          initialAgeOffsetDays: initialAgeOffsetNumber,
+          foodAmount: foodAmount ? Number(foodAmount) : undefined,
+        },
+      };
 
       const response = await fetch(`${API_BASE_URL}/records`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-            farmType,
-          cycleStartDate,
-            recordDate,
-            recordTime,
-            recordedAt: new Date(`${recordDate}T${recordTime}`).toISOString(), 
-            age: ageSummary,
-          initialAgeOffsetDays: initialAgeOffsetNumber,
-            pondType: selectedPondType,
-            pondCount: Number(pondCount),
-            fishCount: Number(fishCount),
-            foodAmount: Number(foodAmount),
-            diseases: [],
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         if (response.status === 401) {
-             router.push('/login');
-             return;
+          router.push('/login');
+          return;
         }
-        throw new Error('บันทึกข้อมูลไม่สำเร็จ');
+        const errData = await response.json().catch(() => null);
+        const message = errData?.message || 'บันทึกข้อมูลไม่สำเร็จ';
+        throw new Error(message);
       }
 
       const snapshot: LastEntrySnapshot = {
@@ -444,7 +456,8 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
     } catch (error) {
       console.error(error);
-      setSubmitMessage({ type: 'error', text: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' });
+      const message = error instanceof Error ? error.message : 'เกิดข้อผิดพลาดในการบันทึกข้อมูล';
+      setSubmitMessage({ type: 'error', text: message });
     } finally {
       setSubmitting(false);
     }
