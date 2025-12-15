@@ -10,7 +10,7 @@ import { useLineUser } from '@/hooks/useLineUser';
 type FarmType = 'SMALL' | 'LARGE' | 'MARKET';
 
 const API_BASE_URL = 'https://dukefarm-backend.onrender.com/api';
-const LAST_ENTRY_STORAGE_KEY = 'recordEntry:lastSnapshot';
+const buildLastEntryStorageKey = (farmType: FarmType) => `recordEntry:lastSnapshot:${farmType}`;
 type AgePhase = {
   label: string;
   min: number;
@@ -142,6 +142,7 @@ export type FormStateResponse = {
 };
 
 type LastEntrySnapshot = {
+  farmType: FarmType;
   recordDate: string;
   recordTime: string;
   cycleStartDate: string;
@@ -213,11 +214,16 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
     };
   }, []);
 
+  const storageKey = useMemo(() => buildLastEntryStorageKey(farmType), [farmType]);
+
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(LAST_ENTRY_STORAGE_KEY);
+      const stored = localStorage.getItem(storageKey);
       if (stored) {
         const snapshot: LastEntrySnapshot = JSON.parse(stored);
+        if (snapshot.farmType !== farmType) {
+          return;
+        }
         setLastEntrySnapshot(snapshot);
         if (snapshot.cycleStartDate) {
           setCycleStartDate(snapshot.cycleStartDate);
@@ -227,14 +233,14 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             setCycleStartDate(deriveCycleStartDate(snapshot.recordDate, resolvedAgeDays));
           }
         }
-          if (typeof snapshot.initialAgeOffsetDays === 'number' && !Number.isNaN(snapshot.initialAgeOffsetDays)) {
-            setInitialAgeOffsetDays(Math.max(0, snapshot.initialAgeOffsetDays).toString());
-          }
+        if (typeof snapshot.initialAgeOffsetDays === 'number' && !Number.isNaN(snapshot.initialAgeOffsetDays)) {
+          setInitialAgeOffsetDays(Math.max(0, snapshot.initialAgeOffsetDays).toString());
+        }
       }
     } catch (error) {
       console.error('Failed to parse last entry snapshot', error);
     }
-  }, []);
+  }, [farmType, storageKey]);
 
   useEffect(() => {
     if (lastEntrySnapshot) {
@@ -402,6 +408,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
       }
 
       const snapshot: LastEntrySnapshot = {
+        farmType,
         recordDate,
         recordTime,
         cycleStartDate,
@@ -412,7 +419,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         fishCount,
         foodAmount,
       };
-      localStorage.setItem(LAST_ENTRY_STORAGE_KEY, JSON.stringify(snapshot));
+      localStorage.setItem(storageKey, JSON.stringify(snapshot));
       setLastEntrySnapshot(snapshot);
 
       setShowSuccessModal(true);
