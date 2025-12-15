@@ -123,16 +123,16 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, loading }: AgeAdvisoryCard
             </div>
           </div>
 
-          <div className="mt-4 rounded-2xl bg-white/70 border border-white/60 p-4 text-sm text-[#7C2D12]">
-            <p className="text-xs uppercase tracking-[0.2em] text-[#B45309] mb-1">ขั้นถัดไป</p>
-            <p className="text-base font-semibold">
-              {milestoneDelta === null
-                ? "รอข้อมูลรอบล่าสุด"
-                : milestoneDelta > 0
+          {milestoneDelta !== null && (
+            <div className="mt-4 rounded-2xl bg-white/70 border border-white/60 p-4 text-sm text-[#7C2D12]">
+              <p className="text-xs uppercase tracking-[0.2em] text-[#B45309] mb-1">ขั้นถัดไป</p>
+              <p className="text-base font-semibold">
+                {milestoneDelta > 0
                   ? `อีก ${milestoneDelta} วัน${config.milestoneAction}`
                   : config.readyText}
-            </p>
-          </div>
+              </p>
+            </div>
+          )}
         </>
       )}
     </section>
