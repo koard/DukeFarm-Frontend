@@ -712,7 +712,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               <div className="h-px bg-[#6CCF9C]/30" />
               <div className="space-y-4 pt-1">
                 <span className="text-md font-semibold text-[#093832]">วันที่เริ่มปล่อยปลาลงบ่อ</span>
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-3">
                   <input
                     type="date"
                     value={cycleStartDate}
