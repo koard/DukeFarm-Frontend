@@ -666,62 +666,80 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
         <div className="space-y-3">
           <label className="block text-lg font-bold text-black">ตั้งค่ารอบการเลี้ยง</label>
-          <div className="rounded-2xl border border-[#6CCF9C]/40 bg-white/80 px-4 py-4 space-y-4 shadow-sm">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-md font-semibold text-[#093832]">ปลาอายุกี่วันตอนรับมา?</span>
+          {!lastEntrySnapshot ? (
+            <div className="rounded-2xl border border-[#6CCF9C]/40 bg-white/80 px-4 py-4 space-y-4 shadow-sm">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-md font-semibold text-[#093832]">ปลาอายุกี่วันตอนรับมา?</span>
+                </div>
+                <div className="flex items-center bg-white border border-gray-200 rounded-2xl overflow-hidden h-14">
+                  <button
+                    type="button"
+                    aria-label="ลดอายุเริ่มต้น"
+                    onClick={() => handleStepChange(setInitialAgeOffsetDays, -1)}
+                    className="shrink-0 w-14 h-14 flex items-center justify-center text-lg text-[#093832] hover:bg-gray-50"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="h-10 w-px bg-gray-200" aria-hidden="true" />
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={initialAgeOffsetDays}
+                    onChange={(event) => handleIntegerInput(event.target.value, setInitialAgeOffsetDays)}
+                    placeholder={defaultInitialAge.toString()}
+                    className="flex-1 h-14 text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none leading-none"
+                  />
+                  <span className="h-10 w-px bg-gray-200" aria-hidden="true" />
+                  <button
+                    type="button"
+                    aria-label="เพิ่มอายุเริ่มต้น"
+                    onClick={() => handleStepChange(setInitialAgeOffsetDays, 1)}
+                    className="shrink-0 w-14 h-14 flex items-center justify-center text-lg text-[#093832] hover:bg-gray-50"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-              <div className="flex items-center bg-white border border-gray-200 rounded-2xl overflow-hidden h-14">
-                <button
-                  type="button"
-                  aria-label="ลดอายุเริ่มต้น"
-                  onClick={() => handleStepChange(setInitialAgeOffsetDays, -1)}
-                  className="shrink-0 w-14 h-full flex items-center justify-center text-lg text-[#093832] hover:bg-gray-50"
-                >
-                  <Minus className="w-4 h-4" />
-                </button>
-                <span className="h-10 w-px bg-gray-200" aria-hidden="true" />
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  value={initialAgeOffsetDays}
-                  onChange={(event) => handleIntegerInput(event.target.value, setInitialAgeOffsetDays)}
-                  placeholder={defaultInitialAge.toString()}
-                  className="flex-1 h-full text-center text-2xl font-bold text-[#093832] bg-white focus:outline-none"
-                />
-                <span className="h-10 w-px bg-gray-200" aria-hidden="true" />
-                <button
-                  type="button"
-                  aria-label="เพิ่มอายุเริ่มต้น"
-                  onClick={() => handleStepChange(setInitialAgeOffsetDays, 1)}
-                  className="shrink-0 w-14 h-full flex items-center justify-center text-lg text-[#093832] hover:bg-gray-50"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
+              <div className="h-px bg-[#6CCF9C]/30" />
+              <div className="space-y-4 pt-1">
+                <span className="text-md font-semibold text-[#093832]">วันที่เริ่มปล่อยปลาลงบ่อ</span>
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="date"
+                    value={cycleStartDate}
+                    max={recordDate}
+                    onChange={(event) => setCycleStartDate(event.target.value)}
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-lg font-semibold text-[#093832] focus:outline-none focus:ring-2 focus:ring-[#0F614E]"
+                  />
+                  {!isCycleStartValid && (
+                    <span className="text-xs text-red-600">วันที่เริ่มรอบต้องไม่เกินวันที่บันทึก</span>
+                  )}
+                </div>
+                <div className="rounded-xl bg-[#E4F5E7] px-4 py-3 text-sm text-[#0F3B35] flex flex-col gap-1">
+                  <span>ระบบคำนวณอายุอัตโนมัติ</span>
+                  <strong className="text-2xl text-[#093832]">{fishAgeNumber} วัน</strong>
+                </div>
               </div>
             </div>
-            <div className="h-px bg-[#6CCF9C]/30" />
-            <div className="space-y-4 pt-1">
-              <span className="text-md font-semibold text-[#093832]">วันที่เริ่มปล่อยปลาลงบ่อ</span>
-              <div className="flex flex-col gap-2">
-                <input
-                  type="date"
-                  value={cycleStartDate}
-                  max={recordDate}
-                  onChange={(event) => setCycleStartDate(event.target.value)}
-                  className="w-full rounded-xl border border-gray-200 px-3 py-2 text-lg font-semibold text-[#093832] focus:outline-none focus:ring-2 focus:ring-[#0F614E]"
-                />
-                {!isCycleStartValid && (
-                  <span className="text-xs text-red-600">วันที่เริ่มรอบต้องไม่เกินวันที่บันทึก</span>
-                )}
+          ) : (
+            <div className="rounded-2xl border border-[#6CCF9C]/40 bg-gradient-to-br from-[#E4F5E7] to-white px-4 py-4 space-y-3 shadow-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-md font-semibold text-[#093832]">อายุปลาปัจจุบัน</span>
+                <span className="text-xs text-gray-500">ปรับจากรอบก่อนอัตโนมัติ</span>
               </div>
-              <div className="rounded-xl bg-[#E4F5E7] px-4 py-3 text-sm text-[#0F3B35] flex flex-col gap-1">
-                <span>ระบบคำนวณอายุอัตโนมัติ</span>
-                <strong className="text-2xl text-[#093832]">{fishAgeNumber} วัน</strong>
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-white border border-gray-200 px-4 py-3 flex-1 flex items-center justify-between">
+                  <span className="text-sm text-gray-600">อายุปลา</span>
+                  <strong className="text-2xl text-[#093832]">{fishAgeNumber} วัน</strong>
+                </div>
               </div>
+              <p className="text-xs text-gray-500">
+                หากต้องการแก้ไขอายุเริ่มต้นหรือวันที่เริ่มรอบใหม่ ให้ล้างข้อมูลรอบก่อนและเริ่มบันทึกใหม่
+              </p>
             </div>
-          </div>
+          )}
         </div>
 
         <div>
