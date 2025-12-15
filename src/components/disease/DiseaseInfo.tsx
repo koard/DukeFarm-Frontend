@@ -100,6 +100,20 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
   const [selectedDisease, setSelectedDisease] = useState<DiseaseInfo | null>(null);
   const [symptomInput, setSymptomInput] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setImagePreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return objectUrl;
+    });
+  };
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
@@ -189,12 +203,33 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
             </div>
 
             <div className="space-y-3">
-              <button
-                type="button"
-                className="w-full py-3.5 rounded-xl text-base font-bold text-white bg-[#0E9A67] shadow-sm hover:brightness-105"
-              >
-                ถ่ายรูป / อัปโหลดรูป
-              </button>
+              <div className="w-full">
+                <label
+                  htmlFor="disease-image-input"
+                  className="block w-full text-center py-3.5 rounded-xl text-base font-bold text-white bg-[#0E9A67] shadow-sm hover:brightness-105 cursor-pointer"
+                >
+                  ถ่ายรูป / อัปโหลดรูป
+                </label>
+                <input
+                  id="disease-image-input"
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+                {imagePreview && (
+                  <div className="mt-3 rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                    <Image
+                      src={imagePreview}
+                      alt="อัปโหลดตัวอย่าง"
+                      width={800}
+                      height={600}
+                      className="w-full h-56 object-cover"
+                    />
+                  </div>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={() => setMode('list')}
