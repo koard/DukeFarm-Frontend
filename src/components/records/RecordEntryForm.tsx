@@ -313,15 +313,20 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
     if (!lastEntrySnapshot) {
       return '-';
     }
+
+    // Prefer stored age days when available; otherwise derive from cycle start + initial offset.
+    const days = getSnapshotAgeDays(lastEntrySnapshot);
+    if (days !== null && !Number.isNaN(days)) {
+      return formatAgeSummary(days);
+    }
+
     if (lastEntrySnapshot.cycleStartDate) {
       const derived = getDaysDifference(lastEntrySnapshot.cycleStartDate, lastEntrySnapshot.recordDate);
-      return formatAgeSummary(derived);
+      const offset = Math.max(0, lastEntrySnapshot.initialAgeOffsetDays ?? 0);
+      return formatAgeSummary(derived + offset);
     }
-    const days = getSnapshotAgeDays(lastEntrySnapshot);
-    if (days === null || Number.isNaN(days)) {
-      return '-';
-    }
-    return formatAgeSummary(days);
+
+    return '-';
   }, [lastEntrySnapshot]);
 
   const handleNumericInput = (value: string, setter: (val: string) => void) => {
