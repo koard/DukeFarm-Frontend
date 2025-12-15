@@ -199,7 +199,7 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
         )}
         
         <label className="block text-lg font-bold text-black mb-2 mt-4">
-            เลือกช่วงอายุปลา
+            เลือกสูตรอาหารที่ต้องการดูข้อมูล
         </label>
 
         <div className="relative mb-6">
