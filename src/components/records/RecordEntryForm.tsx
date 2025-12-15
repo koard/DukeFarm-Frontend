@@ -459,7 +459,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
       }
       successModalTimerRef.current = setTimeout(() => {
         setShowSuccessModal(false);
-        setIsAnalysisView(true);
+        router.push(backHref);
       }, 1200);
 
     } catch (error) {
