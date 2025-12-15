@@ -842,7 +842,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               : 'bg-[#A0A0A0] cursor-not-allowed'
           }`}
         >
-          {submitting ? 'กำลังประมวลผล...' : 'เริ่มวิเคราะห์ข้อมูล' }
+          {submitting ? 'กำลังประมวลผล...' : 'บันทึกข้อมูล' }
         </button>
       </div>
     </div>
