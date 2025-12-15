@@ -52,6 +52,7 @@ export const deriveFarmTypesFromProfile = (profile?: FarmTypeProfileLike): FarmT
     return [];
   }
 
+  // Collect all farm types from different sources
   const collected = [
     ...normalizeFarmTypeList(profile.farmTypes),
     ...normalizeFarmTypeList(profile.selectedFarmTypes),
@@ -59,9 +60,14 @@ export const deriveFarmTypesFromProfile = (profile?: FarmTypeProfileLike): FarmT
 
   const primary = resolveFarmType(profile.primaryFarmType);
   
-  // Ensure primary farm type is included in the list
+  // Always ensure primary farm type is included first
   if (primary && !collected.includes(primary)) {
-    collected.push(primary);
+    collected.unshift(primary); // Add to front instead of push
+  }
+
+  // If no farm types collected but has primary, return primary
+  if (collected.length === 0 && primary) {
+    return [primary];
   }
 
   const dedupOrdered = Array.from(new Set(collected));
