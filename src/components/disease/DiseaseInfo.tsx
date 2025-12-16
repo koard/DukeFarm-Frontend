@@ -686,6 +686,29 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
             </div>
 
             {/* Action Buttons placeholder removed to consolidate at footer */}
+
+            {/* Action Buttons */}
+            <div className="mt-auto pt-4 space-y-3">
+              <button
+                type="button"
+                onClick={() => setMode('list')}
+                className="w-full py-4 rounded-xl text-lg font-bold text-[#093832] bg-white border border-[#093832] shadow-sm hover:shadow-md transition-all active:scale-95"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <span>ดูข้อมูลโรคทั้งหมด</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => router.push('/disease-result')}
+                className="w-full py-4 rounded-xl text-lg font-bold text-white bg-gradient-to-r from-emerald-500 to-green-600 shadow-md hover:shadow-lg hover:from-emerald-600 hover:to-green-700 transition-all active:scale-95"
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <span>วิเคราะห์ข้อมูลโรค</span>
+                </div>
+              </button>
+            </div>
           </div>
         )}
 
@@ -818,28 +841,6 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
             </div>
           </div>
         )}
-
-        <div className="mt-auto pt-4 space-y-3">
-          <button
-            type="button"
-            onClick={() => setMode('list')}
-            className="w-full py-4 rounded-xl text-lg font-bold text-[#093832] bg-white border border-[#093832] shadow-sm hover:shadow-md transition-all active:scale-95"
-          >
-            <div className="flex items-center justify-center gap-2">
-              <span>ดูข้อมูลโรคทั้งหมด</span>
-            </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => router.push('/disease-result')}
-            className="w-full py-4 rounded-xl text-lg font-bold text-white bg-gradient-to-r from-emerald-500 to-green-600 shadow-md hover:shadow-lg hover:from-emerald-600 hover:to-green-700 transition-all active:scale-95"
-          >
-            <div className="flex items-center justify-center gap-2">
-              <span>วิเคราะห์ข้อมูลโรค</span>
-            </div>
-          </button>
-        </div>
       </div>
     </div>
   );
