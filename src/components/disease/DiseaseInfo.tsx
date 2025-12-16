@@ -654,7 +654,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
               <div className="w-full">
                 <label
                   htmlFor="disease-image-input"
-                  className="block w-full text-center py-4 rounded-xl text-base font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 shadow-md hover:shadow-lg hover:from-emerald-600 hover:to-teal-600 cursor-pointer transition-all"
+                  className="block w-full text-center py-4 rounded-xl text-base font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-500 shadow-md hover:shadow-lg hover:from-blue-600 hover:to-indigo-600 cursor-pointer transition-all"
                 >
                   <div className="flex items-center justify-center gap-2">
                     <span>ถ่ายรูป / อัปโหลดรูปปลา</span>
@@ -685,18 +685,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="space-y-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setMode('list')}
-                className="w-full py-4 rounded-xl text-base font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-500 shadow-md hover:shadow-lg hover:from-blue-600 hover:to-indigo-600 transition-all"
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <span>ดูข้อมูลโรคทั้งหมด</span>
-                </div>
-              </button>
-            </div>
+            {/* Action Buttons placeholder removed to consolidate at footer */}
           </div>
         )}
 
@@ -830,14 +819,24 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
           </div>
         )}
 
-        <div className="mt-auto pt-4">
+        <div className="mt-auto pt-4 space-y-3">
           <button
             type="button"
-            onClick={() => router.push(backHref)}
-            className="w-full py-4 rounded-xl text-lg font-bold text-white bg-gradient-to-r from-orange-500 to-red-500 shadow-md hover:shadow-lg hover:from-orange-600 hover:to-red-600 transition-all active:scale-95"
+            onClick={() => setMode('list')}
+            className="w-full py-4 rounded-xl text-lg font-bold text-[#093832] bg-white border border-[#093832] shadow-sm hover:shadow-md transition-all active:scale-95"
           >
             <div className="flex items-center justify-center gap-2">
-              <span>กลับหน้าหลัก</span>
+              <span>ดูข้อมูลโรคทั้งหมด</span>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push('/disease-result')}
+            className="w-full py-4 rounded-xl text-lg font-bold text-white bg-gradient-to-r from-emerald-500 to-green-600 shadow-md hover:shadow-lg hover:from-emerald-600 hover:to-green-700 transition-all active:scale-95"
+          >
+            <div className="flex items-center justify-center gap-2">
+              <span>วิเคราะห์ข้อมูลโรค</span>
             </div>
           </button>
         </div>
