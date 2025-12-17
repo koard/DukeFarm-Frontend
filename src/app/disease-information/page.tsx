@@ -57,7 +57,13 @@ export default function DiseaseInformationPage() {
   };
 
   const handleClose = () => {
-    router.back();
+    setSelectedDisease(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const cleanDiseaseName = (name: string) => {
+    if (!name) return '';
+    return name.replace(/\s*\(.*?\)/g, '').trim();
   };
 
   const openDisease = (disease: Disease) => {
@@ -69,22 +75,22 @@ export default function DiseaseInformationPage() {
     <div className="min-h-screen bg-white pb-10 relative">
       
       {/* Header */}
-      <header className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10 flex items-start justify-between">
-        <div className="flex items-center gap-3 flex-1 pr-2">
+      <header className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10 flex items-center justify-between">
+        <div className="flex items-center gap-2">
           <button
             onClick={handleBack}
-            className="p-1 rounded-full transition-all hover:bg-white/10 active:scale-95 flex-shrink-0"
+            className="p-1 rounded-full transition-all hover:bg-white/10 active:scale-95"
           >
             <ChevronLeft className="w-8 h-8" />
           </button>
           
-          <h1 className="text-2xl font-bold leading-snug break-words">
-            {selectedDisease ? selectedDisease.name : 'ข้อมูลโรคทั้งหมด'}
+          <h1 className="text-2xl font-bold">
+            {selectedDisease ? cleanDiseaseName(selectedDisease.name) : 'ข้อมูลโรคทั้งหมด'}
           </h1>
         </div>
         
-        <div className="flex-shrink-0 pt-1">
-          <ProfileDropdownMenu />
+        <div >
+          {!selectedDisease && <ProfileDropdownMenu />}
         </div>
       </header>
 
