@@ -78,6 +78,15 @@ DukeFarm Frontend เป็นเว็บแอปพลิเคชันส�
   - Precipitation probability
   - Interactive weather map with farm location
 
+### 🏥 AI Disease Intelligence
+- **Smart Diagnosis**
+  - Natural language symptom analysis with typo tolerance
+  - Quick-select symptom chips (General, External, Organs)
+  - Multi-factor scoring system (Tags + Text)
+- **Comprehensive Database**
+  - Instant treatment guides and prevention tips
+  - Support for common Thai fish diseases (e.g., EUS, Trichodina)
+
 ### Smart Caching System
 - **Dashboard Cache**: 15-minute TTL
 - **Weather Cache**: 30-minute TTL
