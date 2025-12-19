@@ -174,7 +174,7 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                 className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 flex items-center justify-between text-lg text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#093832]"
             >
                 <span className={selectedFormula ? "text-black" : "text-gray-400"}>
-                    {selectedFormula?.name}
+                    {selectedFormula?.name || "กรุณาเลือกสูตรอาหาร"}
                 </span>
                 <ChevronDown className={`w-6 h-6 text-gray-400 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`} />
             </button>
