@@ -248,8 +248,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
     }
     setInitialAgeOffsetDays(getDefaultInitialAge(farmType).toString());
   }, [farmType, lastEntrySnapshot]);
-  
-  // ล็อค Scroll เมื่อ Modal ขึ้น
   useEffect(() => {
     if (showSuccessModal) {
       document.body.style.overflow = 'hidden';
@@ -291,7 +289,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
              return;
            }
            console.log("API Fetch failed");
-           return; 
+           return;
         }
 
         const payload: { data: FormStateResponse } = await response.json();
@@ -378,9 +376,8 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
       }
 
       const normalizedAge = clampAgeDays(fishAgeNumber);
-      const fishAgeLabel = formatAgeSummary(normalizedAge); 
+      const fishAgeLabel = formatAgeSummary(normalizedAge); // ส่ง label ที่ backend ต้องการ
       const recordedAtIso = new Date(`${recordDate}T${recordTime}`).toISOString();
-
       const payload = {
         farmType,
         recordedAt: recordedAtIso,
@@ -440,12 +437,10 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
       if (successModalTimerRef.current) {
         clearTimeout(successModalTimerRef.current);
       }
-      
-      // หน่วงเวลา 3 วินาที แล้วไปหน้าผลวิเคราะห์
       successModalTimerRef.current = setTimeout(() => {
         setShowSuccessModal(false);
-        setIsAnalysisView(true);
-      }, 3000);
+        router.push(backHref);
+      }, 1200);
 
     } catch (error) {
       console.error(error);
@@ -458,11 +453,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
   const observedAtDisplay = formatObservedAt(weatherSnapshot?.observedAt ?? null);
 
-  const formatDateForDisplay = (dateString: string) => {
-    if (!dateString) return '';
-    const [year, month, day] = dateString.split('-');
-    return `${day}/${month}/${year}`; 
-  };
 
   if (isAnalysisView) {
       return (
@@ -494,7 +484,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                 <div className="grid grid-cols-2 gap-4 mb-4">
                     <div className="bg-[#E4F5E7] rounded-xl py-3 px-4 flex items-center gap-2 shadow-sm border border-[#6CCF9C]/30 relative">
                         <Image src="/nursery-large/solar_calendar-outline.svg" alt="date" width={20} height={20} className="opacity-70"/>
-                        <span className="text-[#093832] text-lg font-bold">{formatDateForDisplay(recordDate)}</span>
+                        <span className="text-[#093832] text-lg font-bold">{recordDate}</span>
                     </div>
                     <div className="bg-[#E4F5E7] rounded-xl py-3 px-4 flex items-center gap-2 shadow-sm border border-[#6CCF9C]/30 relative">
                         <Image src="/nursery-large/formkit_time.svg" alt="time" width={20} height={20} className="opacity-70"/>
@@ -516,7 +506,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                              <Image src="/nursery-large/hugeicons_weight.svg" alt="weight" width={18} height={18} />
                             <span>น้ำหนักเฉลี่ย (Kg.)</span>
                         </div>
-                        <p className="text-xl font-bold text-black">2.0</p> 
+                        <p className="text-xl font-bold text-black">2.0</p>
                     </div>
                 </div>
 
@@ -551,7 +541,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                         <p>ติดตาม FCR เพื่อควบคุมต้นทุนอาหาร</p>
                     </div>
                 </div>
-                
                 <div className="bg-[#FFF6DB] rounded-xl p-4">
                   <h3 className="font-bold text-black text-sm">บันทึกสถานะสุขภาพ</h3>
                   <p className="text-sm text-gray-700 mb-2">ข้อมูลสุขภาพละเอียดให้บันทึกในหน้าแดชบอร์ดหลัก</p>
@@ -560,7 +549,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
                 <button
                 type="button"
-                  onClick={() => router.push(backHref)} 
+                  onClick={() => router.push(backHref)}
                     className="w-full py-3.5 rounded-xl text-xl font-bold text-[#EF6E11] border border-[#EF6E11] bg-white mt-4"
                 >
                   ปิด
@@ -580,7 +569,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               <Check className="w-10 h-10 text-white" strokeWidth={4} />
             </div>
             <p className="text-2xl font-bold text-[#093832]">บันทึกข้อมูลสำเร็จ</p>
-            <p className="text-sm text-gray-500 mt-2">ระบบกำลังประมวลผลและแสดงผลวิเคราะห์ข้อมูล...</p>
+            <p className="text-sm text-gray-500 mt-2">กำลังนำคุณกลับไปยังหน้าแดชบอร์ด...</p>
           </div>
         </div>
       )}
@@ -635,7 +624,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                 value={recordDate}
                 onChange={(event) => setRecordDate(event.target.value)}
                 lang="th-TH"
-                className="bg-transparent text-[#093832] text-lg font-bold w-full focus:outline-none z-10 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden pr-10"
+                className="bg-transparent text-[#093832] text-lg font-bold w-full focus:outline-none z-10 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden"
               />
               <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
                  <Image src="/nursery-large/solar_calendar-outline.svg" alt="calendar" width={24} height={24} className="opacity-50"/>
@@ -651,7 +640,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                 value={recordTime}
                 onChange={(event) => setRecordTime(event.target.value)}
                 lang="th-TH"
-                className="bg-transparent text-[#093832] text-lg font-bold w-full focus:outline-none z-10 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden pr-10"
+                className="bg-transparent text-[#093832] text-lg font-bold w-full focus:outline-none z-10 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden"
               />
                <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
                  <Image src="/nursery-large/formkit_time.svg" alt="time" width={24} height={24} className="opacity-50"/>
@@ -824,7 +813,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             />
           </div>
         </div>
-        
         <div className="space-y-1">
           <div className="flex items-center justify-between">
             <label className="block text-lg text-black">ปริมาณอาหาร (กิโลกรัม)</label>
