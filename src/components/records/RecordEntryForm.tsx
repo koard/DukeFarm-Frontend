@@ -43,14 +43,6 @@ const formatInputDate = (value: Date) => {
   return `${year}-${month}-${day}`;
 };
 
-// เพิ่มฟังก์ชันจัดรูปแบบวันที่สำหรับแสดงผล (DD/MM/YYYY)
-const formatDateForDisplay = (dateString: string) => {
-  if (!dateString) return '';
-  const [year, month, day] = dateString.split('-');
-  // ถ้าอยากแสดงเป็น พ.ศ. ให้บวก 543 ที่ year
-  return `${day}/${month}/${year}`; 
-};
-
 const formatInputTime = (value: Date) => {
   const hours = `${value.getHours()}`.padStart(2, '0');
   const minutes = `${value.getMinutes()}`.padStart(2, '0');
@@ -386,7 +378,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
       }
 
       const normalizedAge = clampAgeDays(fishAgeNumber);
-      const fishAgeLabel = formatAgeSummary(normalizedAge); // ส่ง label ที่ backend ต้องการ
+      const fishAgeLabel = formatAgeSummary(normalizedAge); 
       const recordedAtIso = new Date(`${recordDate}T${recordTime}`).toISOString();
 
       const payload = {
@@ -403,7 +395,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               humidityPct: weatherSnapshot.humidityPct,
             }
           : undefined,
-        // บันทึกข้อมูลประกอบเพิ่มเติมเผื่อใช้งานต่อ
         metadata: {
           cycleStartDate,
           initialAgeOffsetDays: initialAgeOffsetNumber,
@@ -466,6 +457,12 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
   };
 
   const observedAtDisplay = formatObservedAt(weatherSnapshot?.observedAt ?? null);
+
+  const formatDateForDisplay = (dateString: string) => {
+    if (!dateString) return '';
+    const [year, month, day] = dateString.split('-');
+    return `${day}/${month}/${year}`; 
+  };
 
   if (isAnalysisView) {
       return (
@@ -630,29 +627,37 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         )}
 
         <div className="grid grid-cols-2 gap-4">
-          <div className="bg-[#E4F5E7] rounded-xl py-3 px-4 flex flex-col gap-1 shadow-sm border border-[#6CCF9C]/30 relative">
+          <label className="bg-[#E4F5E7] rounded-xl py-3 px-4 flex flex-col gap-1 shadow-sm border border-[#6CCF9C]/30 relative">
             <span className="text-xs text-[#0F614E]/70">วันที่บันทึก</span>
-            <div className="relative flex items-center justify-between">
-              <span className="text-[#093832] text-lg font-bold">
-                 {formatDateForDisplay(recordDate)}
-              </span>
-              <div className="pointer-events-none">
+            <div className="relative flex items-center">
+              <input
+                type="date"
+                value={recordDate}
+                onChange={(event) => setRecordDate(event.target.value)}
+                lang="th-TH"
+                className="bg-transparent text-[#093832] text-lg font-bold w-full focus:outline-none z-10 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden pr-10"
+              />
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
                  <Image src="/nursery-large/solar_calendar-outline.svg" alt="calendar" width={24} height={24} className="opacity-50"/>
               </div>
             </div>
-          </div>
+          </label>
 
-          <div className="bg-[#E4F5E7] rounded-xl py-3 px-4 flex flex-col gap-1 shadow-sm border border-[#6CCF9C]/30 relative">
+          <label className="bg-[#E4F5E7] rounded-xl py-3 px-4 flex flex-col gap-1 shadow-sm border border-[#6CCF9C]/30 relative">
             <span className="text-xs text-[#0F614E]/70">เวลา</span>
-            <div className="relative flex items-center justify-between">
-               <span className="text-[#093832] text-lg font-bold">
-                  {recordTime}
-               </span>
-               <div className="pointer-events-none">
+            <div className="relative flex items-center">
+              <input
+                type="time"
+                value={recordTime}
+                onChange={(event) => setRecordTime(event.target.value)}
+                lang="th-TH"
+                className="bg-transparent text-[#093832] text-lg font-bold w-full focus:outline-none z-10 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden pr-10"
+              />
+               <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
                  <Image src="/nursery-large/formkit_time.svg" alt="time" width={24} height={24} className="opacity-50"/>
                </div>
             </div>
-          </div>
+          </label>
         </div>
 
         <div>
