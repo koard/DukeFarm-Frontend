@@ -3,11 +3,11 @@
 import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, X } from 'lucide-react'; 
+import { ChevronLeft, X } from 'lucide-react';
 import { ProfileDropdownMenu } from '@/components/common/ProfileDropdownMenu';
 
 interface DiseaseInfoProps {
-  backHref: string; 
+  backHref: string;
 }
 
 const SYMPTOM_TAGS = [
@@ -17,7 +17,7 @@ const SYMPTOM_TAGS = [
 
 export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
   const router = useRouter();
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [symptomInput, setSymptomInput] = useState('');
@@ -68,10 +68,10 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
   const handleBack = () => {
     router.push(backHref);
   };
-  
+
   return (
     <div className="min-h-screen bg-white pb-10 relative">
-      
+
       {/* Header */}
       <header className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -89,7 +89,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
       </header>
 
       <div className="px-5 mt-8 w-full max-w-2xl mx-auto flex flex-col min-h-[calc(100vh-180px)] justify-between gap-6">
-        
+
         {/* --- Form Section --- */}
         <div className="space-y-6">
           <div className="bg-gradient-to-br from-cyan-50 to-blue-50 p-5 rounded-2xl border-2 border-cyan-500 shadow-sm">
@@ -132,11 +132,10 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
                     type="button"
                     key={tag}
                     onClick={() => toggleTag(tag)}
-                    className={`px-4 py-2 rounded-full text-sm font-semibold border-1 transition-all ${
-                      active
+                    className={`px-4 py-2 rounded-full text-sm font-semibold border-1 transition-all ${active
                         ? 'bg-[#BDD7FF] text-black border-black shadow-md scale-105'
                         : 'bg-white text-black border-gray-300 hover:border-black hover:shadow-sm'
-                    }`}
+                      }`}
                   >
                     {active && '✓ '}
                     {tag}
@@ -152,15 +151,17 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
               รูปภาพประกอบ
             </label>
             <div className="w-full">
-              <label
-                htmlFor="disease-image-input"
-                className="block w-full text-center py-4 rounded-xl text-base font-bold text-white bg-blue-500 shadow-md hover:shadow-lg hover:from-blue-600 hover:to-indigo-600 cursor-pointer transition-all"
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <span>ถ่ายรูป / อัปโหลดรูปปลา</span>
-                </div>
-              </label>
-              
+              {!imagePreview && (
+                <label
+                  htmlFor="disease-image-input"
+                  className="block w-full text-center py-4 rounded-xl text-base font-bold text-white bg-blue-500 shadow-md hover:shadow-lg hover:from-blue-600 hover:to-indigo-600 cursor-pointer transition-all"
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <span>ถ่ายรูป / อัปโหลดรูปปลา</span>
+                  </div>
+                </label>
+              )}
+
               <input
                 ref={fileInputRef}
                 id="disease-image-input"
@@ -174,7 +175,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
               {/* ส่วนแสดง Preview */}
               {imagePreview && (
                 <div className="mt-4 relative rounded-2xl border-2 border-[#093832] overflow-hidden shadow-lg group">
-                  
+
                   <button
                     onClick={handleRemoveImage}
                     className="absolute top-2 right-2 z-10 bg-red-500 text-white p-1.5 rounded-full shadow-md hover:bg-red-600 transition-all active:scale-95"
