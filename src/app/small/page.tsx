@@ -1,12 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
 import AgeAdvisoryCard from "@/components/dashboard/AgeAdvisoryCard";
-import FarmNavigation from "@/components/navigation/FarmNavigation"; 
+import FarmNavigation from "@/components/navigation/FarmNavigation";
+
+const calculateRealTimeAge = (asOfDate?: string | null, recordedAge?: number | null): number => {
+  if (!asOfDate || typeof recordedAge !== 'number') {
+    return 0;
+  }
+  const lastUpdate = new Date(asOfDate);
+  const now = new Date();
+  lastUpdate.setHours(0, 0, 0, 0);
+  now.setHours(0, 0, 0, 0);
+  const diffTime = now.getTime() - lastUpdate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  return Math.max(0, recordedAge + diffDays);
+};
+
+const getSurvivalStatusStyles = (percentage: number) => {
+  if (percentage >= 90) {
+    return {
+      bg: "bg-[#E6FFFA]",     
+      text: "text-[#047857]",  
+      stroke: "#10B981",      
+      icon: "/nursery-large/famicons_fish-outline.svg"
+    };
+  } else if (percentage >= 75) {
+    return {
+      bg: "bg-[#FFF9C4]",     
+      text: "text-[#854D0E]",  
+      stroke: "#EAB308",     
+      icon: "/nursery-large/famicons_fish-outline.svg"
+    };
+  } else if (percentage >= 50) {
+    return {
+      bg: "bg-[#FFCCBC]",      
+      text: "text-[#BF360C]", 
+      stroke: "#F97316",     
+      icon: "/nursery-large/famicons_fish-outline.svg"
+    };
+  } else {
+    return {
+      bg: "bg-[#FFCDD2]",     
+      text: "text-[#B91C1C]",  
+      stroke: "#EF4444",      
+      icon: "/nursery-large/famicons_fish-outline.svg"
+    };
+  }
+};
 
 interface GraphDataPoint {
   month: string;
@@ -56,6 +101,7 @@ interface DashboardSummary {
   recommendedFeedAdjustmentPct: number | null;
   weather: WeatherData | null;
   latestFishAgeLabel: string | null;
+  latestFishAgeDays?: number; 
   pelletFoodCost: number;
   freshFoodCost: number;
   survivalRatePct: number;
@@ -138,12 +184,23 @@ const formatSurvivalPct = (value?: number | null): string => {
 export default function NurserySmallPage() {
   const [hoverData, setHoverData] = useState<HoverData | null>(null);
   const { data: dashboardData, loading, error } = useDashboardData<DashboardData>("SMALL");
+  
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const currentAgeDays = calculateRealTimeAge(
+    dashboardData?.summary?.asOf,
+    dashboardData?.summary?.latestFishAgeDays
+  );
 
   const hasDashboardData = dashboardData?.hasData;
 
-  const survivalSeries: GraphDataPoint[] = hasDashboardData
-    ? dashboardData?.summary?.survivalSeries ?? []
-    : [];
+  const rawSeries = hasDashboardData ? dashboardData?.summary?.survivalSeries ?? [] : [];
+ 
+  const uniqueSeriesMap = new Map();
+  rawSeries.forEach((item) => {
+    uniqueSeriesMap.set(item.month, item);
+  });
+  const survivalSeries: GraphDataPoint[] = Array.from(uniqueSeriesMap.values());
 
   const graphData: GraphDataPoint[] = (survivalSeries.length ? survivalSeries : []).map((point) => ({
     ...point,
@@ -152,23 +209,46 @@ export default function NurserySmallPage() {
       : 0,
   }));
 
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
+    }
+  }, [graphData]);
+
   const forecastData: ForecastData[] = hasDashboardData ? dashboardData?.feedingPlan || [] : [];
 
-  const survivalRateRaw = hasDashboardData
-    ? dashboardData?.summary?.survivalRatePct
-    : null;
-  const hasSurvivalData = hasDashboardData && survivalSeries.length > 0;
-  const hasSurvival = hasSurvivalData && typeof survivalRateRaw === "number" && !Number.isNaN(survivalRateRaw);
-  const survivalRate = hasSurvival ? survivalRateRaw! : null;
+ const currentSurvivalRate = (() => {
+    if (survivalSeries.length === 0) {
+      return dashboardData?.summary?.survivalRatePct ?? 0;
+    }
+    const sum = survivalSeries.reduce((acc, curr) => acc + curr.value, 0);
+    return sum / survivalSeries.length;
+  })();
+  
+  const hasSurvival = hasDashboardData && (survivalSeries.length > 0 || typeof dashboardData?.summary?.survivalRatePct === 'number');
+  const statusStyles = getSurvivalStatusStyles(currentSurvivalRate);
 
 
-  const MAX_GRAPH_VALUE = 100; // percent
-  const axisValues = [100, 75, 50, 25, 0];
+  const SVG_HEIGHT = 150;
+  const PADDING_X = 20; 
+  const MIN_POINT_GAP = 60; 
+  const MAX_GRAPH_VALUE = 100;
+
+  const requiredWidth = (graphData.length - 1) * MIN_POINT_GAP + (PADDING_X * 2);
+  const SVG_WIDTH = Math.max(280, requiredWidth);
+
   const getY = (val: number): number => {
     const clamped = Math.max(0, Math.min(MAX_GRAPH_VALUE, val));
     return 130 - (clamped / MAX_GRAPH_VALUE) * 110;
   };
-  const getX = (index: number): number => 35 + index * 25; 
+
+  const getX = (index: number): number => {
+    if (graphData.length <= 1) return SVG_WIDTH / 2;
+    const step = (SVG_WIDTH - (PADDING_X * 2)) / (graphData.length - 1);
+    return PADDING_X + (index * step);
+  };
+
+  const axisValues = [100, 75, 50, 25, 0];
 
   const generateSmoothPath = (data: Coordinate[], tension: number = 0.4): string => {
     if (data.length < 2) return "";
@@ -192,8 +272,6 @@ export default function NurserySmallPage() {
   const smoothPathD = generateSmoothPath(
     graphData.map((d, i) => ({ x: getX(i), y: getY(d.value) }))
   );
-
-
 
   return (
     <div className="min-h-screen bg-white pb-10">
@@ -272,88 +350,133 @@ export default function NurserySmallPage() {
         <AgeAdvisoryCard
           group="SMALL"
           latestFishAgeLabel={dashboardData?.summary?.latestFishAgeLabel ?? null}
-          latestFishAgeDays={(() => {
-            const value = (dashboardData?.summary as { latestFishAgeDays?: unknown })?.latestFishAgeDays;
-            return typeof value === "number" ? value : null;
-          })()}
+          latestFishAgeDays={currentAgeDays}
           loading={loading}
         />
 
-        {/* 5. กราฟ */}
+        {/* 5. กราฟแนวโน้มอัตราการรอด (Fixed Y-Axis) */}
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="w-full h-40 relative">
-                {hoverData && (
-                    <div 
-                        className="absolute bg-white rounded-lg px-3 py-2 shadow-lg border border-gray-100 pointer-events-none transform -translate-x-1/2 -translate-y-full z-30 transition-all duration-100"
-                        style={{ 
-                            left: `${(hoverData.x / 320) * 100}%`, 
-                            top: `${(hoverData.y / 150) * 100}%`,
-                            marginTop: '-12px',
-                        }}
-                    >
-                        <div className="text-xs text-gray-600 font-medium">ค่าเฉลี่ย</div>
-                    <div className="text-sm font-bold text-[#10B981]">{formatSurvivalPct(hoverData.value)}</div>
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-white drop-shadow-sm"></div>
-                    </div>
-                )}
+            <h3 className="text-base font-bold text-[#093832] mb-3 ml-1">แนวโน้มอัตราการรอด</h3>
+            
+            <div className="flex items-start">
+              
+              {/* แกน Y Fixed */}
+              <div 
+                className="w-9 shrink-0 relative mr-1 border-r border-gray-100" 
+                style={{ height: SVG_HEIGHT }}
+              >
+                  <svg width="100%" height="100%" className="overflow-visible">
+                      {axisValues.map((val) => (
+                          <text 
+                              key={val} 
+                              x="100%" 
+                              y={getY(val) + 4} 
+                              fontSize="10" 
+                              fill="#999" 
+                              textAnchor="end"
+                              className="pr-1"
+                          >
+                              {formatSurvivalPct(val)}
+                          </text>
+                      ))}
+                  </svg>
+              </div>
 
-                <svg viewBox="0 0 320 150" className="w-full h-full overflow-visible">
-                    {axisValues.map((val) => (
-                        <g key={val}>
-                            <line x1="35" y1={getY(val)} x2="310" y2={getY(val)} stroke="#f0f0f0" strokeWidth="1" />
-                        <text x="25" y={getY(val) + 3} fontSize="10" fill="#999" textAnchor="end">{formatSurvivalPct(val)}</text>
-                        </g>
-                    ))}
-                    <path 
-                        d={smoothPathD}
-                        fill="none" 
-                        stroke="#179678" 
-                        strokeWidth="3" 
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                    />
-                    {graphData.map((item, index) => {
-                        const xCenter = getX(index);
-                        return (
-                            <g key={index}>
-                                <rect
-                                    x={xCenter - 12}
-                                    y="0"
-                                    width="24"
-                                    height="150"
-                                    fill="transparent"
-                                    className="cursor-pointer"
-                                    onMouseEnter={() => setHoverData({ 
-                                        x: xCenter, 
-                                        y: getY(item.value), 
-                                        value: item.value,
-                                        month: item.month
-                                    })}
-                                    onMouseLeave={() => setHoverData(null)}
-                                />
-                                <text 
-                                    x={xCenter} 
-                                    y="145" 
-                                    fontSize="9" 
-                                    fill="#999" 
-                                    textAnchor="middle"
-                                    className={`transition-colors ${hoverData?.x === xCenter ? 'fill-[#179678] font-bold' : ''}`}
-                                >
-                                    {item.month}
-                                </text>
-                            </g>
-                        );
-                    })}
-                </svg>
-                {!loading && graphData.length === 0 && (
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-500 text-sm">
-                    ไม่มีข้อมูล
+              {/* พื้นที่กราฟ Scrollable */}
+              <div 
+                ref={scrollContainerRef}
+                className="flex-1 overflow-x-auto pb-2 scrollbar-hide relative"
+                style={{ scrollBehavior: 'smooth' }}
+              >
+                  <div className="relative" style={{ width: SVG_WIDTH, height: SVG_HEIGHT }}>
+                      {hoverData && (() => {
+                          const isHighValue = hoverData.value > 80;
+                          return (
+                              <div 
+                                  className="absolute bg-white rounded-lg px-3 py-2 shadow-lg border border-gray-100 pointer-events-none z-30 transition-all duration-100"
+                                  style={{ 
+                                      left: `${(hoverData.x / SVG_WIDTH) * 100}%`, 
+                                      top: `${(hoverData.y / SVG_HEIGHT) * 100}%`,
+                                      marginTop: isHighValue ? '12px' : '-12px',
+                                      transform: isHighValue ? 'translate(-50%, 0)' : 'translate(-50%, -100%)'
+                                  }}
+                              >
+                                  <div className="text-xs text-gray-600 font-medium">ค่าเฉลี่ย</div>
+                                  <div className="text-sm font-bold" style={{ color: statusStyles.stroke }}>{formatSurvivalPct(hoverData.value)}</div>
+                                  <div className={`absolute left-1/2 -translate-x-1/2 border-8 border-transparent drop-shadow-sm ${
+                                      isHighValue ? 'bottom-full border-b-white' : 'top-full border-t-white'
+                                  }`}></div>
+                              </div>
+                          );
+                      })()}
+
+                      <svg viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} className="w-full h-full overflow-visible">
+                          {axisValues.map((val) => (
+                              <line 
+                                key={val} 
+                                x1="0" y1={getY(val)} 
+                                x2={SVG_WIDTH} y2={getY(val)} 
+                                stroke="#f0f0f0" strokeWidth="1" 
+                              />
+                          ))}
+                          
+                          <path 
+                              d={smoothPathD}
+                              fill="none" 
+                              stroke={statusStyles.stroke}
+                              strokeWidth="3" 
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="transition-colors duration-300"
+                          />
+
+                          {graphData.map((item, index) => {
+                              const xCenter = getX(index);
+                              return (
+                                  <g key={index}>
+                                      <rect
+                                          x={xCenter - 15}
+                                          y="0"
+                                          width="30"
+                                          height={SVG_HEIGHT}
+                                          fill="transparent"
+                                          className="cursor-pointer"
+                                          onMouseEnter={() => setHoverData({ 
+                                              x: xCenter, 
+                                              y: getY(item.value), 
+                                              value: item.value,
+                                              month: item.month
+                                          })}
+                                          onMouseLeave={() => setHoverData(null)}
+                                      />
+                                      <text 
+                                          x={xCenter} 
+                                          y={SVG_HEIGHT - 5} 
+                                          fontSize="9" 
+                                          fill="#999" 
+                                          textAnchor="middle"
+                                          className={`transition-colors ${hoverData?.x === xCenter ? 'font-bold' : ''}`}
+                                          style={{ fill: hoverData?.x === xCenter ? statusStyles.stroke : '#999' }}
+                                      >
+                                          {item.month}
+                                      </text>
+                                  </g>
+                              );
+                          })}
+                      </svg>
                   </div>
-                )}
+              </div>
+
             </div>
+
+            {!loading && graphData.length === 0 && (
+              <div className="flex items-center justify-center text-gray-500 text-sm h-40">
+                ไม่มีข้อมูล
+              </div>
+            )}
         </div> 
 
-        {/* 6. รูปปลา & อัตราการรอดชีวิต */}
+        {/* 6. รูปปลา & อัตราการรอดชีวิต (ปรับสี Dynamic) */}
         <div className="grid grid-cols-2 gap-4 items-stretch">
             <div className="bg-[#EEF8FF] rounded-2xl p-2 flex items-center justify-center h-full min-h-[120px]">
                 <Image 
@@ -365,9 +488,9 @@ export default function NurserySmallPage() {
                 />
             </div>
             
-            <div className="bg-[#FFE3E3] rounded-2xl p-5 flex flex-col justify-center h-full text-center relative">
+            <div className={`rounded-2xl p-5 flex flex-col justify-center h-full text-center relative transition-colors duration-300 ${statusStyles.bg}`}>
                 <div className="mb-2 flex items-center justify-center gap-2">
-                  <Image src="/nursery-large/famicons_fish-outline.svg" alt="survival-rate" width={24} height={24} className="text-black shrink-0" />
+                  <Image src={statusStyles.icon} alt="survival-rate" width={24} height={24} className="text-black shrink-0" />
                   <span className="text-black text-base font-semibold leading-tight text-left">
                       อัตราการรอด
                   </span>
@@ -375,8 +498,8 @@ export default function NurserySmallPage() {
 
                 <div className="flex flex-col items-center gap-1 mt-1">
                   {hasSurvival ? (
-                    <span className="text-3xl font-bold text-green-700">
-                      {formatSurvivalPct(survivalRate)}
+                    <span className={`text-3xl font-bold ${statusStyles.text}`}>
+                      {formatSurvivalPct(currentSurvivalRate)}
                     </span>
                   ) : (
                     <span className="text-3xl font-bold text-black">-</span>
@@ -456,7 +579,6 @@ export default function NurserySmallPage() {
                 </button>
             </Link>
 
-            {/* เพิ่มปุ่มใหม่ สีม่วง */}
             <Link href="/small/disease-info-small" className="block w-full">
                 <button className="w-full bg-[#A530FF] hover:bg-[#8a2be2] text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
                     <Image src="/nursery-large/famicons_fish-w.svg" alt="icon" width={24} height={24} />
