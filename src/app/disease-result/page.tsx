@@ -3,22 +3,29 @@
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 
+import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu"; 
+
 export default function DiseaseResultPage() {
   const router = useRouter();
 
+  const handleBack = () => {
+    router.back();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white pb-10">
-      <header className="bg-gradient-to-r from-[#093832] to-[#0E9A67] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-lg">
-        <div className="flex items-center justify-between">
+      <header className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-30 flex items-center justify-between">
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => router.back()}
-            className="p-1.5 rounded-full transition-all hover:bg-white/20 active:scale-95"
+            onClick={handleBack}
+            className="p-1 rounded-full transition-all hover:bg-white/10 active:scale-95"
           >
-            <ChevronLeft className="w-7 h-7" />
+            <ChevronLeft className="w-8 h-8" />
           </button>
-          <h1 className="text-xl font-bold">ผลการวิเคราะห์โรค</h1>
-          <div className="w-10 h-10" />
+          <h1 className="text-2xl font-bold">ผลการวิเคราะห์โรค</h1>
         </div>
+
+        <ProfileDropdownMenu />
       </header>
 
       <div className="px-5 mt-8 w-full max-w-2xl mx-auto space-y-5">
@@ -40,7 +47,7 @@ export default function DiseaseResultPage() {
         <div className="pt-2">
           <button
             type="button"
-            onClick={() => router.back()}
+            onClick={handleBack}
             className="w-full py-4 rounded-xl text-lg font-bold text-white bg-gradient-to-r from-emerald-500 to-green-600 shadow-md hover:shadow-lg hover:from-emerald-600 hover:to-green-700 transition-all active:scale-95"
           >
             กลับไปบันทึกอาการ
