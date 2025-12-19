@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ChevronLeft } from 'lucide-react';
 import { ProfileDropdownMenu } from '@/components/common/ProfileDropdownMenu';
 
-import { fetchDiseases } from '@/services/diseaseService';
-import { Disease } from '@/types/disease';
+import { fetchDiseases, Disease } from '@/services/diseaseService';
 
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {

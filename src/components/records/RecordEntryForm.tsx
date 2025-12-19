@@ -248,6 +248,20 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
     }
     setInitialAgeOffsetDays(getDefaultInitialAge(farmType).toString());
   }, [farmType, lastEntrySnapshot]);
+  
+  useEffect(() => {
+    if (showSuccessModal) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none'; 
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [showSuccessModal]);
 
   useEffect(() => {
     let isMounted = true;
@@ -428,8 +442,8 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
       }
       successModalTimerRef.current = setTimeout(() => {
         setShowSuccessModal(false);
-        router.push(backHref);
-      }, 1200);
+        setIsAnalysisView(true);
+      }, 3000);
 
     } catch (error) {
       console.error(error);
@@ -558,7 +572,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               <Check className="w-10 h-10 text-white" strokeWidth={4} />
             </div>
             <p className="text-2xl font-bold text-[#093832]">บันทึกข้อมูลสำเร็จ</p>
-            <p className="text-sm text-gray-500 mt-2">กำลังนำคุณกลับไปยังหน้าแดชบอร์ด...</p>
+            <p className="text-sm text-gray-500 mt-2">ระบบกำลังประมวลผลและแสดงผลวิเคราะห์ข้อมูล...</p>
           </div>
         </div>
       )}
