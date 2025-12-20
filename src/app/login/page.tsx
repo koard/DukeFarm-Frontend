@@ -95,8 +95,8 @@ export default function LoginPage() {
           </div>
 
           {/* Partner Logos */}
-          <div className="mt-8 flex justify-center items-center space-x-6">
-            <div className="relative h-10 w-auto">
+          <div className="mt-12 flex justify-center items-center space-x-6">
+            <div className="relative h-11 w-auto">
               <Image
                 src="/login/partnerKU.png"
                 alt="KU"
@@ -106,10 +106,10 @@ export default function LoginPage() {
                 className="h-full w-auto object-contain"
               />
             </div>
-            <div className="relative h-10 w-auto">
+            <div className="relative h-9 w-auto">
               <Image
                 src="/login/partnerBTG.png"
-                alt="BETACRO"
+                alt="BETAGRO"
                 width={0}
                 height={0}
                 sizes="100vw"
