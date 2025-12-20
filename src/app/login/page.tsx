@@ -95,25 +95,25 @@ export default function LoginPage() {
           </div>
 
           {/* Partner Logos */}
-          <div className="mt-4 flex justify-center items-center space-x-3">
-            <div className=" p-2">
+          <div className="mt-8 flex justify-center items-center space-x-6">
+            <div className="relative h-10 w-auto">
               <Image
                 src="/login/partnerKU.png"
                 alt="KU"
-                width={40}
-                height={25}
-                className="object-contain"
-                style={{ height: "auto" }}
+                width={0}
+                height={0}
+                sizes="100vw"
+                className="h-full w-auto object-contain"
               />
             </div>
-            <div className=" p-2">
+            <div className="relative h-10 w-auto">
               <Image
                 src="/login/partnerBTG.png"
                 alt="BETACRO"
-                width={40}
-                height={25}
-                className="object-contain"
-                style={{ height: "auto" }}
+                width={0}
+                height={0}
+                sizes="100vw"
+                className="h-full w-auto object-contain"
               />
             </div>
           </div>
