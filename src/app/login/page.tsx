@@ -34,9 +34,9 @@ export default function LoginPage() {
       </div>
       {/* Content Container */}
       <div className="relative min-h-screen flex flex-col items-center justify-center px-4">
-        <div className="w-full max-w-sm mx-auto mt-40">
+        <div className="relative w-full max-w-sm mx-auto mt-40">
           {/* Top Message */}
-          <div className="px-6 py-3 mb-4 mx-auto w-fit">
+          <div className="px-6 py-3 mb-4 mx-auto w-fit relative -top-12 z-10">
             <Image
               src="/login/text.png"
               alt="Top Message"
@@ -48,7 +48,17 @@ export default function LoginPage() {
           </div>
 
           {/* Duck Character */}
-          <div className="absolute right-0 top-50 ">
+          <div className="absolute -right-32 -top-12 z-0 hidden md:block">
+            <Image
+              src="/login/duke-character.png"
+              alt="Duke Character"
+              width={180}
+              height={180}
+              className="drop-shadow-lg"
+              style={{ height: "auto" }}
+            />
+          </div>
+          <div className="absolute -right-12 -top-10 z-0 md:hidden">
             <Image
               src="/login/duke-character.png"
               alt="Duke Character"
@@ -97,7 +107,7 @@ export default function LoginPage() {
           <div className="mt-4 flex justify-center items-center space-x-3">
             <div className=" p-2">
               <Image
-                src="/login/partner2.png"
+                src="/login/partnerKU.png"
                 alt="KU"
                 width={40}
                 height={25}
@@ -107,7 +117,7 @@ export default function LoginPage() {
             </div>
             <div className=" p-2">
               <Image
-                src="/login/partner5.png"
+                src="/login/partnerBTG.png"
                 alt="BETACRO"
                 width={40}
                 height={25}
