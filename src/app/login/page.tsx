@@ -9,7 +9,7 @@ export default function LoginPage() {
       // ตาม API spec: GET /auth/line/login?role=farmer|researcher
       const response = await fetch(`https://dukefarm-backend.onrender.com/api/auth/line/login?role=${role.toLowerCase()}`);
       const data = await response.json();
-      
+
       // Response: { "url": "https://access.line.me/oauth2/..." }
       if (data.url) {
         window.location.href = data.url;
@@ -37,9 +37,9 @@ export default function LoginPage() {
         <div className="w-full max-w-sm mx-auto mt-40">
           {/* Top Message */}
           <div className="px-6 py-3 mb-4 mx-auto w-fit">
-            <Image 
-              src="/login/text.png" 
-              alt="Top Message" 
+            <Image
+              src="/login/text.png"
+              alt="Top Message"
               width={250}
               height={50}
               className="object-contain"
@@ -96,9 +96,9 @@ export default function LoginPage() {
           {/* Partner Logos */}
           <div className="mt-4 flex justify-center items-center space-x-3">
             <div className=" p-2">
-              <Image 
-                src="/login/partner1.png" 
-                alt="OWN" 
+              <Image
+                src="/login/partner2.png"
+                alt="KU"
                 width={40}
                 height={25}
                 className="object-contain"
@@ -106,39 +106,9 @@ export default function LoginPage() {
               />
             </div>
             <div className=" p-2">
-              <Image 
-                src="/login/partner2.png" 
-                alt="KU" 
-                width={40}
-                height={25}
-                className="object-contain"
-                style={{ height: "auto" }}
-              />
-            </div>
-            <div className=" p-2">
-              <Image 
-                src="/login/partner3.png" 
-                alt="Partner 3" 
-                width={40}
-                height={25}
-                className="object-contain"
-                style={{ height: "auto" }}
-              />
-            </div>
-            <div className=" p-2">
-              <Image 
-                src="/login/partner4.png" 
-                alt="VRU" 
-                width={40}
-                height={25}
-                className="object-contain"
-                style={{ height: "auto" }}
-              />
-            </div>
-            <div className=" p-2">
-              <Image 
-                src="/login/partner5.png" 
-                alt="BETACRO" 
+              <Image
+                src="/login/partner5.png"
+                alt="BETACRO"
                 width={40}
                 height={25}
                 className="object-contain"
