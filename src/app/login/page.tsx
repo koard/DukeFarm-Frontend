@@ -34,28 +34,27 @@ export default function LoginPage() {
       </div>
       {/* Content Container */}
       <div className="relative min-h-screen flex flex-col items-center justify-center px-4">
-
-        {/* Duck Character - Pinned to right edge, fixed size */}
-        <div className="absolute right-0 top-1/2 -translate-y-[60%] z-0">
-          <Image
-            src="/login/duke-character.png"
-            alt="Duke Character"
-            width={160}
-            height={160}
-            className="drop-shadow-lg"
-            style={{ height: "auto" }}
-          />
-        </div>
-
-        <div className="relative w-full max-w-sm mx-auto mt-40">
+        <div className="w-full max-w-sm mx-auto mt-40">
           {/* Top Message */}
-          <div className="px-6 py-3 mb-4 mx-auto w-fit relative -top-12 z-10">
+          <div className="px-6 py-3 mb-4 mx-auto w-fit">
             <Image
               src="/login/text.png"
               alt="Top Message"
               width={250}
               height={50}
               className="object-contain"
+              style={{ height: "auto" }}
+            />
+          </div>
+
+          {/* Duck Character */}
+          <div className="absolute right-0 top-50 ">
+            <Image
+              src="/login/duke-character.png"
+              alt="Duke Character"
+              width={100}
+              height={100}
+              className="drop-shadow-lg"
               style={{ height: "auto" }}
             />
           </div>
