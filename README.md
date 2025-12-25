@@ -31,9 +31,9 @@
 ## 🎯 Overview
 
 DukeFarm Frontend เป็นเว็บแอปพลิเคชันสำหรับเกษตรกรในการจัดการฟาร์มปลาดุกทั้ง 3 ช่วงการเลี้ยง:
-- **Nursery Small** (0-30 วัน) - ปลาเล็กมาก อุณหภูมิมีผลมาก
-- **Nursery Large** (31-120 วัน) - ปลาขนาดกลาง อุณหภูมิมีผลปานกลาง
-- **Market Grower** (121+ วัน) - ปลาขนาดใหญ่ อุณหภูมิมีผลน้อย
+- **Small (Pla Tum)** (7-10 วัน) - ปลาตุ้ม (Pla Tum) อุณหภูมิมีผลมาก
+- **Large (Pla Nio)** (11-30 วัน) - ปลานิ้ว (Pla Nio) อุณหภูมิมีผลปานกลาง
+- **Market (Pla Talad)** (31-180 วัน) - ปลาตลาด (Pla Talad) อุณหภูมิมีผลน้อย
 
 ### Key Features
 
@@ -88,11 +88,10 @@ DukeFarm Frontend เป็นเว็บแอปพลิเคชันส�
   - Support for common Thai fish diseases (e.g., EUS, Trichodina)
 
 ### Smart Caching System
-- **Dashboard Cache**: 15-minute TTL
-- **Weather Cache**: 30-minute TTL
-- **User Profile Cache**: 60-minute TTL
-- Automatic cache invalidation on expiry
-- Memory-efficient sessionStorage implementation
+- **Dashboard Cache**: 15-minute TTL (In-Memory)
+- **Weather Cache**: 15-minute TTL (In-Memory)
+- **Automatic Invalidation**: Clears on page refresh
+- **Memory Efficient**: Uses Map for session data
 
 ## 🏗️ Architecture
 
@@ -109,8 +108,8 @@ DukeFarm Frontend เป็นเว็บแอปพลิเคชันส�
 │  ┌─────────▼─────────────────▼──────────────────▼─────────┐  │
 │  │              CacheManager (TTL-based)                  │  │
 │  │  ┌──────────────┐  ┌──────────────┐  ┌─────────────┐  │  │
-│  │  │ Dashboard    │  │   Weather    │  │ User Profile│  │  │
-│  │  │ Cache (15m)  │  │ Cache (30m)  │  │ Cache (60m) │  │  │
+│  │  │ Dashboard    │  │   Weather    │  │   Others    │  │  │
+│  │  │ Cache (15m)  │  │ Cache (15m)  │  │ Cache (30s) │  │  │
 │  │  └──────────────┘  └──────────────┘  └─────────────┘  │  │
 │  └────────────────────────┬────────────────────────────────┘  │
 └───────────────────────────┼────────────────────────────────────┘
@@ -226,29 +225,6 @@ Time 00:16 - User refreshes Dashboard
     ↓ Cache EXPIRED
     ↓ API call to Backend
     ↓ Store new data in cache (expires at 00:31)
-```
-
-### 5. Feeding Recommendation Logic
-```
-Fish Age (days) + Water Temperature (°C)
-    ↓
-Determine Farm Type:
-├─ 0-30 days → SMALL (ปลาตุ้ม)
-│   ├─ Temp < 28°C → High sensitivity (-70% to -90%)
-│   └─ Temp > 35°C → High sensitivity (-40% to -80%)
-│
-├─ 31-120 days → LARGE (ปลานิ้ว)
-│   ├─ Temp < 28°C → Medium sensitivity (-40% to -60%)
-│   └─ Temp > 35°C → Medium sensitivity (-20% to -50%)
-│
-└─ 121+ days → MARKET (ปลาตลาด)
-    ├─ Temp < 28°C → Low sensitivity (-30% to -50%)
-    └─ Temp > 35°C → Low sensitivity (-15% to -40%)
-    
-    ↓
-Calculate Daily Adjustment Percentage
-    ↓
-Generate 7-day Feeding Plan
 ```
 
 ## 🛠️ Tech Stack
@@ -380,88 +356,19 @@ console.log(sessionStorage.getItem('nurserySmallDashboard'))
 // const cachedData = CacheManager.get<DashboardData>(DASHBOARD_CACHE_KEY);
 ```
 
-## 📁 Project Structure
-
-```
-DukeFarm-Frontend/
-├── public/
-│   ├── login/                      # Login page assets
-│   │   ├── bg.jpg                  # Background image
-│   │   ├── duke.png                # DUKE logo
-│   │   └── line-login.png          # LINE login button
-│   ├── nursery-large/              # Nursery large icons
-│   └── register-farmer/            # Farmer registration icons
-├── src/
-│   ├── app/
-│   │   ├── page.tsx                # Root page (routing logic)
-│   │   ├── layout.tsx              # Root layout
-│   │   ├── globals.css             # Global styles
-│   │   │
-│   │   ├── auth/
-│   │   │   └── callback/
-│   │   │       └── page.tsx        # LINE auth callback handler
-│   │   │
-│   │   ├── nursery-small/          # Nursery Small (0-30 days)
-│   │   │   ├── page.tsx            # Dashboard
-│   │   │   ├── weather-small/
-│   │   │   │   └── page.tsx        # Weather detail page
-│   │   │   └── feeding-small/
-│   │   │       └── page.tsx        # Feeding record page
-│   │   │
-│   │   ├── nursery-large/          # Nursery Large (31-120 days)
-│   │   │   ├── page.tsx            # Dashboard
-│   │   │   └── weather-large/
-│   │   │       └── page.tsx        # Weather detail page
-│   │   │
-│   │   ├── market-grower/          # Market Grower (121+ days)
-│   │   │   ├── page.tsx            # Dashboard
-│   │   │   └── weather-market/
-│   │   │       └── page.tsx        # Weather detail page
-│   │   │
-│   │   ├── register-farmer/        # Farmer registration
-│   │   │   └── page.tsx
-│   │   │
-│   │   ├── register-researcher/    # Researcher registration
-│   │   │   └── page.tsx
-│   │   │
-│   │   └── weather/                # Legacy weather page
-│   │       └── page.tsx
-│   │
-│   ├── components/                 # Reusable components
-│   │   ├── common/                 # Common UI components
-│   │   ├── layout/                 # Layout components
-│   │   ├── dashboard/              # Dashboard widgets
-│   │   └── ...
-│   │
-│   ├── hooks/
-│   │   └── useLineUser.ts          # LINE user hook
-│   │
-│   ├── utils/
-│   │   └── cache.ts                # CacheManager with TTL
-│   │
-│   └── assets/                     # Static assets
-│
-├── .env.local                      # Environment variables
-├── next.config.ts                  # Next.js configuration
-├── tailwind.config.ts              # Tailwind CSS config
-├── tsconfig.json                   # TypeScript config
-├── postcss.config.mjs              # PostCSS config
-└── package.json                    # Dependencies & scripts
-```
 
 ## 💾 Caching Strategy
 
 ### CacheManager Implementation
 
-Located in `src/utils/cache.ts`, the CacheManager provides TTL-based caching:
+Located in `src/utils/cache.ts`, the CacheManager provides TTL-based caching using an **In-Memory Map**.
+Note: Data is cleared when the page is refreshed (Session-based in memory, not sessionStorage).
 
 ```typescript
 // Cache configuration
 export const CACHE_TTL = {
   DASHBOARD: 15 * 60 * 1000,      // 15 minutes
-  WEATHER: 30 * 60 * 1000,         // 30 minutes
-  USER_PROFILE: 60 * 60 * 1000,    // 1 hour
-  STATIC: 24 * 60 * 60 * 1000      // 24 hours
+  WEATHER: 15 * 60 * 1000,        // 15 minutes
 } as const;
 
 // Usage
@@ -469,88 +376,67 @@ CacheManager.set('key', data, CACHE_TTL.DASHBOARD);
 const cachedData = CacheManager.get<DataType>('key');
 ```
 
-### Cache Keys
-
-- `nurserySmallDashboard` - Nursery Small dashboard data
-- `nurseryLargeDashboard` - Nursery Large dashboard data
-- `marketGrowerDashboard` - Market Grower dashboard data
-
 ### Cache Behavior
 
-**Dashboard Pages:**
-1. Check cache on page load
-2. If cache hit and valid → Display immediately
-3. If cache miss or expired → Fetch from API → Store with TTL
-
-**Weather Pages:**
-1. Load from same cache as dashboard
-2. No direct API calls
-3. If cache miss → Prompt user to return to dashboard
+1.  **Check Cache**: Before making API calls, check `CacheManager.get(key)`.
+2.  **Hit**: If data exists and hasn't expired, use it immediately.
+3.  **Miss**: Fetch from API, then store in cache with `CacheManager.set(key, data, TTL)`.
 
 ### Benefits
 
-- ⚡ **Performance**: Instant page loads with cached data
-- 🔄 **Data Freshness**: Automatic refresh after TTL expires
-- 💰 **Cost Efficiency**: Reduced API calls to weather service
-- 🎯 **Consistency**: Weather page always shows same data as dashboard
+- ⚡ **Performance**: Instant component remounting
+- 🔄 **Data Efficiency**: Reduces redundant API calls during session navigation
+- 💰 **Cost Efficiency**: Minimizes calls to weather services
 
 ## 📱 Pages Overview
 
 ### Main Pages
 
-1. **Root Page** (`/`) 
-   - Routing logic based on authentication and farm type
-   - Redirects to appropriate dashboard
+1.  **Root Page** (`/`) 
+    - Routing logic based on authentication and farm type
+    - Redirects to appropriate dashboard
 
-2. **LINE Auth Callback** (`/auth/callback`)
-   - Handles LINE OAuth callback
-   - Stores JWT token in localStorage
-   - Redirects based on user role and registration status
+2.  **LINE Auth Callback** (`/auth/callback`)
+    - Handles LINE OAuth callback
+    - Stores JWT token in localStorage
+    - Redirects based on user role and registration status
 
-3. **Farmer Registration** (`/register-farmer`)
-   - Farm details form
-   - GPS location picker with Leaflet map
-   - Pond count and farm area input
+3.  **Farmer Registration** (`/register-farmer`)
+    - Farm details form
+    - GPS location picker with Leaflet map
+    - Pond count and farm area input
 
 ### Dashboard Pages (by Farm Type)
 
-4. **Nursery Small Dashboard** (`/nursery-small`)
-   - For fish aged 0-30 days
-   - High temperature sensitivity display
-   - Weather overview card
-   - 7-day feeding plan
-   - Quick action buttons
+4.  **Small Dashboard** (`/small`)
+    - For fish aged 7-10 days (Pla Tum)
+    - High temperature sensitivity
 
-5. **Nursery Large Dashboard** (`/nursery-large`)
-   - For fish aged 31-120 days
-   - Medium temperature sensitivity
-   - Similar layout to Nursery Small
+5.  **Large Dashboard** (`/large`)
+    - For fish aged 11-30 days (Pla Nio)
+    - Medium temperature sensitivity
 
-6. **Market Grower Dashboard** (`/market-grower`)
-   - For fish aged 121+ days
-   - Low temperature sensitivity
-   - Mature fish management features
+6.  **Market Dashboard** (`/market`)
+    - For fish aged 31-180 days (Pla Talad)
+    - Low temperature sensitivity
 
-### Weather Detail Pages
+### Disease Intelligence
 
-7. **Nursery Small Weather** (`/nursery-small/weather-small`)
-   - Hourly forecast (next 12 hours)
-   - 7-day detailed forecast
-   - Interactive map with farm location
-   - Temperature trends
+7.  **Disease Information** (`/disease-information`)
+    - Symptom selection (Tags & Text)
+    - AI Analysis interface
 
-8. **Nursery Large Weather** (`/nursery-large/weather-large`)
-   - Same features as Nursery Small weather
+8.  **Diagnosis Result** (`/disease-result`)
+    - Analysis results with confidence scores
+    - Disease details and treatment guides
 
-9. **Market Grower Weather** (`/market-grower/weather-market`)
-   - Same features with market grower context
+### Operations
 
-### Feeding Pages
+9.  **Feeding Record** (`/add-feeding`)
+    - Record daily feeding and water quality
 
-10. **Nursery Small Feeding** (`/nursery-small/feeding-small`)
-    - Feeding record form
-    - Feed type selection
-    - Amount calculation helper
+10. **Farm Statistics** (`/statistics`)
+    - Farm performance overview
 
 ## 🎨 Theme Colors
 
@@ -686,8 +572,3 @@ For questions, issues, or feature requests:
 - **GitHub Issues**: [koard/DukeFarm-Frontend/issues](https://github.com/koard/DukeFarm-Frontend/issues)
 - **Backend Documentation**: [DukeFarm-Backend README](../DukeFarm-Backend/README.md)
 - **Project Team**: Betagro & Kasetsart University Research Collaboration
-
----
-
-**Built with ❤️ for sustainable aquaculture in Thailand**
-
