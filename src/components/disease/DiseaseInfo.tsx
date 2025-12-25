@@ -26,12 +26,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
 
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const getCategoryIcon = (categoryName: string) => {
-    if (categoryName.includes('ทั่วไป') || categoryName.includes('General')) return '🌡️';
-    if (categoryName.includes('ภายนอก') || categoryName.includes('Appearance')) return '🐟';
-    if (categoryName.includes('อวัยวะ') || categoryName.includes('Organs')) return '🫀';
-    return '📌';
-  };
+
 
   useEffect(() => {
     const fetchSymptoms = async () => {
@@ -198,34 +193,24 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
                 <div className="flex gap-2"><div className="h-8 w-16 bg-gray-200 rounded-full"></div><div className="h-8 w-28 bg-gray-200 rounded-full"></div></div>
               </div>
             ) : (
-              <div className="space-y-6">
-                {symptomCategories.map((group, index) => (
-                  <div key={index} className="space-y-2">
-                    <h4 className="text-sm font-bold text-gray-500 ml-1 flex items-center gap-1">
-                      <span>{getCategoryIcon(group.category)}</span>
-                      {group.category}
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {group.chips.map((tag) => {
-                        const active = selectedTags.includes(tag);
-                        return (
-                          <button
-                            type="button"
-                            key={tag}
-                            onClick={() => toggleTag(tag)}
-                            className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-200 ease-in-out ${active
-                              ? 'bg-[#BDD7FF] text-black border-black shadow-md scale-105'
-                              : 'bg-white text-black border-gray-300 hover:border-blue-400 hover:shadow-sm'
-                              }`}
-                          >
-                            {active && '✓ '}
-                            {tag}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
+              <div className="flex flex-wrap gap-2">
+                {symptomCategories.flatMap(group => group.chips).map((tag) => {
+                  const active = selectedTags.includes(tag);
+                  return (
+                    <button
+                      type="button"
+                      key={tag}
+                      onClick={() => toggleTag(tag)}
+                      className={`px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 ease-in-out ${active
+                        ? 'bg-[#BDD7FF] text-black border-black shadow-md scale-105'
+                        : 'bg-white text-black border-gray-300 hover:border-blue-400 hover:shadow-sm'
+                        }`}
+                    >
+                      {active && '✓ '}
+                      {tag}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
