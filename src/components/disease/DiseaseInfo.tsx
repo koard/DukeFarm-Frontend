@@ -149,7 +149,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
           <button onClick={handleBack} className="p-1 rounded-full transition-all hover:bg-white/10 active:scale-95">
             <ChevronLeft className="w-8 h-8" />
           </button>
-          <h1 className="text-2xl font-bold">ตรวจสอบอาการ</h1>
+          <h1 className="text-2xl font-bold">การรักษาโรค</h1>
         </div>
         <ProfileDropdownMenu />
       </header>
@@ -214,8 +214,8 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
                             key={tag}
                             onClick={() => toggleTag(tag)}
                             className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-200 ease-in-out ${active
-                                ? 'bg-[#BDD7FF] text-black border-black shadow-md scale-105'
-                                : 'bg-white text-black border-gray-300 hover:border-blue-400 hover:shadow-sm'
+                              ? 'bg-[#BDD7FF] text-black border-black shadow-md scale-105'
+                              : 'bg-white text-black border-gray-300 hover:border-blue-400 hover:shadow-sm'
                               }`}
                           >
                             {active && '✓ '}

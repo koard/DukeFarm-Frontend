@@ -583,7 +583,7 @@ export default function NurseryLargePage() {
             <Link href="/large/disease-info-large" className="block w-full">
                 <button className="w-full bg-[#A530FF] hover:bg-[#8a2be2] text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
                     <Image src="/nursery-large/famicons_fish-w.svg" alt="icon" width={24} height={24} />
-                    ข้อมูลการรักษาโรค
+                    การรักษาโรค
                 </button>
             </Link>
 
