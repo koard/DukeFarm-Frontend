@@ -3,12 +3,12 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, X, Loader2, AlertCircle } from 'lucide-react'; 
+import { ChevronLeft, X, Loader2, AlertCircle } from 'lucide-react';
 import { ProfileDropdownMenu } from '@/components/common/ProfileDropdownMenu';
 import { diseaseAnalyzerService, type SymptomCategory } from '@/services/diseaseAnalyzerService';
 
 interface DiseaseInfoProps {
-  backHref: string; 
+  backHref: string;
 }
 
 export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
@@ -23,7 +23,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  
+
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const getCategoryIcon = (categoryName: string) => {
@@ -68,23 +68,23 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
     setValidationError(null);
 
     if (selectedFile) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const base64Image = e.target?.result as string;
-            sessionStorage.setItem("analyzedImage", base64Image);
-        };
-        reader.readAsDataURL(selectedFile);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64Image = e.target?.result as string;
+        sessionStorage.setItem("analyzedImage", base64Image);
+      };
+      reader.readAsDataURL(selectedFile);
     } else {
-        sessionStorage.removeItem("analyzedImage");
+      sessionStorage.removeItem("analyzedImage");
     }
 
     try {
       const formData = new FormData();
       const rawText = symptomInput.trim();
       const textToSend = rawText === "" ? "-" : rawText;
-      
+
       formData.append('symptomText', textToSend);
-      
+
       if (hasTags) {
         formData.append('symptomTags', JSON.stringify(selectedTags));
       } else {
@@ -96,12 +96,12 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
       }
 
       const result = await diseaseAnalyzerService.analyzeDisease(formData);
-      
+
       if (result.requestId) {
         router.push(`/disease-result?id=${result.requestId}`);
       } else {
-         console.warn("No Request ID returned");
-         setValidationError("ไม่ได้รับรหัสการวิเคราะห์จากระบบ กรุณาลองใหม่อีกครั้ง");
+        console.warn("No Request ID returned");
+        setValidationError("ไม่ได้รับรหัสการวิเคราะห์จากระบบ กรุณาลองใหม่อีกครั้ง");
       }
 
     } catch (error: any) {
@@ -141,7 +141,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
   };
 
   const handleBack = () => router.push(backHref);
-  
+
   return (
     <div className="min-h-screen bg-white pb-10 relative">
       <header className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10 flex items-center justify-between">
@@ -155,7 +155,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
       </header>
 
       <div className="px-5 mt-8 w-full max-w-2xl mx-auto flex flex-col min-h-[calc(100vh-180px)] justify-between gap-6">
-        
+
         <div className="space-y-6">
           <div className="bg-gradient-to-br from-cyan-50 to-blue-50 p-5 rounded-2xl border-2 border-cyan-500 shadow-sm">
             <div className="flex flex-col items-center text-center gap-3">
@@ -163,7 +163,8 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
               <div>
                 <h3 className="text-[#093832] font-bold text-base mb-1">ตรวจสอบอาการปลา</h3>
                 <p className="text-gray-600 text-sm leading-relaxed">
-                  ระบบวิเคราะห์อัจฉริยะช่วยประเมินอาการเบื้องต้น พิมพ์อาการตามความเข้าใจหรือเลือกจากรายการด้านล่าง รวมถึงสามารถอัปโหลดรูปภาพปลาเพื่อช่วยในการวิเคราะห์ได้ด้วย
+                  บันทึกอาการที่พบเพื่อช่วยในการวินิจฉัยโรค
+                  หรือเลือกดูข้อมูลโรคทั้งหมดได้ด้านล่าง
                 </p>
               </div>
             </div>
@@ -176,7 +177,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
             <textarea
               value={symptomInput}
               onChange={(e) => setSymptomInput(e.target.value)}
-              placeholder="เช่น ปลามีแผล เลือดออกตามตัว ว่ายน้ำผิดปกติ (ระบบเข้าใจคำผิดได้)"
+              placeholder="อธิบายอาการที่พบในปลา เช่น ปลามีแผล เลือดออกตามตัว ว่ายผิดปกติ"
               rows={3}
               className="w-full rounded-xl border-1 border-gray-300 px-4 py-3 text-sm text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#093832]/20 focus:border-[#093832] resize-none transition-all"
             />
@@ -184,9 +185,9 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
 
           <div className="space-y-4">
             <label className="flex items-center gap-2 text-base text-[#093832] font-semibold">
-              เลือกอาการด่วน (แยกตามหมวดหมู่)
+              เลือกอาการด่วน
             </label>
-            
+
             {isLoadingTags ? (
               <div className="space-y-4 animate-pulse">
                 <div className="h-4 bg-gray-200 rounded w-1/3"></div>
@@ -210,11 +211,10 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
                             type="button"
                             key={tag}
                             onClick={() => toggleTag(tag)}
-                            className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-200 ease-in-out ${
-                              active
+                            className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-200 ease-in-out ${active
                                 ? 'bg-[#BDD7FF] text-black border-black shadow-md scale-105'
                                 : 'bg-white text-black border-gray-300 hover:border-blue-400 hover:shadow-sm'
-                            }`}
+                              }`}
                           >
                             {active && '✓ '}
                             {tag}
@@ -241,7 +241,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
                   <span>📷 ถ่ายรูป / อัปโหลดรูปปลา</span>
                 </div>
               </label>
-              
+
               <input
                 ref={fileInputRef}
                 id="disease-image-input"
@@ -278,12 +278,12 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
           </div>
 
           <div className="mt-auto pt-4 space-y-3">
-             {validationError && (
-               <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm animate-pulse">
-                 <AlertCircle className="w-5 h-5 shrink-0" />
-                 <p>{validationError}</p>
-               </div>
-             )}
+            {validationError && (
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm animate-pulse">
+                <AlertCircle className="w-5 h-5 shrink-0" />
+                <p>{validationError}</p>
+              </div>
+            )}
 
             <button
               type="button"
@@ -298,8 +298,8 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
               onClick={handleAnalyze}
               disabled={isAnalyzing}
               className={`w-full py-4 rounded-xl text-lg font-bold text-white shadow-md transition-all flex items-center justify-center gap-2
-                ${isAnalyzing 
-                  ? 'bg-gray-400 cursor-not-allowed' 
+                ${isAnalyzing
+                  ? 'bg-gray-400 cursor-not-allowed'
                   : 'bg-[#009D64] hover:shadow-lg hover:from-emerald-600 hover:to-green-700 active:scale-95'
                 }`}
             >
