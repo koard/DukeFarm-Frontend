@@ -156,9 +156,10 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
 
       <div className="px-5 mt-8 w-full max-w-2xl mx-auto flex flex-col min-h-[calc(100vh-180px)] justify-between gap-6">
 
+        {/* --- Form Section --- */}
         <div className="space-y-6">
           <div className="bg-gradient-to-br from-cyan-50 to-blue-50 p-5 rounded-2xl border-2 border-cyan-500 shadow-sm">
-            <div className="flex flex-col items-center text-center gap-3">
+            <div className="flex items-start gap-3">
               <span className="text-3xl">🩺</span>
               <div>
                 <h3 className="text-[#093832] font-bold text-base mb-1">ตรวจสอบอาการปลา</h3>
@@ -170,6 +171,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
             </div>
           </div>
 
+          {/* --- Symptoms Section --- */}
           <div className="space-y-3">
             <label className="flex items-center gap-2 text-base text-[#093832] font-semibold">
               อาการที่พบ
