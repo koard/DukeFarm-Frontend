@@ -202,7 +202,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
                       key={tag}
                       onClick={() => toggleTag(tag)}
                       className={`px-3 py-2 rounded-full text-sm font-medium border transition-all duration-200 ease-in-out ${active
-                        ? 'bg-[#BDD7FF] text-black border-black shadow-md'
+                        ? 'bg-[#BDD7FF] text-black border-black shadow-md scale-103'
                         : 'bg-white text-black border-gray-300 hover:border-blue-400 hover:shadow-sm'
                         }`}
                     >
