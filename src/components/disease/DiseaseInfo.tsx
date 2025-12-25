@@ -219,24 +219,28 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
               รูปภาพประกอบ (ถ้ามี)
             </label>
             <div className="w-full">
-              <label
-                htmlFor="disease-image-input"
-                className="block w-full text-center py-4 rounded-xl text-base font-bold text-white bg-blue-500 shadow-md hover:shadow-lg hover:from-blue-600 hover:to-indigo-600 cursor-pointer transition-all active:scale-95"
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <span>📷 ถ่ายรูป / อัปโหลดรูปปลา</span>
-                </div>
-              </label>
+              {!imagePreview && (
+                <>
+                  <label
+                    htmlFor="disease-image-input"
+                    className="block w-full text-center py-4 rounded-xl text-base font-bold text-white bg-blue-500 shadow-md hover:shadow-lg hover:from-blue-600 hover:to-indigo-600 cursor-pointer transition-all active:scale-95"
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <span>📷 ถ่ายรูป / อัปโหลดรูปปลา</span>
+                    </div>
+                  </label>
 
-              <input
-                ref={fileInputRef}
-                id="disease-image-input"
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handleImageChange}
-                className="hidden"
-              />
+                  <input
+                    ref={fileInputRef}
+                    id="disease-image-input"
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                </>
+              )}
 
               {imagePreview && (
                 <div className="mt-4 relative rounded-2xl border-2 border-[#093832] overflow-hidden shadow-lg group">
