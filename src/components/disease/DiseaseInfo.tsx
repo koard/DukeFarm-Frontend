@@ -193,7 +193,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
                 <div className="flex gap-2"><div className="h-8 w-16 bg-gray-200 rounded-full"></div><div className="h-8 w-28 bg-gray-200 rounded-full"></div></div>
               </div>
             ) : (
-              <div className="flex flex-wrap gap-1.75">
+              <div className="flex flex-wrap gap-2">
                 {symptomCategories.flatMap(group => group.chips).map((tag) => {
                   const active = selectedTags.includes(tag);
                   return (
