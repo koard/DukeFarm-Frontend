@@ -85,6 +85,8 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, latestFishAgeDays, loading
     ? Math.ceil(config.milestoneDay - ageDays)
     : null;
 
+  const hasData = typeof ageDays === "number";
+
   return (
     <section className="rounded-3xl p-5 shadow-sm border border-[#FECBA9] bg-gradient-to-br from-[#FFF7ED] to-[#FFEAD5]">
       <div className="flex items-start justify-between gap-4">
@@ -101,29 +103,39 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, latestFishAgeDays, loading
             <div>
               <p className="text-sm text-gray-500">อายุปลาปัจจุบัน</p>
               <p className="text-3xl font-extrabold text-[#7C2D12]">
-                {typeof ageDays === "number" ? ageDays : "-"}
-                <span className="text-base font-bold text-gray-500 ml-1"> วัน</span>
+                {hasData ? ageDays : "ไม่มีข้อมูล"}
+                <span className="text-base font-bold text-gray-500 ml-1">{hasData ? " วัน" : ""}</span>
               </p>
             </div>
           </div>
 
-          <div className="mt-4">
-            <div className="h-3 rounded-full bg-white/70 overflow-hidden">
-              <div
-                className="h-full rounded-full transition-[width] duration-700"
-                style={{
-                  width: `${progressRatio * 100}%`,
-                  backgroundImage: `linear-gradient(90deg, ${config.gradient[0]}, ${config.gradient[1]})`,
-                }}
-              />
+          {!hasData && (
+            <div className="mt-4 rounded-2xl bg-white/40 border border-[#FECBA9]/30 p-4 text-sm text-[#7C2D12]">
+              <p className="text-base font-semibold">
+                แนะนำให้ไปบันทึกข้อมูลก่อนเพื่อติดตามสถานะรอบการเลี้ยง
+              </p>
             </div>
-            <div className="flex justify-between text-sm text-gray-500 mt-1">
-              <span>{config.stage.min} วัน</span>
-              <span>{config.stage.max} วัน</span>
-            </div>
-          </div>
+          )}
 
-          {milestoneDelta !== null && (
+          {hasData && (
+            <div className="mt-4">
+              <div className="h-3 rounded-full bg-white/70 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-[width] duration-700"
+                  style={{
+                    width: `${progressRatio * 100}%`,
+                    backgroundImage: `linear-gradient(90deg, ${config.gradient[0]}, ${config.gradient[1]})`,
+                  }}
+                />
+              </div>
+              <div className="flex justify-between text-sm text-gray-500 mt-1">
+                <span>{config.stage.min} วัน</span>
+                <span>{config.stage.max} วัน</span>
+              </div>
+            </div>
+          )}
+
+          {hasData && milestoneDelta !== null && (
             <div className="mt-4 rounded-2xl bg-white/70 border border-white/60 p-4 text-sm text-[#7C2D12]">
               <p className="text-xs uppercase tracking-[0.2em] text-[#B45309] mb-1">ขั้นถัดไป</p>
               <p className="text-base font-semibold">
