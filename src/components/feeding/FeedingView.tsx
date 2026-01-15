@@ -337,11 +337,11 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                                 <div className="w-full">
                                     <h3 className="text-sm font-bold text-black mb-2 pl-1">คำแนะนำ</h3>
                                     <div className="bg-[#F4FFFC] rounded-xl p-4 w-full shadow-sm border border-emerald-50/50">
-                                        <ul className="list-disc pl-5 space-y-1">
+                                        <div className="space-y-1">
                                             {feedingInfo.advice.map((text: string, i: number) => (
-                                                <li key={i} className="text-sm text-black pl-1">{text}</li>
+                                                <p key={i} className="text-sm text-black">{text}</p>
                                             ))}
-                                        </ul>
+                                        </div>
                                     </div>
                                 </div>
                             )}
