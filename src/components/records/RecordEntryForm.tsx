@@ -385,6 +385,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         pondType: selectedPondType,
         pondCount: Number(pondCount),
         fishCountText: fishCount || undefined,
+        foodAmountKg: foodAmount ? Number(foodAmount) : undefined,
         weather: weatherSnapshot
           ? {
             temperatureC: weatherSnapshot.temperatureC,
@@ -395,7 +396,6 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         metadata: {
           cycleStartDate,
           initialAgeOffsetDays: initialAgeOffsetNumber,
-          foodAmount: foodAmount ? Number(foodAmount) : undefined,
         },
       };
 
@@ -606,8 +606,8 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         {submitMessage && (
           <div
             className={`rounded-xl px-4 py-3 text-sm border shadow-sm ${submitMessage.type === 'error'
-                ? 'bg-red-50 border-red-200 text-red-700'
-                : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+              ? 'bg-red-50 border-red-200 text-red-700'
+              : 'bg-emerald-50 border-emerald-200 text-emerald-900'
               }`}
           >
             {submitMessage.text}
@@ -773,8 +773,8 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                   type="button"
                   onClick={() => setSelectedPondType(option.value)}
                   className={`rounded-2xl border px-4 py-4 text-center text-base font-medium transition-all ${isActive
-                      ? 'border-[#093832] bg-[#093832] text-white'
-                      : 'border-gray-200 bg-white text-gray-600 hover:border-[#093832]/40'
+                    ? 'border-[#093832] bg-[#093832] text-white'
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-[#093832]/40'
                     }`}
                 >
                   {option.label}
@@ -830,8 +830,8 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
           disabled={!isFormValid || submitting}
           onClick={handleSubmit}
           className={`w-full py-3.5 rounded-xl text-xl font-bold text-white transition-all duration-200 shadow-md mt-4 ${isFormValid && !submitting
-              ? 'bg-[#EF6E11] hover:bg-[#d65d0a] active:scale-95'
-              : 'bg-[#A0A0A0] cursor-not-allowed'
+            ? 'bg-[#EF6E11] hover:bg-[#d65d0a] active:scale-95'
+            : 'bg-[#A0A0A0] cursor-not-allowed'
             }`}
         >
           {submitting ? 'กำลังประมวลผล...' : 'บันทึกข้อมูล'}
