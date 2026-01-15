@@ -100,22 +100,28 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, latestFishAgeDays, loading
       ) : (
         <>
           <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* No Data State Redesign */}
             <div>
-              <p className="text-sm text-gray-500">อายุปลาปัจจุบัน</p>
-              <p className="text-3xl font-extrabold text-[#7C2D12]">
-                {hasData ? ageDays : "ไม่มีข้อมูล"}
-                <span className="text-base font-bold text-gray-500 ml-1">{hasData ? " วัน" : ""}</span>
-              </p>
+              <p className="text-sm text-gray-500 mb-1">อายุปลาปัจจุบัน</p>
+              {hasData ? (
+                <p className="text-3xl font-extrabold text-[#7C2D12]">
+                  {ageDays}
+                  <span className="text-base font-bold text-gray-500 ml-1">วัน</span>
+                </p>
+              ) : (
+                <div className="flex flex-col items-start gap-2 mt-2">
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <span className="text-lg font-semibold text-gray-400">-- ไม่มีข้อมูล --</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-2 bg-[#FFF3E0] rounded-lg border border-[#FFE0B2]">
+                    <span className="text-sm text-[#E65100] font-medium">
+                      เริ่มบันทึกข้อมูลเพื่อติดตามสถานะ
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-
-          {!hasData && (
-            <div className="mt-4 rounded-2xl bg-white/40 border border-[#FECBA9]/30 p-4 text-sm text-[#7C2D12]">
-              <p className="text-base font-semibold">
-                แนะนำให้ไปบันทึกข้อมูลก่อนเพื่อติดตามสถานะรอบการเลี้ยง
-              </p>
-            </div>
-          )}
 
           {hasData && (
             <div className="mt-4">
