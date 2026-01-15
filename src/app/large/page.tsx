@@ -469,11 +469,7 @@ export default function NurseryLargePage() {
 
           </div>
 
-          {!loading && graphData.length === 0 && (
-            <div className="flex items-center justify-center text-gray-500 text-sm h-40">
-              ไม่มีข้อมูล
-            </div>
-          )}
+
         </div>
 
         {/* 6. รูปปลา & อัตราการรอดชีวิต (Dynamic Color) */}
