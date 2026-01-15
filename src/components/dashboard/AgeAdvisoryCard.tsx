@@ -109,13 +109,13 @@ const AgeAdvisoryCard = ({ group, latestFishAgeLabel, latestFishAgeDays, loading
                   <span className="text-base font-bold text-gray-500 ml-1">วัน</span>
                 </p>
               ) : (
-                <div className="flex flex-col items-start gap-2 mt-2">
-                  <div className="flex items-center gap-2">
+                <div className="mt-1">
+                  <div className="flex items-baseline gap-2">
                     <span className="text-lg font-semibold text-gray-300">-- ไม่มีข้อมูล --</span>
                   </div>
-                  <span className="text-sm text-gray-500">
+                  <p className="text-xs text-gray-400 mt-0.5">
                     โปรดบันทึกข้อมูลเพื่อเริ่มติดตามสถานะ
-                  </span>
+                  </p>
                 </div>
               )}
             </div>
