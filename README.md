@@ -43,6 +43,7 @@ DukeFarm Frontend เป็นเว็บแอปพลิเคชันส�
 - **💾 Intelligent Caching** - ระบบ cache แบบ TTL เพื่อลด API calls และเพิ่มความเร็ว
 - **📱 Responsive Design** - ใช้งานได้ทั้งบนมือถือและคอมพิวเตอร์
 - **🎯 Age-Specific Recommendations** - คำแนะนำการให้อาหารตามช่วงอายุปลา
+- **📅 Dynamic Age Tracking** - คำนวณอายุปลาอัตโนมัติจากวันที่ลงปลา พร้อมสถานะ "ไม่มีข้อมูล" หากยังไม่เริ่มบันทึก
 
 ## ✨ Features
 
