@@ -214,7 +214,7 @@ export default function MarketGrowerPage() {
     }
   }, [graphData]);
 
-  const forecastData: ForecastData[] = hasDashboardData ? dashboardData?.feedingPlan || [] : [];
+  const forecastData: ForecastData[] = dashboardData?.feedingPlan || [];
 
   const currentSurvivalRate = (() => {
     if (survivalSeries.length === 0) {

@@ -215,7 +215,7 @@ export default function NurseryLargePage() {
     }
   }, [graphData]);
 
-  const forecastData: ForecastData[] = hasDashboardData ? dashboardData?.feedingPlan || [] : [];
+  const forecastData: ForecastData[] = dashboardData?.feedingPlan || [];
 
   const currentSurvivalRate = (() => {
     if (survivalSeries.length === 0) {
