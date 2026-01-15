@@ -335,7 +335,7 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                             {/* Block 3: คำแนะนำ */}
                             {feedingInfo?.advice && feedingInfo.advice.length > 0 && (
                                 <div className="w-full">
-                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">คำแนะนำเพิ่มเติม</h3>
+                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">คำแนะนำ</h3>
                                     <div className="bg-[#F4FFFC] rounded-xl p-4 w-full shadow-sm border border-emerald-50/50">
                                         <ul className="list-disc pl-5 space-y-1">
                                             {feedingInfo.advice.map((text: string, i: number) => (
