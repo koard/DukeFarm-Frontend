@@ -251,7 +251,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
   useEffect(() => {
     if (showSuccessModal) {
       document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none'; 
+      document.body.style.touchAction = 'none';
     } else {
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
@@ -284,12 +284,12 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         );
 
         if (!response.ok) {
-           if (response.status === 401) {
-             router.push('/login');
-             return;
-           }
-           console.log("API Fetch failed");
-           return;
+          if (response.status === 401) {
+            router.push('/login');
+            return;
+          }
+          console.log("API Fetch failed");
+          return;
         }
 
         const payload: { data: FormStateResponse } = await response.json();
@@ -387,10 +387,10 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         fishCountText: fishCount || undefined,
         weather: weatherSnapshot
           ? {
-              temperatureC: weatherSnapshot.temperatureC,
-              rainMm: weatherSnapshot.rainMm,
-              humidityPct: weatherSnapshot.humidityPct,
-            }
+            temperatureC: weatherSnapshot.temperatureC,
+            rainMm: weatherSnapshot.rainMm,
+            humidityPct: weatherSnapshot.humidityPct,
+          }
           : undefined,
         metadata: {
           cycleStartDate,
@@ -455,108 +455,108 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
 
   if (isAnalysisView) {
-      return (
-        <div className="min-h-screen bg-white pb-10 relative">
-            <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <button onClick={() => setIsAnalysisView(false)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
-                        <ChevronLeft className="w-8 h-8" />
-                    </button>
-                    <h1 className="text-2xl font-bold">ผลวิเคราะห์</h1>
-                </div>
-                <div className="flex items-center gap-3">
-                    <div className="text-right">
-                        <p className="text-sm text-gray-300">ยินดีต้อนรับ</p>
-                        <p className="text-sm font-bold">{lineUser.displayName}</p>
-                    </div>
-                    <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-gray-200">
-                        <Image src={lineUser.pictureUrl || '/default-avatar.png'} alt="Profile" width={40} height={40} className="w-full h-full object-cover"/>
-                    </div>
-                </div>
+    return (
+      <div className="min-h-screen bg-white pb-10 relative">
+        <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button onClick={() => setIsAnalysisView(false)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
+              <ChevronLeft className="w-8 h-8" />
+            </button>
+            <h1 className="text-2xl font-bold">ผลวิเคราะห์</h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-sm text-gray-300">ยินดีต้อนรับ</p>
+              <p className="text-sm font-bold">{lineUser.displayName}</p>
             </div>
-
-            <div className="px-6 mt-6 w-full max-w-5xl mx-auto space-y-5">
-                <div className="flex items-center gap-2 mb-2">
-                    <Image src="/nursery-large/famicons_fish-g.svg" alt="fish" width={24} height={24} />
-                    <h2 className="text-lg font-bold text-black">ผลวิเคราะห์การเจริญเติบโต (ปลาดุก)</h2>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="bg-[#E4F5E7] rounded-xl py-3 px-4 flex items-center gap-2 shadow-sm border border-[#6CCF9C]/30 relative">
-                        <Image src="/nursery-large/solar_calendar-outline.svg" alt="date" width={20} height={20} className="opacity-70"/>
-                        <span className="text-[#093832] text-lg font-bold">{recordDate}</span>
-                    </div>
-                    <div className="bg-[#E4F5E7] rounded-xl py-3 px-4 flex items-center gap-2 shadow-sm border border-[#6CCF9C]/30 relative">
-                        <Image src="/nursery-large/formkit_time.svg" alt="time" width={20} height={20} className="opacity-70"/>
-                        <span className="text-[#093832] text-lg font-bold">{recordTime} น.</span>
-                    </div>
-                </div>
-
-                <div className="flex items-stretch bg-[#FFEFBC] rounded-xl overflow-hidden shadow-sm">
-                    <div className="flex-1 p-4 flex flex-col items-center justify-center gap-2">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Image src="/nursery-large/famicons_fish-outline.svg" alt="age" width={18} height={18} />
-                            <span>ช่วงอายุปลา</span>
-                        </div>
-                        <p className="text-xl font-bold text-black text-center">{formatAgeSummary(fishAgeNumber)}</p>
-                    </div>
-                    <div className="w-[2px] bg-white" />
-                    <div className="flex-1 p-4 flex flex-col items-center justify-center gap-2">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                             <Image src="/nursery-large/hugeicons_weight.svg" alt="weight" width={18} height={18} />
-                            <span>น้ำหนักเฉลี่ย (Kg.)</span>
-                        </div>
-                        <p className="text-xl font-bold text-black">2.0</p>
-                    </div>
-                </div>
-
-                <div className="flex items-stretch bg-[#D8EFFF] rounded-xl overflow-hidden shadow-sm">
-                    <div className="flex-1 p-4 flex flex-col items-center justify-center gap-2">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                             <Image src="/nursery-large/fluent_temperature-b.svg" alt="temp" width={18} height={18} />
-                            <span>อุณหภูมิ</span>
-                        </div>
-                        <p className="text-xl font-bold text-black">{safeNumber(weatherSnapshot?.temperatureC, ' °C')}</p>
-                    </div>
-                    <div className="w-[2px] bg-white" />
-                    <div className="flex-1 p-4 flex flex-col items-center justify-center gap-2">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                             <Image src="/nursery-large/famicons_fish-outline.svg" alt="food" width={18} height={18} />
-                            <span>การทานอาหาร</span>
-                        </div>
-                        <p className="text-xl font-bold text-black">ปลากินดี โตเร็ว</p>
-                    </div>
-                </div>
-
-                <div className="bg-[#F0F4FF] rounded-xl p-4 border border-blue-100">
-                    <h3 className="font-bold text-blue-900 mb-2">แนวทางการให้อาหาร</h3>
-                    <div className="bg-white rounded-lg p-3 text-center mb-3 shadow-sm">
-                         <p className="text-gray-700">วันนี้อุณหภูมิลดลง 2°C<br/>แนะนำให้ลดอาหารลง 5%</p>
-                    </div>
-                    <div className="text-xs text-gray-600 space-y-1">
-                        <p><span className="font-bold">คำแนะนำ :</span></p>
-                        <p>ให้ 2 มื้อใหญ่ต่อวัน (เช้า-เย็น)</p>
-                        <p>เพิ่มสัดส่วนพลังงาน (ข้าวโพด, รำ)</p>
-                        <p>ลดโปรตีนลงเล็กน้อยอัตราโปรตีน 28-32% ก็เพียงพอ</p>
-                        <p>ติดตาม FCR เพื่อควบคุมต้นทุนอาหาร</p>
-                    </div>
-                </div>
-                <div className="bg-[#FFF6DB] rounded-xl p-4">
-                  <h3 className="font-bold text-black text-sm">บันทึกสถานะสุขภาพ</h3>
-                  <p className="text-sm text-gray-700 mb-2">ข้อมูลสุขภาพละเอียดให้บันทึกในหน้าแดชบอร์ดหลัก</p>
-                  <p className="text-xs text-gray-500">หน้านี้เน้นบันทึกข้อมูลการให้อาหารและจำนวนปลาเท่านั้น</p>
-                </div>
-
-                <button
-                type="button"
-                  onClick={() => router.push(backHref)}
-                    className="w-full py-3.5 rounded-xl text-xl font-bold text-[#EF6E11] border border-[#EF6E11] bg-white mt-4"
-                >
-                  ปิด
-              </button>
+            <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-gray-200">
+              <Image src={lineUser.pictureUrl || '/default-avatar.png'} alt="Profile" width={40} height={40} className="w-full h-full object-cover" />
             </div>
+          </div>
         </div>
-      );
+
+        <div className="px-6 mt-6 w-full max-w-5xl mx-auto space-y-5">
+          <div className="flex items-center gap-2 mb-2">
+            <Image src="/nursery-large/famicons_fish-g.svg" alt="fish" width={24} height={24} />
+            <h2 className="text-lg font-bold text-black">ผลวิเคราะห์การเจริญเติบโต (ปลาดุก)</h2>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="bg-[#E4F5E7] rounded-xl py-3 px-4 flex items-center gap-2 shadow-sm border border-[#6CCF9C]/30 relative">
+              <Image src="/nursery-large/solar_calendar-outline.svg" alt="date" width={20} height={20} className="opacity-70" />
+              <span className="text-[#093832] text-lg font-bold">{recordDate}</span>
+            </div>
+            <div className="bg-[#E4F5E7] rounded-xl py-3 px-4 flex items-center gap-2 shadow-sm border border-[#6CCF9C]/30 relative">
+              <Image src="/nursery-large/formkit_time.svg" alt="time" width={20} height={20} className="opacity-70" />
+              <span className="text-[#093832] text-lg font-bold">{recordTime} น.</span>
+            </div>
+          </div>
+
+          <div className="flex items-stretch bg-[#FFEFBC] rounded-xl overflow-hidden shadow-sm">
+            <div className="flex-1 p-4 flex flex-col items-center justify-center gap-2">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Image src="/nursery-large/famicons_fish-outline.svg" alt="age" width={18} height={18} />
+                <span>ช่วงอายุปลา</span>
+              </div>
+              <p className="text-xl font-bold text-black text-center">{formatAgeSummary(fishAgeNumber)}</p>
+            </div>
+            <div className="w-[2px] bg-white" />
+            <div className="flex-1 p-4 flex flex-col items-center justify-center gap-2">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Image src="/nursery-large/hugeicons_weight.svg" alt="weight" width={18} height={18} />
+                <span>น้ำหนักเฉลี่ย (Kg.)</span>
+              </div>
+              <p className="text-xl font-bold text-black">2.0</p>
+            </div>
+          </div>
+
+          <div className="flex items-stretch bg-[#D8EFFF] rounded-xl overflow-hidden shadow-sm">
+            <div className="flex-1 p-4 flex flex-col items-center justify-center gap-2">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Image src="/nursery-large/fluent_temperature-b.svg" alt="temp" width={18} height={18} />
+                <span>อุณหภูมิ</span>
+              </div>
+              <p className="text-xl font-bold text-black">{safeNumber(weatherSnapshot?.temperatureC, ' °C')}</p>
+            </div>
+            <div className="w-[2px] bg-white" />
+            <div className="flex-1 p-4 flex flex-col items-center justify-center gap-2">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Image src="/nursery-large/famicons_fish-outline.svg" alt="food" width={18} height={18} />
+                <span>การทานอาหาร</span>
+              </div>
+              <p className="text-xl font-bold text-black">ปลากินดี โตเร็ว</p>
+            </div>
+          </div>
+
+          <div className="bg-[#F0F4FF] rounded-xl p-4 border border-blue-100">
+            <h3 className="font-bold text-blue-900 mb-2">แนวทางการให้อาหาร</h3>
+            <div className="bg-white rounded-lg p-3 text-center mb-3 shadow-sm">
+              <p className="text-gray-700">วันนี้อุณหภูมิลดลง 2°C<br />แนะนำให้ลดอาหารลง 5%</p>
+            </div>
+            <div className="text-xs text-gray-600 space-y-1">
+              <p><span className="font-bold">คำแนะนำ :</span></p>
+              <p>ให้ 2 มื้อใหญ่ต่อวัน (เช้า-เย็น)</p>
+              <p>เพิ่มสัดส่วนพลังงาน (ข้าวโพด, รำ)</p>
+              <p>ลดโปรตีนลงเล็กน้อยอัตราโปรตีน 28-32% ก็เพียงพอ</p>
+              <p>ติดตาม FCR เพื่อควบคุมต้นทุนอาหาร</p>
+            </div>
+          </div>
+          <div className="bg-[#FFF6DB] rounded-xl p-4">
+            <h3 className="font-bold text-black text-sm">บันทึกสถานะสุขภาพ</h3>
+            <p className="text-sm text-gray-700 mb-2">ข้อมูลสุขภาพละเอียดให้บันทึกในหน้าแดชบอร์ดหลัก</p>
+            <p className="text-xs text-gray-500">หน้านี้เน้นบันทึกข้อมูลการให้อาหารและจำนวนปลาเท่านั้น</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => router.push(backHref)}
+            className="w-full py-3.5 rounded-xl text-xl font-bold text-[#EF6E11] border border-[#EF6E11] bg-white mt-4"
+          >
+            ปิด
+          </button>
+        </div>
+      </div>
+    );
   }
 
   // --- RENDER SECTION: INPUT PAGE ---
@@ -604,15 +604,14 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
           </div>
         )}
         {submitMessage && (
-           <div
-             className={`rounded-xl px-4 py-3 text-sm border shadow-sm ${
-               submitMessage.type === 'error'
-                 ? 'bg-red-50 border-red-200 text-red-700'
-                 : 'bg-emerald-50 border-emerald-200 text-emerald-900'
-             }`}
-           >
-             {submitMessage.text}
-           </div>
+          <div
+            className={`rounded-xl px-4 py-3 text-sm border shadow-sm ${submitMessage.type === 'error'
+                ? 'bg-red-50 border-red-200 text-red-700'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+              }`}
+          >
+            {submitMessage.text}
+          </div>
         )}
 
         <div className="grid grid-cols-2 gap-4">
@@ -627,7 +626,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                 className="bg-transparent text-[#093832] text-lg font-bold w-full focus:outline-none z-10 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden"
               />
               <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
-                 <Image src="/nursery-large/solar_calendar-outline.svg" alt="calendar" width={24} height={24} className="opacity-50"/>
+                <Image src="/nursery-large/solar_calendar-outline.svg" alt="calendar" width={24} height={24} className="opacity-50" />
               </div>
             </div>
           </label>
@@ -642,9 +641,9 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                 lang="th-TH"
                 className="bg-transparent text-[#093832] text-lg font-bold w-full focus:outline-none z-10 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden"
               />
-               <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
-                 <Image src="/nursery-large/formkit_time.svg" alt="time" width={24} height={24} className="opacity-50"/>
-               </div>
+              <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
+                <Image src="/nursery-large/formkit_time.svg" alt="time" width={24} height={24} className="opacity-50" />
+              </div>
             </div>
           </label>
         </div>
@@ -773,11 +772,10 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                   key={option.value}
                   type="button"
                   onClick={() => setSelectedPondType(option.value)}
-                  className={`rounded-2xl border px-4 py-4 text-center text-base font-medium transition-all ${
-                    isActive
+                  className={`rounded-2xl border px-4 py-4 text-center text-base font-medium transition-all ${isActive
                       ? 'border-[#093832] bg-[#093832] text-white'
                       : 'border-gray-200 bg-white text-gray-600 hover:border-[#093832]/40'
-                  }`}
+                    }`}
                 >
                   {option.label}
                 </button>
@@ -831,13 +829,12 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
           type="button"
           disabled={!isFormValid || submitting}
           onClick={handleSubmit}
-          className={`w-full py-3.5 rounded-xl text-xl font-bold text-white transition-all duration-200 shadow-md mt-4 ${
-            isFormValid && !submitting
+          className={`w-full py-3.5 rounded-xl text-xl font-bold text-white transition-all duration-200 shadow-md mt-4 ${isFormValid && !submitting
               ? 'bg-[#EF6E11] hover:bg-[#d65d0a] active:scale-95'
               : 'bg-[#A0A0A0] cursor-not-allowed'
-          }`}
+            }`}
         >
-          {submitting ? 'กำลังประมวลผล...' : 'บันทึกข้อมูล' }
+          {submitting ? 'กำลังประมวลผล...' : 'บันทึกข้อมูล'}
         </button>
       </div>
     </div>
