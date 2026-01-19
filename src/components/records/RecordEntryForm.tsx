@@ -729,36 +729,44 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             </div>
           ) : (
             <div className="rounded-2xl border border-[#6CCF9C]/40 bg-gradient-to-br from-[#E4F5E7] to-white px-4 py-4 space-y-3 shadow-sm transition-all">
-              <div className="flex items-center justify-between">
-                <span className="text-md font-semibold text-[#093832]">อายุปลาปัจจุบัน</span>
-                <div className="flex items-center gap-1">
-                  <span className="text-xs text-gray-500">ต่อเนื่องจากรอบล่าสุด</span>
-                  <div className="px-1.5 py-0.5 rounded-md bg-[#093832] text-[10px] text-white">Auto</div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-[#093832]">อายุปลา (คำนวณอัตโนมัติ)</span>
                 </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-white border border-gray-200 px-4 py-3 flex-1 flex items-center justify-between">
-                  <strong className="text-2xl text-[#093832]">{fishAgeNumber} วัน</strong>
-                  <span className="text-sm text-gray-500">
-                    {formatAgeSummary(fishAgeNumber)}
-                  </span>
+                <div className="px-2 py-1 rounded-lg bg-[#093832]/10 text-[#093832] text-xs font-semibold">
+                  ต่อเนื่องจากรอบล่าสุด
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-[#6CCF9C]/20">
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Reset to manual mode
-                    setLastEntrySnapshot(null);
-                    setInitialAgeOffsetDays(getDefaultInitialAge(farmType).toString());
-                    setCycleStartDate(recordDate);
-                  }}
-                  className="text-sm text-[#EF6E11] font-medium underline underline-offset-2 hover:text-[#d65f0a]"
-                >
-                  เริ่มรอบการเลี้ยงใหม่ / แก้ไขการคำนวณ
-                </button>
+              <div className="bg-white rounded-xl border border-[#6CCF9C]/30 py-6 px-4 flex flex-col items-center justify-center gap-2 shadow-sm">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-extrabold text-[#093832]">{fishAgeNumber}</span>
+                  <span className="text-xl text-[#093832]/80 font-medium">วัน</span>
+                </div>
+                {(() => {
+                  const stage = getAgeStage(fishAgeNumber);
+                  if (stage) {
+                    return (
+                      <span className="text-sm font-medium text-[#EF6E11] px-3 py-1 rounded-full bg-[#EF6E11]/10">
+                        {stage.label}
+                      </span>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setLastEntrySnapshot(null);
+                  setInitialAgeOffsetDays(getDefaultInitialAge(farmType).toString());
+                  setCycleStartDate(recordDate);
+                }}
+                className="mt-4 w-full py-2.5 rounded-xl border border-[#EF6E11]/30 text-[#EF6E11] text-sm font-semibold hover:bg-[#EF6E11]/5 transition-colors"
+              >
+                เริ่มรอบการเลี้ยงใหม่ / แก้ไข
+              </button>
             </div>
           )}
         </div>
