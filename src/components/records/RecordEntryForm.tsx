@@ -687,8 +687,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         </div>
 
         <div className="space-y-3">
-          <label className="block text-lg font-bold text-black">ตั้งค่ารอบการเลี้ยง</label>
-          <label className="block text-lg font-bold text-black">ตั้งค่ารอบการเลี้ยง</label>
+          <label className="block text-lg font-bold text-black">ข้อมูลอายุปลา</label>
           {!lastEntrySnapshot ? (
             <div className="rounded-2xl border border-[#6CCF9C]/40 bg-white/80 px-5 py-5 space-y-5 shadow-sm">
               <div className="space-y-3">
