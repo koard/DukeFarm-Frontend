@@ -755,7 +755,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                   setInitialAgeOffsetDays(getDefaultInitialAge(farmType).toString());
                   setCycleStartDate(recordDate);
                 }}
-                className="mt-4 w-full py-3 rounded-xl border-2 border-dashed border-[#EF6E11]/30 text-[#EF6E11] text-sm font-semibold hover:border-[#EF6E11]/50 hover:bg-[#EF6E11]/5 transition-all"
+                className="mt-2 w-full py-3 rounded-xl border-2 border-dashed border-[#EF6E11]/30 text-[#EF6E11] text-sm font-semibold hover:border-[#EF6E11]/50 hover:bg-[#EF6E11]/5 transition-all"
               >
                 เริ่มรอบการเลี้ยงใหม่ / แก้ไข
               </button>
