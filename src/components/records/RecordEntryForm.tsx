@@ -765,7 +765,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-lg text-black">ประเภทบ่อ</label>
+            <label className="block text-lg font-semibold text-black">ประเภทบ่อ</label>
             <span className="text-xs text-gray-500">แตะเพื่อเลือก</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -790,7 +790,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <label className="block text-lg text-black">จำนวนบ่อ</label>
+            <label className="block text-lg font-semibold text-black">จำนวนบ่อ</label>
           </div>
           <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden">
             <input
@@ -804,7 +804,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <label className="block text-lg text-black">จำนวนปลาที่เลี้ยง (ตัว)</label>
+            <label className="block text-lg font-semibold text-black">จำนวนปลาที่เลี้ยง (ตัว)</label>
           </div>
           <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden">
             <input
