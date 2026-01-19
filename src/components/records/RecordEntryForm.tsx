@@ -728,37 +728,54 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               </div>
             </div>
           ) : (
-            <div className="rounded-2xl border border-[#6CCF9C]/40 bg-gradient-to-br from-[#E4F5E7] to-white px-4 py-4 space-y-3 shadow-sm transition-all">
+            <div className="rounded-2xl border border-[#6CCF9C]/40 bg-gradient-to-br from-[#E8F7EB] to-white p-5 shadow-sm relative overflow-hidden">
+              {/* Decorative Background */}
+              <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-[#6CCF9C]/10 rounded-full blur-2xl pointer-events-none" />
 
-              <div className="bg-white rounded-xl border border-[#6CCF9C]/30 py-4 px-5 flex items-center justify-center gap-4 shadow-sm">
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-[#093832]">{fishAgeNumber}</span>
-                  <span className="text-lg text-[#093832]/70 font-medium">วัน</span>
+              <div className="relative flex flex-col items-center gap-4">
+
+                <div className="w-full bg-white/80 backdrop-blur-sm rounded-xl border border-[#6CCF9C]/30 py-6 px-4 flex flex-col items-center justify-center gap-3 shadow-sm">
+                  {/* Auto Badge */}
+                  <div className="absolute top-3 right-3 flex items-center gap-1 opacity-60">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#093832] animate-pulse" />
+                    <span className="text-[10px] font-medium text-[#093832]">Auto</span>
+                  </div>
+
+                  <div className="flex flex-col items-center">
+                    <span className="text-xs font-medium text-[#093832]/60 mb-1">อายุในบ่อปัจจุบัน</span>
+                    <div className="flex items-baseline gap-2.5">
+                      <span className="text-5xl font-black text-[#093832] tracking-tight">{fishAgeNumber}</span>
+                      <span className="text-lg font-bold text-[#093832]/60">วัน</span>
+                    </div>
+                  </div>
+
+                  {(() => {
+                    const stage = getAgeStage(fishAgeNumber);
+                    if (stage) {
+                      return (
+                        <div className="px-4 py-1 rounded-full bg-[#EF6E11]/10 border border-[#EF6E11]/20">
+                          <span className="text-xs font-bold text-[#EF6E11]">
+                            {stage.label}
+                          </span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
-                {(() => {
-                  const stage = getAgeStage(fishAgeNumber);
-                  if (stage) {
-                    return (
-                      <span className="text-sm font-medium text-[#EF6E11] px-3 py-1 rounded-full bg-[#EF6E11]/10 border border-[#EF6E11]/20">
-                        {stage.label}
-                      </span>
-                    );
-                  }
-                  return null;
-                })()}
-              </div>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setLastEntrySnapshot(null);
-                  setInitialAgeOffsetDays(getDefaultInitialAge(farmType).toString());
-                  setCycleStartDate(recordDate);
-                }}
-                className="mt-3 w-full py-2 rounded-xl text-[#EF6E11] text-sm font-medium underline underline-offset-2 hover:text-[#d65f0a] transition-colors"
-              >
-                เริ่มรอบการเลี้ยงใหม่ / แก้ไข
-              </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLastEntrySnapshot(null);
+                    setInitialAgeOffsetDays(getDefaultInitialAge(farmType).toString());
+                    setCycleStartDate(recordDate);
+                  }}
+                  className="group flex items-center gap-1 text-xs font-semibold text-[#EF6E11] hover:text-[#d65f0a] transition-colors py-1 px-3 rounded-lg hover:bg-[#EF6E11]/5"
+                >
+                  <span>เริ่มรอบการเลี้ยงใหม่ / แก้ไข</span>
+                </button>
+              </div>
             </div>
           )}
         </div>
