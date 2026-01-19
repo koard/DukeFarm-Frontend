@@ -140,6 +140,11 @@ export type FormStateResponse = {
   farmType: string;
   locationAvailable: boolean;
   weather: WeatherSnapshot | null;
+  latestEntry: {
+    recordedAt: string;
+    fishAgeDays: number | null;
+    fishCount: number | null;
+  } | null;
 };
 
 type LastEntrySnapshot = {
@@ -217,37 +222,19 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
   const storageKey = useMemo(() => buildLastEntryStorageKey(farmType), [farmType]);
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        const snapshot: LastEntrySnapshot = JSON.parse(stored);
-        if (snapshot.farmType !== farmType) {
-          return;
-        }
-        setLastEntrySnapshot(snapshot);
-        if (snapshot.cycleStartDate) {
-          setCycleStartDate(snapshot.cycleStartDate);
-        } else {
-          const resolvedAgeDays = getSnapshotAgeDays(snapshot);
-          if (resolvedAgeDays !== null && !Number.isNaN(resolvedAgeDays)) {
-            setCycleStartDate(deriveCycleStartDate(snapshot.recordDate, resolvedAgeDays));
-          }
-        }
-        if (typeof snapshot.initialAgeOffsetDays === 'number' && !Number.isNaN(snapshot.initialAgeOffsetDays)) {
-          setInitialAgeOffsetDays(Math.max(0, snapshot.initialAgeOffsetDays).toString());
-        }
-      }
-    } catch (error) {
-      console.error('Failed to parse last entry snapshot', error);
-    }
-  }, [farmType, storageKey]);
+  // Removed localStorage dependency for initialization
+  // useEffect(() => {
+  //   try {
+  //     const stored = localStorage.getItem(storageKey);
+  //     if (stored) { ... }
+  //   } ...
+  // }, [farmType, storageKey]);
 
   useEffect(() => {
-    if (lastEntrySnapshot) {
-      return;
+    // If not in "Continuing" mode, reset initial age offset to default when farmType changes
+    if (!lastEntrySnapshot) {
+      setInitialAgeOffsetDays(getDefaultInitialAge(farmType).toString());
     }
-    setInitialAgeOffsetDays(getDefaultInitialAge(farmType).toString());
   }, [farmType, lastEntrySnapshot]);
   useEffect(() => {
     if (showSuccessModal) {
@@ -301,6 +288,44 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         setRecordDate(formatInputDate(hydrated));
         setRecordTime(formatInputTime(hydrated));
         setWeatherSnapshot(payload.data.weather ?? null);
+
+        // Server-driven state: Check if there is a latest entry
+        if (payload.data.latestEntry) {
+          const { recordedAt, fishAgeDays } = payload.data.latestEntry;
+          if (fishAgeDays !== null) {
+            // Calculate derived cycle start date based on the LAST record's age and date
+            // CycleStart = RecordedAt - Age
+            const lastRecordDate = new Date(recordedAt);
+            if (!Number.isNaN(lastRecordDate.getTime())) {
+              const derivedStart = new Date(lastRecordDate);
+              derivedStart.setDate(derivedStart.getDate() - fishAgeDays);
+
+              const derivedStartStr = formatInputDate(derivedStart);
+              setCycleStartDate(derivedStartStr);
+              setInitialAgeOffsetDays('0'); // Reset offset, we use cycle start fully
+
+              // Construct a "Virtual" snapshot for UI consistent state
+              // We don't need all fields, just enough to trigger the "Continuing" view
+              setLastEntrySnapshot({
+                farmType,
+                recordDate: formatInputDate(lastRecordDate),
+                recordTime: '', // Not needed
+                cycleStartDate: derivedStartStr,
+                initialAgeOffsetDays: 0,
+                ageDays: fishAgeDays,
+                pondType: '',
+                pondCount: payload.data.latestEntry.fishCount?.toString() || '',
+                fishCount: '',
+                foodAmount: ''
+              });
+            }
+          }
+        } else {
+          // No previous entry -> Clean slate
+          setLastEntrySnapshot(null);
+          setInitialAgeOffsetDays(getDefaultInitialAge(farmType).toString());
+        }
+
       } catch (error) {
         if (!isMounted) return;
         console.error(error);
@@ -663,6 +688,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
         <div className="space-y-3">
           <label className="block text-lg font-bold text-black">ตั้งค่ารอบการเลี้ยง</label>
+          <label className="block text-lg font-bold text-black">ตั้งค่ารอบการเลี้ยง</label>
           {!lastEntrySnapshot ? (
             <div className="rounded-2xl border border-[#6CCF9C]/40 bg-white/80 px-5 py-5 space-y-5 shadow-sm">
               <div className="space-y-3">
@@ -721,19 +747,37 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
               </div>
             </div>
           ) : (
-            <div className="rounded-2xl border border-[#6CCF9C]/40 bg-gradient-to-br from-[#E4F5E7] to-white px-4 py-4 space-y-3 shadow-sm">
+            <div className="rounded-2xl border border-[#6CCF9C]/40 bg-gradient-to-br from-[#E4F5E7] to-white px-4 py-4 space-y-3 shadow-sm transition-all">
               <div className="flex items-center justify-between">
                 <span className="text-md font-semibold text-[#093832]">อายุปลาปัจจุบัน</span>
-                <span className="text-xs text-gray-500">ปรับจากรอบก่อนอัตโนมัติ</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-gray-500">ต่อเนื่องจากรอบล่าสุด</span>
+                  <div className="px-1.5 py-0.5 rounded-md bg-[#093832] text-[10px] text-white">Auto</div>
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <div className="rounded-xl bg-white border border-gray-200 px-4 py-3 flex-1 flex items-center justify-between">
                   <strong className="text-2xl text-[#093832]">{fishAgeNumber} วัน</strong>
+                  <span className="text-sm text-gray-500">
+                    {formatAgeSummary(fishAgeNumber)}
+                  </span>
                 </div>
               </div>
-              <p className="text-xs text-gray-500">
-                หากต้องการแก้ไขอายุเริ่มต้นหรือวันที่เริ่มรอบใหม่ ให้ล้างข้อมูลรอบก่อนและเริ่มบันทึกใหม่
-              </p>
+
+              <div className="pt-2 border-t border-[#6CCF9C]/20">
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Reset to manual mode
+                    setLastEntrySnapshot(null);
+                    setInitialAgeOffsetDays(getDefaultInitialAge(farmType).toString());
+                    setCycleStartDate(recordDate);
+                  }}
+                  className="text-sm text-[#EF6E11] font-medium underline underline-offset-2 hover:text-[#d65f0a]"
+                >
+                  เริ่มรอบการเลี้ยงใหม่ / แก้ไขการคำนวณ
+                </button>
+              </div>
             </div>
           )}
         </div>
