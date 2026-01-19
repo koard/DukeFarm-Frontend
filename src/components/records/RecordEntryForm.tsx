@@ -804,7 +804,9 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <label className="block text-lg font-semibold text-black">จำนวนปลาที่เลี้ยง (ตัว)</label>
+            <label className="block text-lg font-semibold text-black">
+              จำนวนปลาที่เลี้ยง <span className="text-gray-400 font-normal text-base">(ตัว)</span>
+            </label>
           </div>
           <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden">
             <input
@@ -817,7 +819,9 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         </div>
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <label className="block text-lg font-semibold text-black">ปริมาณอาหาร (กิโลกรัม)</label>
+            <label className="block text-lg font-semibold text-black">
+              ปริมาณอาหาร <span className="text-gray-400 font-normal text-base">(กิโลกรัม)</span>
+            </label>
           </div>
           <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden">
             <input
