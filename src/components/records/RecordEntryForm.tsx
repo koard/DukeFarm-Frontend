@@ -692,7 +692,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             <div className="rounded-2xl border border-[#6CCF9C]/40 bg-white/80 px-5 py-5 space-y-5 shadow-sm">
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-md font-semibold text-[#093832]">ปลาอายุกี่วันตอนรับมา?</span>
+                  <span className="text-md font-semibold text-[#093832]">ปลาอายุกี่วันตอนรับมา</span>
                 </div>
                 <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden h-16 flex items-center px-4">
                   <input
