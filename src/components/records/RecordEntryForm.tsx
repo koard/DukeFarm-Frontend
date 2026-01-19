@@ -729,25 +729,25 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             </div>
           ) : (
             <div className="rounded-2xl border border-[#6CCF9C]/40 bg-gradient-to-br from-[#E4F5E7] to-white px-4 py-4 space-y-3 shadow-sm transition-all">
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-[#093832]">อายุปลาปัจจุบัน</span>
                 </div>
-                <div className="px-2 py-1 rounded-lg bg-[#093832]/10 text-[#093832] text-xs font-semibold">
+                <div className="px-2 py-0.5 rounded text-[#093832]/60 text-xs font-medium bg-white/50 border border-[#093832]/10">
                   ต่อเนื่องจากรอบล่าสุด
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl border border-[#6CCF9C]/30 py-6 px-4 flex flex-col items-center justify-center gap-2 shadow-sm">
+              <div className="bg-white rounded-xl border border-[#6CCF9C]/30 py-4 px-5 flex items-center justify-between shadow-sm">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-extrabold text-[#093832]">{fishAgeNumber}</span>
-                  <span className="text-xl text-[#093832]/80 font-medium">วัน</span>
+                  <span className="text-3xl font-bold text-[#093832]">{fishAgeNumber}</span>
+                  <span className="text-lg text-[#093832]/70 font-medium">วัน</span>
                 </div>
                 {(() => {
                   const stage = getAgeStage(fishAgeNumber);
                   if (stage) {
                     return (
-                      <span className="text-sm font-medium text-[#EF6E11] px-3 py-1 rounded-full bg-[#EF6E11]/10">
+                      <span className="text-sm font-medium text-[#EF6E11] px-3 py-1 rounded-full bg-[#EF6E11]/10 border border-[#EF6E11]/20">
                         {stage.label}
                       </span>
                     );
@@ -763,7 +763,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                   setInitialAgeOffsetDays(getDefaultInitialAge(farmType).toString());
                   setCycleStartDate(recordDate);
                 }}
-                className="mt-4 w-full py-2.5 rounded-xl border border-[#EF6E11]/30 text-[#EF6E11] text-sm font-semibold hover:bg-[#EF6E11]/5 transition-colors"
+                className="mt-3 w-full py-2 rounded-xl text-[#EF6E11] text-sm font-medium underline underline-offset-2 hover:text-[#d65f0a] transition-colors"
               >
                 เริ่มรอบการเลี้ยงใหม่ / แก้ไข
               </button>
