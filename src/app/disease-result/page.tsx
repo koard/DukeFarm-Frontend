@@ -154,7 +154,11 @@ function DiseaseResultContent() {
 
         {!loading && result && !selectedDisease && (
           <>
-            {(() => {
+            {/* ========================================================================
+               🔴 ปิดส่วนแสดง "อาการที่คุณระบุ" (User Input / Symptoms / Uploaded Image)
+               ========================================================================
+            */}
+            {/* {(() => {
               const hasImage = !!(userUploadedImage || result.photoPath);
               const hasText = !!(result.symptomText && result.symptomText.trim() !== '');
               const hasTags = !!(result.symptomTags && result.symptomTags.length > 0);
@@ -217,13 +221,13 @@ function DiseaseResultContent() {
                   )}
                 </div>
               );
-            })()}
+            })()} */}
 
             {/* List Result */}
             <div>
-              <h2 className="text-lg font-bold text-[#093832] mb-4 flex items-center gap-2">
-                🏆 ผลการวินิจฉัย
-              </h2>
+              {/* <h2 className="text-lg font-bold text-[#093832] mb-4 flex items-center gap-2">
+                 ผลการวิเคราะห์
+              </h2> */}
 
               <div className="space-y-4">
                 {result.results.map((item, index) => {
@@ -248,7 +252,7 @@ function DiseaseResultContent() {
                       <div className="flex items-start gap-3">
                         {/* เลขอันดับ */}
                         <div className={`flex items-center justify-center w-8 h-8 rounded-full font-bold shrink-0 mt-1
-                               ${isTopOne ? 'bg-yellow-400 text-yellow-950 shadow-sm' : 'bg-white/80 text-gray-500'}`}>
+                               ${isTopOne ? 'bg-[#009D64] text-white shadow-sm' : 'bg-white/80 text-gray-500'}`}>
                           {index + 1}
                         </div>
 
@@ -305,16 +309,14 @@ function DiseaseResultContent() {
               </span>
 
               <div className="flex items-center gap-3">
-                {selectedDisease.rank === 1 ? (
-                  <span className="bg-yellow-400 text-yellow-950 text-sm font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1">
-                    <Trophy className="w-3 h-3" />
-                    อันดับ {selectedDisease.rank || '-'}
-                  </span>
-                ) : (
-                  <span className="bg-gray-100 text-gray-500 text-sm font-bold px-3 py-1 rounded-full flex items-center gap-1 border border-gray-200">
-                    อันดับ {selectedDisease.rank || '-'}
-                  </span>
-                )}
+                
+                <span className={`text-sm font-bold px-4 py-1.5 rounded-full border shadow-sm flex items-center gap-1
+                  ${selectedDisease.rank === 1
+                    ? 'bg-[#E4F5E7] text-[#093832] border-[#6CCF9C]' 
+                    : 'bg-gray-50 text-gray-600 border-gray-200' 
+                  }`}>
+                  ความน่าจะเป็นอันดับ {selectedDisease.rank || '-'}
+                </span>
 
                 <span className={`text-sm font-bold px-3 py-1 rounded-full border ${CATEGORY_COLORS[selectedDisease.category]?.bg || 'bg-gray-100'
                   } ${CATEGORY_COLORS[selectedDisease.category]?.text} ${CATEGORY_COLORS[selectedDisease.category]?.border}`}>
@@ -419,4 +421,3 @@ export default function DiseaseResultPage() {
     </Suspense>
   );
 }
-
