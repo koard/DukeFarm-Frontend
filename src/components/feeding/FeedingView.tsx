@@ -165,7 +165,7 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                     </Link>
                     <h1 className="text-2xl font-bold">การให้อาหาร</h1>
                 </div>
-                <ProfileDropdownMenu />
+                <ProfileDropdownMenu showGreeting={false} />
             </div>
 
             <div className="px-6 mt-4 w-full max-w-5xl mx-auto">

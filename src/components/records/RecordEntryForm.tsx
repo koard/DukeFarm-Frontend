@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Check, ChevronLeft, Minus, Plus } from 'lucide-react';
 import { useLineUser } from '@/hooks/useLineUser';
+import { ProfileDropdownMenu } from '@/components/common/ProfileDropdownMenu';
 
 type FarmType = 'SMALL' | 'LARGE' | 'MARKET';
 
@@ -464,15 +465,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             </button>
             <h1 className="text-2xl font-bold">ผลวิเคราะห์</h1>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <p className="text-sm text-gray-300">ยินดีต้อนรับ</p>
-              <p className="text-sm font-bold">{lineUser.displayName}</p>
-            </div>
-            <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-gray-200">
-              <Image src={lineUser.pictureUrl || '/default-avatar.png'} alt="Profile" width={40} height={40} className="w-full h-full object-cover" />
-            </div>
-          </div>
+          <ProfileDropdownMenu showGreeting={false} />
         </div>
 
         <div className="px-6 mt-6 w-full max-w-5xl mx-auto space-y-5">
@@ -580,21 +573,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
           </Link>
           <h1 className="text-2xl font-bold">บันทึกข้อมูล</h1>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <p className="text-sm text-gray-300">ยินดีต้อนรับ</p>
-            <p className="text-sm font-bold">{lineUser.displayName}</p>
-          </div>
-          <div className="w-10 h-10 rounded-full border-2 border-white overflow-hidden bg-gray-200">
-            <Image
-              src={lineUser.pictureUrl || '/default-avatar.png'}
-              alt="Profile"
-              width={40}
-              height={40}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div>
+        <ProfileDropdownMenu showGreeting={false} />
       </div>
 
       <div className="px-6 mt-6 w-full max-w-5xl mx-auto space-y-5">
@@ -623,7 +602,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                 value={recordDate}
                 onChange={(event) => setRecordDate(event.target.value)}
                 lang="th-TH"
-                className="bg-transparent text-[#093832] text-lg font-bold w-full focus:outline-none z-10 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden"
+                className="bg-transparent text-[#093832] text-lg font-bold w-full focus:outline-none z-10 pr-8 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden"
               />
               <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
                 <Image src="/nursery-large/solar_calendar-outline.svg" alt="calendar" width={24} height={24} className="opacity-50" />
@@ -639,7 +618,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
                 value={recordTime}
                 onChange={(event) => setRecordTime(event.target.value)}
                 lang="th-TH"
-                className="bg-transparent text-[#093832] text-lg font-bold w-full focus:outline-none z-10 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden"
+                className="bg-transparent text-[#093832] text-lg font-bold w-full focus:outline-none z-10 pr-8 [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden"
               />
               <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none">
                 <Image src="/nursery-large/formkit_time.svg" alt="time" width={24} height={24} className="opacity-50" />

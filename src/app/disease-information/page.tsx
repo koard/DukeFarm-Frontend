@@ -89,7 +89,7 @@ export default function DiseaseInformationPage() {
         </div>
         
         <div >
-          {!selectedDisease && <ProfileDropdownMenu />}
+          {!selectedDisease && <ProfileDropdownMenu showGreeting={false} />}
         </div>
       </header>
 

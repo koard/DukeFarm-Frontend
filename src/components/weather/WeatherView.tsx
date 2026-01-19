@@ -232,7 +232,7 @@ export const WeatherView = ({ farmType, backHref }: WeatherViewProps) => {
             <h1 className="text-2xl font-bold">สภาพอากาศ</h1>
         </div>
 
-        <ProfileDropdownMenu />
+        <ProfileDropdownMenu showGreeting={false} />
       </div>
 
       <div className="px-4 mt-5 pb-10 space-y-4">

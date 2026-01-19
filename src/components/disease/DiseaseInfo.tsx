@@ -146,7 +146,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
           </button>
           <h1 className="text-2xl font-bold">การรักษาโรค</h1>
         </div>
-        <ProfileDropdownMenu />
+        <ProfileDropdownMenu showGreeting={false} />
       </header>
 
       <div className="px-5 mt-8 w-full max-w-2xl mx-auto flex flex-col min-h-[calc(100vh-180px)] justify-between gap-6">

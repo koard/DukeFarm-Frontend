@@ -28,7 +28,7 @@ export const MarketPriceView = ({ backHref }: MarketPriceViewProps) => {
           </Link>
           <h1 className="text-2xl font-bold">ตรวจสอบราคาตลาด</h1>
         </div>
-        <ProfileDropdownMenu />
+        <ProfileDropdownMenu showGreeting={false} />
       </div>
 
       <div className="px-4 mt-4 w-full max-w-5xl mx-auto space-y-4">

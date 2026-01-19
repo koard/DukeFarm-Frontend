@@ -130,7 +130,7 @@ function DiseaseResultContent() {
             {selectedDisease ? cleanDiseaseName(selectedDisease.name) : 'ผลการวิเคราะห์'}
           </h1>
         </div>
-        <ProfileDropdownMenu />
+        <ProfileDropdownMenu showGreeting={false} />
       </header>
 
       <div className="px-5 mt-8 w-full max-w-2xl mx-auto space-y-6">
