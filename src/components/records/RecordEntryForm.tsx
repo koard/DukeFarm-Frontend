@@ -654,7 +654,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg font-bold text-black">สภาพอากาศปัจจุบัน</h2>
+            <h2 className="text-lg font-semibold text-black">สภาพอากาศปัจจุบัน</h2>
             <span className="text-xs text-gray-500">
               {observedAtDisplay ? `อัปเดต ${observedAtDisplay} น.` : 'ยังไม่มีข้อมูลล่าสุด'}
             </span>
@@ -687,7 +687,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         </div>
 
         <div className="space-y-3">
-          <label className="block text-lg font-bold text-black">ข้อมูลอายุปลา</label>
+          <label className="block text-lg font-semibold text-black">ข้อมูลอายุปลา</label>
           {!lastEntrySnapshot ? (
             <div className="rounded-2xl border border-[#6CCF9C]/40 bg-white/80 px-5 py-5 space-y-5 shadow-sm">
               <div className="space-y-3">
@@ -817,7 +817,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         </div>
         <div className="space-y-1">
           <div className="flex items-center justify-between">
-            <label className="block text-lg text-black">ปริมาณอาหาร (กิโลกรัม)</label>
+            <label className="block text-lg font-semibold text-black">ปริมาณอาหาร (กิโลกรัม)</label>
           </div>
           <div className="bg-white border border-gray-300 rounded-2xl overflow-hidden">
             <input
