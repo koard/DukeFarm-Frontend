@@ -729,18 +729,10 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
             </div>
           ) : (
             <div className="rounded-2xl border border-[#6CCF9C]/40 bg-gradient-to-br from-[#E4F5E7] to-white px-4 py-4 space-y-3 shadow-sm transition-all">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-[#093832]">อายุปลาปัจจุบัน</span>
-                </div>
-                <div className="px-2 py-0.5 rounded text-[#093832]/60 text-xs font-medium bg-white/50 border border-[#093832]/10">
-                  ต่อเนื่องจากรอบล่าสุด
-                </div>
-              </div>
 
               <div className="bg-white rounded-xl border border-[#6CCF9C]/30 py-4 px-5 flex items-center justify-center gap-4 shadow-sm">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-[#093832]">{fishAgeNumber}</span>
+                  <span className="text-2xl font-bold text-[#093832]">{fishAgeNumber}</span>
                   <span className="text-lg text-[#093832]/70 font-medium">วัน</span>
                 </div>
                 {(() => {
