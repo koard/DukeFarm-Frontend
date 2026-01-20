@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Check } from "lucide-react";
-import dynamic from "next/dynamic"; 
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useLineUser } from "@/hooks/useLineUser"; 
+import { useLineUser } from "@/hooks/useLineUser";
 import {
   FarmTypeOption,
   FarmTypeProfileLike,
@@ -15,7 +15,7 @@ import {
   mapFarmTypeToRoute,
 } from "@/utils/farmTypes";
 
-const MapPicker = dynamic(() => import("./MapPicker"), { 
+const MapPicker = dynamic(() => import("./MapPicker"), {
   ssr: false,
   loading: () => <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500">กำลังโหลดแผนที่...</div>
 });
@@ -99,10 +99,11 @@ export default function RegisterFarmerPage() {
 
   const [isFormValid, setIsFormValid] = useState(false);
   const [showMap, setShowMap] = useState(false);
-  
+
   const [initialCoords, setInitialCoords] = useState<{ lat: number; lng: number } | null>(null);
-  const [tempCoords, setTempCoords] = useState({ lat: 0, lng: 0 });
-    
+  // ค่าเริ่มต้นพิกัด: จังหวัดปทุมธานี (กรณีไม่สามารถจับ GPS ได้)
+  const [tempCoords, setTempCoords] = useState({ lat: 14.0208, lng: 100.5250 });
+
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success'>('idle');
 
   useEffect(() => {
@@ -151,7 +152,7 @@ export default function RegisterFarmerPage() {
       firstName.trim() !== "" &&
       lastName.trim() !== "" &&
       phone.trim() !== "" &&
-      farmType.length > 0 && 
+      farmType.length > 0 &&
       raiCount.trim() !== "" &&
       pondCount.trim() !== "" &&
       location.trim() !== ""
@@ -186,24 +187,24 @@ export default function RegisterFarmerPage() {
   };
 
   const handleLocationSelect = (lat: number, lng: number) => {
-      setTempCoords({ lat, lng });
+    setTempCoords({ lat, lng });
   };
 
   const confirmLocation = () => {
-      setFormData(prev => ({
-          ...prev, 
-          location: `${tempCoords.lat.toFixed(6)}, ${tempCoords.lng.toFixed(6)}`
-      }));
-      setInitialCoords({ lat: tempCoords.lat, lng: tempCoords.lng });
-      setShowMap(false);
+    setFormData(prev => ({
+      ...prev,
+      location: `${tempCoords.lat.toFixed(6)}, ${tempCoords.lng.toFixed(6)}`
+    }));
+    setInitialCoords({ lat: tempCoords.lat, lng: tempCoords.lng });
+    setShowMap(false);
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) return;
-    
+
     setSubmitStatus('loading');
-    
+
     try {
       const token = localStorage.getItem("authToken");
       if (!token) {
@@ -232,7 +233,7 @@ export default function RegisterFarmerPage() {
         setSubmitStatus('idle');
         return;
       }
-      
+
       // จัดลำดับความสำคัญของประเภทฟาร์ม (เพื่อหา Primary Type)
       const sortedSelectedTypes = [...formData.farmType].sort((a, b) => {
         return FARM_TYPE_PRIORITY.indexOf(a) - FARM_TYPE_PRIORITY.indexOf(b);
@@ -245,10 +246,10 @@ export default function RegisterFarmerPage() {
         phone: formData.phone,
         primaryFarmType: primaryTypeKey || "SMALL",
         farmTypes: formData.farmType,
-        
+
         declaredPondCount,
         farmAreaRai,
-        
+
         farmLatitude: coords.lat,
         farmLongitude: coords.lng
       };
@@ -257,15 +258,15 @@ export default function RegisterFarmerPage() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` 
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify(requestBody)
       });
 
       if (!response.ok) {
         if (response.status === 401) {
-            router.push('/login');
-            return;
+          router.push('/login');
+          return;
         }
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || "ไม่สามารถบันทึกข้อมูลได้");
@@ -278,22 +279,22 @@ export default function RegisterFarmerPage() {
         const { user, profile } = result.data;
         const currentUserStr = localStorage.getItem("user");
         const currentUser = currentUserStr ? JSON.parse(currentUserStr) : {};
-        
+
         const updatedUser = {
           ...currentUser,
           role: user.role,
           registrationStatus: user.registrationStatus,
-          farmerProfile: profile 
+          farmerProfile: profile
         };
         localStorage.setItem("user", JSON.stringify(updatedUser));
       }
-      
+
       setSubmitStatus('success');
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       const destination = mapFarmTypeToRoute(primaryTypeKey);
       router.push(destination);
-      
+
     } catch (error) {
       console.error("❌ Registration error:", error);
       setSubmitStatus('idle');
@@ -303,59 +304,59 @@ export default function RegisterFarmerPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center">
-      
+
       {submitStatus !== 'idle' && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-           <div className="bg-white rounded-2xl p-8 flex flex-col items-center justify-center shadow-2xl w-64 h-48 animate-in fade-in zoom-in duration-300">
-              {submitStatus === 'loading' && (
-                <>
-                  <div className="w-12 h-12 border-4 border-emerald-100 border-t-[#0F3B35] rounded-full animate-spin mb-4"></div>
-                  <span className="text-lg font-medium text-gray-600">กำลังดำเนินการ</span>
-                </>
-              )}
-              {submitStatus === 'success' && (
-                <>
-                  <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mb-3 animate-in zoom-in duration-300">
-                    <Check className="w-8 h-8 text-green-600" strokeWidth={3} />
-                  </div>
-                  <span className="text-lg font-bold text-green-700">ลงทะเบียนสำเร็จ</span>
-                </>
-              )}
-           </div>
+          <div className="bg-white rounded-2xl p-8 flex flex-col items-center justify-center shadow-2xl w-64 h-48 animate-in fade-in zoom-in duration-300">
+            {submitStatus === 'loading' && (
+              <>
+                <div className="w-12 h-12 border-4 border-emerald-100 border-t-[#0F3B35] rounded-full animate-spin mb-4"></div>
+                <span className="text-lg font-medium text-gray-600">กำลังดำเนินการ</span>
+              </>
+            )}
+            {submitStatus === 'success' && (
+              <>
+                <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mb-3 animate-in zoom-in duration-300">
+                  <Check className="w-8 h-8 text-green-600" strokeWidth={3} />
+                </div>
+                <span className="text-lg font-bold text-green-700">ลงทะเบียนสำเร็จ</span>
+              </>
+            )}
+          </div>
         </div>
       )}
 
       {/* Map Popup */}
       {showMap && (
-        <div className="fixed inset-0 z-50 flex justify-center bg-gray-50"> 
-            <div className="w-full max-w-md md:max-w-full lg:max-w-full bg-white flex flex-col h-full relative shadow-xl">
-                <div className="bg-[#0F3B35] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-20 flex items-center gap-3"> 
-                    <button onClick={() => setShowMap(false)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
-                        <ChevronLeft className="w-8 h-8" />
-                    </button>
-                    <div className="flex items-center gap-2 text-2xl font-bold"> 
-                        <Image src="/register-farmer/map.svg" alt="Map" width={24} height={24} className="invert brightness-0 filter" /> 
-                        <span>ตรวจสอบพื้นที่ให้ถูกต้อง</span>
-                    </div>
-                </div>
-                <div className="flex-1 relative z-10">
-                    <MapPicker onLocationSelect={handleLocationSelect} initialPosition={initialCoords} />
-                </div>
-                <div className="absolute bottom-0 left-0 right-0 p-6 pointer-events-none flex justify-center z-30">
-                      <button 
-                        onClick={confirmLocation}
-                        className="pointer-events-auto w-full max-w-md bg-[#72B544] hover:bg-[#5da035] text-white text-xl font-bold py-3 rounded-xl shadow-lg"
-                      >
-                        ยืนยัน
-                      </button>
-                </div>
+        <div className="fixed inset-0 z-50 flex justify-center bg-gray-50">
+          <div className="w-full max-w-md md:max-w-full lg:max-w-full bg-white flex flex-col h-full relative shadow-xl">
+            <div className="bg-[#0F3B35] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-20 flex items-center gap-3">
+              <button onClick={() => setShowMap(false)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
+                <ChevronLeft className="w-8 h-8" />
+              </button>
+              <div className="flex items-center gap-2 text-2xl font-bold">
+                <Image src="/register-farmer/map.svg" alt="Map" width={24} height={24} className="invert brightness-0 filter" />
+                <span>ตรวจสอบพื้นที่ให้ถูกต้อง</span>
+              </div>
             </div>
+            <div className="flex-1 relative z-10">
+              <MapPicker onLocationSelect={handleLocationSelect} initialPosition={initialCoords} />
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 p-6 pointer-events-none flex justify-center z-30">
+              <button
+                onClick={confirmLocation}
+                className="pointer-events-auto w-full max-w-md bg-[#72B544] hover:bg-[#5da035] text-white text-xl font-bold py-3 rounded-xl shadow-lg"
+              >
+                ยืนยัน
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Main Form */}
       <div className=" w-full max-w-md md:max-w-full lg:max-w-full bg-white min-h-screen shadow-xl relative pb-10">
-        
+
         {/* Header */}
         <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10">
           <div className="flex items-center gap-2 mb-2">
@@ -371,14 +372,14 @@ export default function RegisterFarmerPage() {
         <div className="px-6 relative z-20">
           <div className="flex items-center gap-4 mb-6">
             <div className="w-20 h-20 rounded-full border-4 border-white shadow-md overflow-hidden bg-gray-200 relative">
-               <Image 
-                 src={lineUser.pictureUrl || "https://placehold.co/200x200?text=Profile"}
-                 alt="Profile" 
-                 fill
-                 sizes="80px"
-                 className="object-cover"
-                 unoptimized
-               />
+              <Image
+                src={lineUser.pictureUrl || "https://placehold.co/200x200?text=Profile"}
+                alt="Profile"
+                fill
+                sizes="80px"
+                className="object-cover"
+                unoptimized
+              />
             </div>
             <div className="pt-2">
               <p className="text-xs text-gray-500 font-medium">ยินดีต้อนรับ</p>
@@ -387,24 +388,24 @@ export default function RegisterFarmerPage() {
           </div>
 
           <form className="space-y-5" onSubmit={handleRegister}>
-              
-             <div className="grid grid-cols-2 gap-4">
+
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-base font-bold text-black">ชื่อ</label>
-                <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="ระบุข้อมูล" 
-                       className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500" />
+                <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="ระบุข้อมูล"
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500" />
               </div>
               <div className="space-y-1.5">
                 <label className="text-base font-bold text-black">นามสกุล</label>
-                <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="ระบุข้อมูล" 
-                       className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500" />
+                <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="ระบุข้อมูล"
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500" />
               </div>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-base font-bold text-black">เบอร์โทร</label>
-              <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="ระบุข้อมูล" 
-                      className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500" />
+              <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="ระบุข้อมูล"
+                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500" />
             </div>
 
             <div className="space-y-3 pt-2">
@@ -413,23 +414,22 @@ export default function RegisterFarmerPage() {
                 {farmOptions.map((option, index) => {
                   const isSelected = formData.farmType.includes(option.value);
                   return (
-                    <div 
-                      key={index} 
-                      onClick={() => handleSelectFarmType(option.value)} 
+                    <div
+                      key={index}
+                      onClick={() => handleSelectFarmType(option.value)}
                       className="flex items-start gap-3 cursor-pointer group select-none"
                     >
                       {/* Checkbox UI */}
-                      <div className={`mt-1 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${
-                          isSelected
-                          ? "bg-[#72B544] border-[#72B544]" 
+                      <div className={`mt-1 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${isSelected
+                          ? "bg-[#72B544] border-[#72B544]"
                           : "border-gray-300 bg-white"
-                      }`}>
-                          {isSelected && (<Check className="w-4 h-4 text-white" strokeWidth={3} />)}
+                        }`}>
+                        {isSelected && (<Check className="w-4 h-4 text-white" strokeWidth={3} />)}
                       </div>
-                      
+
                       <div>
-                          <span className="text-base text-black font-medium block">{option.label}</span>
-                          <span className="text-xs text-gray-400">({option.description})</span>
+                        <span className="text-base text-black font-medium block">{option.label}</span>
+                        <span className="text-xs text-gray-400">({option.description})</span>
                       </div>
                     </div>
                   );
@@ -439,24 +439,24 @@ export default function RegisterFarmerPage() {
 
             {/* จำนวนไร่ และ จำนวนบ่อต่อไร่ */}
             <div className="grid grid-cols-2 gap-4 pt-2">
-                <div className="space-y-1.5">
-                  <label className="text-base font-bold text-black">พื้นที่ฟาร์มทั้งหมด</label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      name="raiCount"
-                      value={formData.raiCount}
-                      onChange={handleChange}
-                      className="w-full pr-14 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500"
-                    />
-                    <span className="absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-gray-500">ไร่</span>
-                  </div>
+              <div className="space-y-1.5">
+                <label className="text-base font-bold text-black">พื้นที่ฟาร์มทั้งหมด</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    name="raiCount"
+                    value={formData.raiCount}
+                    onChange={handleChange}
+                    className="w-full pr-14 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500"
+                  />
+                  <span className="absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-gray-500">ไร่</span>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-base font-bold text-black">จำนวนบ่อทั้งหมด</label>
-                    <input type="number" name="pondCount" value={formData.pondCount} onChange={handleChange} placeholder="ระบุข้อมูล" 
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500" />
-                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-base font-bold text-black">จำนวนบ่อทั้งหมด</label>
+                <input type="number" name="pondCount" value={formData.pondCount} onChange={handleChange} placeholder="ระบุข้อมูล"
+                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500" />
+              </div>
             </div>
 
             <div className="space-y-1.5 pt-2">
@@ -464,9 +464,8 @@ export default function RegisterFarmerPage() {
               <button
                 type="button"
                 onClick={() => setShowMap(true)}
-                className={`w-full text-left rounded-2xl border-2 border-dashed transition-all duration-200 ${
-                  formData.location ? "bg-[#E5FFD3] border-[#72B544]" : "bg-gray-50 border-gray-200"
-                } px-4 py-3 shadow-sm active:scale-[0.99]`}
+                className={`w-full text-left rounded-2xl border-2 border-dashed transition-all duration-200 ${formData.location ? "bg-[#E5FFD3] border-[#72B544]" : "bg-gray-50 border-gray-200"
+                  } px-4 py-3 shadow-sm active:scale-[0.99]`}
               >
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-inner">
@@ -488,9 +487,8 @@ export default function RegisterFarmerPage() {
               <button
                 type="submit"
                 disabled={!isFormValid || submitStatus !== 'idle'}
-                className={`w-full text-white text-xl font-bold py-4 rounded-xl shadow-md transition-all duration-300 ${
-                    isFormValid ? "bg-[#72B544] hover:bg-[#5da035] shadow-lg" : "bg-[#A0A0A0] cursor-not-allowed"
-                }`}
+                className={`w-full text-white text-xl font-bold py-4 rounded-xl shadow-md transition-all duration-300 ${isFormValid ? "bg-[#72B544] hover:bg-[#5da035] shadow-lg" : "bg-[#A0A0A0] cursor-not-allowed"
+                  }`}
               >
                 ลงทะเบียน
               </button>
