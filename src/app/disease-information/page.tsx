@@ -13,13 +13,12 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string
   'ปรสิต': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
   'เชื้อรา': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
   'โภชนาการ': { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
-  'สิ่งแวดล้อม': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
   'default': { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' }
 };
 
 export default function DiseaseInformationPage() {
   const router = useRouter();
-  
+
   const [diseaseList, setDiseaseList] = useState<Disease[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string>('ทั้งหมด');
@@ -30,9 +29,9 @@ export default function DiseaseInformationPage() {
     const loadDiseases = async () => {
       setIsLoading(true);
       try {
-        const response = await fetchDiseases({ 
+        const response = await fetchDiseases({
           category: selectedCategory === 'ทั้งหมด' ? undefined : selectedCategory,
-          limit: 100 
+          limit: 100
         });
         setDiseaseList(response.data.data);
       } catch (error) {
@@ -72,7 +71,7 @@ export default function DiseaseInformationPage() {
 
   return (
     <div className="min-h-screen bg-white pb-10 relative">
-      
+
       {/* Header */}
       <header className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -82,33 +81,32 @@ export default function DiseaseInformationPage() {
           >
             <ChevronLeft className="w-8 h-8" />
           </button>
-          
+
           <h1 className="text-2xl font-bold">
             {selectedDisease ? cleanDiseaseName(selectedDisease.name) : 'ข้อมูลโรคทั้งหมด'}
           </h1>
         </div>
-        
+
         <div >
           {!selectedDisease && <ProfileDropdownMenu showGreeting={false} />}
         </div>
       </header>
 
       <div className="px-5 mt-8 w-full max-w-2xl mx-auto flex flex-col min-h-[calc(100vh-180px)] justify-between gap-6">
-        
+
         {/* List */}
         {!selectedDisease && (
           <div className="space-y-5">
             {/* Category Filter */}
             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-              {['ทั้งหมด', 'แบคทีเรีย', 'ปรสิต', 'เชื้อรา', 'โภชนาการ', 'สิ่งแวดล้อม'].map((cat) => (
+              {['ทั้งหมด', 'แบคทีเรีย', 'ปรสิต', 'เชื้อรา', 'โภชนาการ'].map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
-                    selectedCategory === cat
+                  className={`px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${selectedCategory === cat
                       ? 'bg-[#093832] text-white shadow-md'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                    }`}
                 >
                   {cat}
                 </button>
@@ -162,13 +160,10 @@ export default function DiseaseInformationPage() {
             <div className="flex items-center justify-center gap-2">
               <span className="text-4xl">{selectedDisease.icon || '🦠'}</span>
               <span
-                className={`${
-                  CATEGORY_COLORS[selectedDisease.category]?.text || 'text-gray-700'
-                } text-sm font-bold px-3 py-1.5 rounded-full ${
-                  CATEGORY_COLORS[selectedDisease.category]?.bg || 'bg-gray-100'
-                } border-2 ${
-                  CATEGORY_COLORS[selectedDisease.category]?.border || 'border-gray-200'
-                }`}
+                className={`${CATEGORY_COLORS[selectedDisease.category]?.text || 'text-gray-700'
+                  } text-sm font-bold px-3 py-1.5 rounded-full ${CATEGORY_COLORS[selectedDisease.category]?.bg || 'bg-gray-100'
+                  } border-2 ${CATEGORY_COLORS[selectedDisease.category]?.border || 'border-gray-200'
+                  }`}
               >
                 {selectedDisease.category}
               </span>

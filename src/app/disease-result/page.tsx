@@ -12,7 +12,6 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string
   'ปรสิต': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' },
   'เชื้อรา': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' },
   'โภชนาการ': { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
-  'สิ่งแวดล้อม': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
   'default': { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' }
 };
 
@@ -309,11 +308,11 @@ function DiseaseResultContent() {
               </span>
 
               <div className="flex items-center gap-3">
-                
+
                 <span className={`text-sm font-bold px-4 py-1.5 rounded-full border shadow-sm flex items-center gap-1
                   ${selectedDisease.rank === 1
-                    ? 'bg-[#E4F5E7] text-[#093832] border-[#6CCF9C]' 
-                    : 'bg-gray-50 text-gray-600 border-gray-200' 
+                    ? 'bg-[#E4F5E7] text-[#093832] border-[#6CCF9C]'
+                    : 'bg-gray-50 text-gray-600 border-gray-200'
                   }`}>
                   ความน่าจะเป็นอันดับ {selectedDisease.rank || '-'}
                 </span>
