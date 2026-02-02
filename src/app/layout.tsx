@@ -1,12 +1,10 @@
 import type { Metadata } from "next";
-import { Prompt } from "next/font/google";
+import { Inter } from "next/font/google";       
+
 import "./globals.css";
 
-const prompt = Prompt({
-  weight: ['300', '400', '500', '600', '700'],
-  subsets: ["latin", "thai"],
-  variable: "--font-prompt",
-});
+const inter = Inter({ subsets: ["latin"] });
+
 
 export const metadata: Metadata = {
   title: "DUKE FARM - ระบบจัดการฟาร์มปลาดุก",
@@ -21,7 +19,8 @@ export default function RootLayout({
   return (
     <html lang="th">
       <body
-        className={`${prompt.variable} font-prompt antialiased`}
+
+        className={inter.className} 
       >
         {children}
       </body>

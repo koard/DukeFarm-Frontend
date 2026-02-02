@@ -19,9 +19,7 @@ export default {
           light: "#f0fdf4",
         },
       },
-      fontFamily: {
-        'prompt': ['Prompt', 'sans-serif'],
-      },
+
     },
   },
   plugins: [],
