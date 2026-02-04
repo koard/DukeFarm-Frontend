@@ -89,7 +89,7 @@ const FOOD_TYPE_OPTIONS: { value: FoodType; label: string; icon: string }[] = [
 export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
     const [selectedFormula, setSelectedFormula] = useState<FeedFormula | null>(null);
     const [showResult, setShowResult] = useState(false);
-    const [selectedFoodType, setSelectedFoodType] = useState<FoodType | null>(null);
+    const [expandedFoodTypes, setExpandedFoodTypes] = useState<Set<FoodType>>(new Set());
 
     // Calculator states
     const [fishWeight, setFishWeight] = useState<number>(50);
@@ -99,12 +99,6 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
     const { data: dashboardData, loading, error } = useDashboardData<DashboardData>(farmType);
     const [feedingInfo, setFeedingInfo] = useState<FeedingInfo | null>(null);
     const [feedFormulas, setFeedFormulas] = useState<FeedFormula[]>([]);
-
-    // Filter formulas by foodType from database
-    const filteredFormulas = useMemo(() => {
-        if (!selectedFoodType) return [];
-        return feedFormulas.filter(formula => formula.foodType === selectedFoodType);
-    }, [feedFormulas, selectedFoodType]);
 
     // Calculator result
     const calculatorResult = useMemo(() => {
@@ -178,19 +172,9 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
         setShowResult(true);
     };
 
-    const handleFoodTypeSelect = (foodType: FoodType) => {
-        setSelectedFoodType(foodType);
-        setSelectedFormula(null);
-        setShowResult(false);
-    };
-
     const handleBack = () => {
-        if (showResult) {
-            setShowResult(false);
-            setSelectedFormula(null);
-        } else if (selectedFoodType) {
-            setSelectedFoodType(null);
-        }
+        setShowResult(false);
+        setSelectedFormula(null);
     };
 
     return (
@@ -215,13 +199,25 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                 {!showResult && (
                     <div className="space-y-3">
                         {FOOD_TYPE_OPTIONS.map((option) => {
-                            const isExpanded = selectedFoodType === option.value;
+                            const isExpanded = expandedFoodTypes.has(option.value as FoodType);
                             const formulas = feedFormulas.filter(f => f.foodType === option.value);
+
+                            const toggleExpand = () => {
+                                setExpandedFoodTypes(prev => {
+                                    const next = new Set(prev);
+                                    if (next.has(option.value as FoodType)) {
+                                        next.delete(option.value as FoodType);
+                                    } else {
+                                        next.add(option.value as FoodType);
+                                    }
+                                    return next;
+                                });
+                            };
 
                             return (
                                 <div key={option.value} className="border-2 border-gray-200 rounded-xl overflow-hidden">
                                     <button
-                                        onClick={() => setSelectedFoodType(isExpanded ? null : option.value)}
+                                        onClick={toggleExpand}
                                         className={`w-full p-4 flex items-center gap-4 transition-all text-left ${isExpanded ? 'bg-[#093832] text-white' : 'bg-white hover:bg-[#F4FFFC]'}`}
                                     >
                                         <span className="text-3xl">{option.icon}</span>
@@ -273,8 +269,8 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                         </button>
 
                         <div className="inline-flex items-center gap-2 bg-[#093832] text-white px-4 py-2 rounded-full mb-4">
-                            <span>{FOOD_TYPE_OPTIONS.find(o => o.value === selectedFoodType)?.icon}</span>
-                            <span className="font-medium">{FOOD_TYPE_OPTIONS.find(o => o.value === selectedFoodType)?.label}</span>
+                            <span>{FOOD_TYPE_OPTIONS.find(o => o.value === selectedFormula?.foodType)?.icon}</span>
+                            <span className="font-medium">{FOOD_TYPE_OPTIONS.find(o => o.value === selectedFormula?.foodType)?.label}</span>
                         </div>
 
                         <div className="bg-[#F4FFFC] rounded-xl p-4 mb-4 border border-emerald-100">
@@ -312,10 +308,10 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                                 </div>
                             )}
 
-                            {/* ข้อควรระวัง */}
+                            {/* คำแนะนำ */}
                             {feedingInfo?.recommendations && feedingInfo.recommendations.length > 0 && (
                                 <div className="w-full">
-                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">ข้อควรระวัง</h3>
+                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">คำแนะนำ</h3>
                                     <div className="bg-[#FFF4E5] rounded-xl p-4 w-full shadow-sm border border-orange-100">
                                         <div className="space-y-1">
                                             {feedingInfo.recommendations.map((text: string, i: number) => (
