@@ -1,22 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Image from "next/image";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronDown } from "lucide-react";
+import { ChevronLeft, ChevronDown, Calculator, Fish } from "lucide-react";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
 
 type FarmType = "SMALL" | "LARGE" | "MARKET";
-
-interface WeatherData {
-    time: string;
-    temperatureC: number;
-    humidityPct: number;
-    windSpeedKph: number;
-    rainMm: number;
-    conditionText: string;
-}
+type FoodType = "FRESH" | "PELLET" | "SUPPLEMENT";
 
 interface DashboardSummary {
     asOf: string;
@@ -24,46 +15,39 @@ interface DashboardSummary {
     temperatureDeltaC: number | null;
     comfortRangeC: { min: number; max: number };
     recommendedFeedAdjustmentPct: number | null;
-    weather: WeatherData | null;
-}
-
-interface ForecastData {
-    date: string;
-    meanTemperatureC: number;
-    highTemperatureC: number;
-    lowTemperatureC: number;
-    weatherCode?: number;
-    conditionText?: string;
-    feedAdjustmentPct: number;
-    feedingRecommendation: string;
+    weather: {
+        time: string;
+        temperatureC: number;
+        humidityPct: number;
+        windSpeedKph: number;
+        rainMm: number;
+        conditionText: string;
+    } | null;
 }
 
 interface DashboardData {
     group: string;
     hasData: boolean;
     summary: DashboardSummary;
-    feedingPlan: ForecastData[];
 }
 
 interface FeedFormula {
     id: string;
     name: string;
     targetStage: string;
-    ingredients?: string;
-    instruction?: string;
-    recommendations: string;
+    foodType: FoodType;
+    nutrients?: string;
+    usage?: string;
+    recommendations?: string;
     farmType?: string;
-    createdAt?: string;
-    updatedAt?: string;
 }
 
 interface FeedingInfo {
     name: string;
     targetStage: string;
-    ingredients: string[];
-    instruction: string[];
-    advice: string[];
-    weightRange: string;
+    nutrients: string[];
+    usage: string[];
+    recommendations: string[];
 }
 
 interface FeedingViewProps {
@@ -71,14 +55,70 @@ interface FeedingViewProps {
     backHref: string;
 }
 
+// FCR และอัตราให้อาหารตามขนาดปลา (จากกรมประมง)
+const getFeedingParams = (fishWeightGr: number): { fcr: number; feedingRate: number; feedingRateLabel: string } => {
+    if (fishWeightGr < 5) {
+        return { fcr: 1.8, feedingRate: 0.12, feedingRateLabel: "10-15%" };
+    } else if (fishWeightGr < 20) {
+        return { fcr: 1.6, feedingRate: 0.07, feedingRateLabel: "6-8%" };
+    } else if (fishWeightGr < 100) {
+        return { fcr: 1.5, feedingRate: 0.05, feedingRateLabel: "4-6%" };
+    } else {
+        return { fcr: 1.3, feedingRate: 0.032, feedingRateLabel: "3-3.2%" };
+    }
+};
+
+const FARM_TYPE_LABELS: Record<FarmType, string> = {
+    SMALL: "ปลาตุ่ม",
+    LARGE: "ปลานิ้ว",
+    MARKET: "ปลาตลาด"
+};
+
+const FARM_TYPE_SIZE: Record<FarmType, string> = {
+    SMALL: "2-5 ซม.",
+    LARGE: "5-10 ซม.",
+    MARKET: ">150 กรัม"
+};
+
+const FOOD_TYPE_OPTIONS: { value: FoodType; label: string; icon: string }[] = [
+    { value: "FRESH", label: "อาหารสด", icon: "🥩" },
+    { value: "PELLET", label: "อาหารเม็ด", icon: "🟤" },
+    { value: "SUPPLEMENT", label: "วิตามิน/โปรไบโอติก", icon: "💊" }
+];
+
 export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
     const [selectedFormula, setSelectedFormula] = useState<FeedFormula | null>(null);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [showResult, setShowResult] = useState(false);
+    const [selectedFoodType, setSelectedFoodType] = useState<FoodType | null>(null);
+
+    // Calculator states
+    const [fishWeight, setFishWeight] = useState<number>(50);
+    const [fishCount, setFishCount] = useState<number>(1000);
+    const [showCalculator, setShowCalculator] = useState(false);
 
     const { data: dashboardData, loading, error } = useDashboardData<DashboardData>(farmType);
     const [feedingInfo, setFeedingInfo] = useState<FeedingInfo | null>(null);
     const [feedFormulas, setFeedFormulas] = useState<FeedFormula[]>([]);
+
+    // Filter formulas by foodType from database
+    const filteredFormulas = useMemo(() => {
+        if (!selectedFoodType) return [];
+        return feedFormulas.filter(formula => formula.foodType === selectedFoodType);
+    }, [feedFormulas, selectedFoodType]);
+
+    // Calculator result
+    const calculatorResult = useMemo(() => {
+        const totalWeightKg = (fishWeight * fishCount) / 1000;
+        const params = getFeedingParams(fishWeight);
+        const dailyFeedKg = totalWeightKg * params.feedingRate;
+
+        return {
+            totalWeightKg: totalWeightKg.toFixed(2),
+            fcr: params.fcr,
+            feedingRate: params.feedingRateLabel,
+            dailyFeedKg: dailyFeedKg.toFixed(2)
+        };
+    }, [fishWeight, fishCount]);
 
     useEffect(() => {
         const fetchFeedFormulas = async () => {
@@ -114,42 +154,43 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
         const target = formula ?? selectedFormula;
         if (!target) return;
 
+        const nutrients = target.nutrients
+            ? target.nutrients.split('\n').filter((line: string) => line.trim())
+            : [];
+
+        const usage = target.usage
+            ? target.usage.split('\n').filter((line: string) => line.trim())
+            : [];
+
         const recommendations = target.recommendations
             ? target.recommendations.split('\n').filter((line: string) => line.trim())
-            : [];
-
-        const ingredientLines = target.ingredients
-            ? target.ingredients.split('\n').filter((line: string) => line.trim())
-            : [];
-
-        const instructionLines = target.instruction
-            ? target.instruction.split('\n').filter((line: string) => line.trim())
             : [];
 
         setSelectedFormula(target);
         setFeedingInfo({
             name: target.name,
             targetStage: target.targetStage,
-            ingredients: ingredientLines,
-            instruction: instructionLines,
-            advice: recommendations,
-            weightRange: "N/A"
+            nutrients,
+            usage,
+            recommendations
         });
 
         setShowResult(true);
-        setIsDropdownOpen(false);
     };
 
-    const getFeedingRecommendationText = () => {
-        if (loading) return "กำลังโหลด...";
-        if (error || !dashboardData?.hasData || dashboardData?.summary?.recommendedFeedAdjustmentPct === null) {
-            return "N/A";
+    const handleFoodTypeSelect = (foodType: FoodType) => {
+        setSelectedFoodType(foodType);
+        setSelectedFormula(null);
+        setShowResult(false);
+    };
+
+    const handleBack = () => {
+        if (showResult) {
+            setShowResult(false);
+            setSelectedFormula(null);
+        } else if (selectedFoodType) {
+            setSelectedFoodType(null);
         }
-        const pct = dashboardData?.summary?.recommendedFeedAdjustmentPct;
-        if (pct === undefined) return "N/A";
-        if (pct > 0) return `เพิ่มอาหาร ${pct}%`;
-        if (pct < 0) return `กินน้อยลง ${Math.abs(pct)}%`;
-        return "ปกติ";
     };
 
     return (
@@ -170,43 +211,252 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
 
             <div className="px-6 mt-4 w-full max-w-5xl mx-auto">
 
-
-                <label className="block text-lg font-bold text-black mb-2 mt-4">
-                    เลือกสูตรอาหารที่ต้องการดูข้อมูล
-                </label>
-
-                <div className="relative mb-6">
-                    <button
-                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                        className="w-full bg-white border border-gray-300 rounded-xl px-4 py-3 flex items-center justify-between text-lg text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#093832]"
-                    >
-                        <span className={selectedFormula ? "text-black" : "text-gray-400"}>
-                            {selectedFormula?.name || "กรุณาเลือกสูตรอาหาร"}
-                        </span>
-                        <ChevronDown className={`w-6 h-6 text-gray-400 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`} />
-                    </button>
-
-                    {isDropdownOpen && (
-                        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-lg z-20 max-h-64 overflow-y-auto">
-                            {feedFormulas.length > 0 ? (
-                                feedFormulas.map((formula) => (
-                                    <div
-                                        key={formula.id}
-                                        onClick={() => handleViewData(formula)}
-                                        className="px-4 py-3 text-lg text-black hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-none"
-                                    >
-                                        {formula.name}
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="px-4 py-3 text-gray-400 text-center">ไม่พบข้อมูลสูตรอาหาร</div>
-                            )}
-                        </div>
-                    )}
+                {/* Header Card */}
+                <div className="flex items-center gap-2 mb-3 text-[#093832]">
+                    <Fish className="w-6 h-6" />
+                    <span className="text-base font-bold">การให้อาหาร</span>
                 </div>
 
-                {/* สภาพอากาศปัจจุบัน */}
-                {!showResult && (
+                <div className="flex items-center bg-[#FFEFBC] rounded-2xl overflow-hidden mb-6 w-full shadow-sm">
+                    <div className="flex-1 p-4 flex flex-col items-center justify-center">
+                        <div className="flex items-center gap-2 mb-1 text-gray-600">
+                            <span className="text-sm">🐟 ประเภทปลา</span>
+                        </div>
+                        <p className="text-xl font-bold text-black">
+                            {FARM_TYPE_LABELS[farmType]}
+                        </p>
+                    </div>
+
+                    <div className="w-[1px] h-[60px] bg-white/50"></div>
+
+                    <div className="flex-1 p-4 flex flex-col items-center justify-center">
+                        <div className="flex items-center gap-2 mb-1 text-gray-600">
+                            <span className="text-sm">📏 ขนาดปลา</span>
+                        </div>
+                        <p className="text-xl font-bold text-black">
+                            {FARM_TYPE_SIZE[farmType]}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Food Type Selection */}
+                {!selectedFoodType && (
+                    <div className="mb-6">
+                        <label className="block text-lg font-bold text-black mb-3">
+                            เลือกประเภทอาหาร
+                        </label>
+                        <div className="grid grid-cols-1 gap-3">
+                            {FOOD_TYPE_OPTIONS.map((option) => (
+                                <button
+                                    key={option.value}
+                                    onClick={() => handleFoodTypeSelect(option.value)}
+                                    className="w-full bg-white border-2 border-gray-200 rounded-xl p-4 flex items-center gap-4 hover:border-[#093832] hover:bg-[#F4FFFC] transition-all text-left"
+                                >
+                                    <span className="text-3xl">{option.icon}</span>
+                                    <span className="text-lg font-medium text-black">{option.label}</span>
+                                    <ChevronDown className="w-5 h-5 text-gray-400 ml-auto -rotate-90" />
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Formula Selection */}
+                {selectedFoodType && !showResult && (
+                    <div className="mb-6">
+                        <button
+                            onClick={handleBack}
+                            className="flex items-center gap-1 text-[#093832] mb-3 hover:underline"
+                        >
+                            <ChevronLeft className="w-5 h-5" />
+                            <span>กลับ</span>
+                        </button>
+
+                        <div className="inline-flex items-center gap-2 bg-[#093832] text-white px-4 py-2 rounded-full mb-4">
+                            <span>{FOOD_TYPE_OPTIONS.find(o => o.value === selectedFoodType)?.icon}</span>
+                            <span className="font-medium">{FOOD_TYPE_OPTIONS.find(o => o.value === selectedFoodType)?.label}</span>
+                        </div>
+
+                        <label className="block text-lg font-bold text-black mb-3">
+                            เลือกสูตรอาหาร
+                        </label>
+
+                        {filteredFormulas.length > 0 ? (
+                            <div className="space-y-3">
+                                {filteredFormulas.map((formula) => (
+                                    <button
+                                        key={formula.id}
+                                        onClick={() => handleViewData(formula)}
+                                        className="w-full bg-white border-2 border-gray-200 rounded-xl p-4 flex items-center justify-between hover:border-[#093832] hover:bg-[#F4FFFC] transition-all text-left"
+                                    >
+                                        <div>
+                                            <p className="text-base font-medium text-black">{formula.name}</p>
+                                            <p className="text-sm text-gray-500">{formula.targetStage}</p>
+                                        </div>
+                                        <ChevronDown className="w-5 h-5 text-gray-400 -rotate-90" />
+                                    </button>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center p-6 bg-gray-50 rounded-xl">
+                                <p className="text-gray-500">ไม่พบสูตรอาหารในหมวดนี้</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Formula Details */}
+                {showResult && (
+                    <div className="animate-in fade-in slide-in-from-top-4 duration-500 w-full">
+
+                        <button
+                            onClick={handleBack}
+                            className="flex items-center gap-1 text-[#093832] mb-3 hover:underline"
+                        >
+                            <ChevronLeft className="w-5 h-5" />
+                            <span>กลับ</span>
+                        </button>
+
+                        <div className="inline-flex items-center gap-2 bg-[#093832] text-white px-4 py-2 rounded-full mb-4">
+                            <span>{FOOD_TYPE_OPTIONS.find(o => o.value === selectedFoodType)?.icon}</span>
+                            <span className="font-medium">{FOOD_TYPE_OPTIONS.find(o => o.value === selectedFoodType)?.label}</span>
+                        </div>
+
+                        <div className="bg-[#F4FFFC] rounded-xl p-4 mb-4 border border-emerald-100">
+                            <h3 className="text-lg font-bold text-black mb-1">{feedingInfo?.name}</h3>
+                            <p className="text-sm text-gray-600">ขนาดปลา: {feedingInfo?.targetStage}</p>
+                        </div>
+
+                        <div className="space-y-4 w-full">
+
+                            {/* สารอาหารที่ได้ */}
+                            {feedingInfo?.nutrients && feedingInfo.nutrients.length > 0 && (
+                                <div className="w-full">
+                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">สารอาหารที่ได้</h3>
+                                    <div className="bg-[#F4FFFC] rounded-xl p-4 w-full shadow-sm border border-emerald-50/50">
+                                        <div className="space-y-1">
+                                            {feedingInfo.nutrients.map((text: string, i: number) => (
+                                                <p key={i} className="text-sm text-black">{text}</p>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* วิธีใช้ */}
+                            {feedingInfo?.usage && feedingInfo.usage.length > 0 && (
+                                <div className="w-full">
+                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">วิธีใช้</h3>
+                                    <div className="bg-[#F4FFFC] rounded-xl p-4 w-full shadow-sm border border-emerald-50/50">
+                                        <div className="space-y-1">
+                                            {feedingInfo.usage.map((text: string, i: number) => (
+                                                <p key={i} className="text-sm text-black">{text}</p>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* ข้อควรระวัง */}
+                            {feedingInfo?.recommendations && feedingInfo.recommendations.length > 0 && (
+                                <div className="w-full">
+                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">ข้อควรระวัง</h3>
+                                    <div className="bg-[#FFF4E5] rounded-xl p-4 w-full shadow-sm border border-orange-100">
+                                        <div className="space-y-1">
+                                            {feedingInfo.recommendations.map((text: string, i: number) => (
+                                                <p key={i} className="text-sm text-black">{text}</p>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* FCR Calculator Toggle */}
+                            <button
+                                onClick={() => setShowCalculator(!showCalculator)}
+                                className="w-full bg-[#093832] text-white rounded-xl p-4 flex items-center justify-center gap-2 hover:bg-[#0a4a42] transition-colors"
+                            >
+                                <Calculator className="w-5 h-5" />
+                                <span className="font-medium">
+                                    {showCalculator ? "ซ่อนเครื่องคำนวณ" : "🧮 คำนวณปริมาณอาหาร"}
+                                </span>
+                            </button>
+
+                            {/* FCR Calculator */}
+                            {showCalculator && (
+                                <div className="bg-[#D8EFFF] rounded-xl p-5 w-full shadow-sm border border-blue-100">
+                                    <h3 className="text-base font-bold text-black mb-4 flex items-center gap-2">
+                                        <Calculator className="w-5 h-5" />
+                                        คำนวณปริมาณอาหาร
+                                    </h3>
+
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            น้ำหนักปลาเฉลี่ย (กรัม): <span className="font-bold text-[#093832]">{fishWeight} กรัม</span>
+                                        </label>
+                                        <input
+                                            type="range"
+                                            min="1"
+                                            max="500"
+                                            value={fishWeight}
+                                            onChange={(e) => setFishWeight(Number(e.target.value))}
+                                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#093832]"
+                                        />
+                                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                                            <span>1 กรัม</span>
+                                            <span>500 กรัม</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            จำนวนปลา (ตัว)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max="100000"
+                                            value={fishCount}
+                                            onChange={(e) => setFishCount(Number(e.target.value) || 1)}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-lg text-center font-bold focus:outline-none focus:ring-2 focus:ring-[#093832]"
+                                        />
+                                    </div>
+
+                                    <div className="bg-white rounded-xl p-4 space-y-3">
+                                        <h4 className="font-bold text-gray-700 flex items-center gap-2">
+                                            📊 ผลการคำนวณ
+                                        </h4>
+
+                                        <div className="grid grid-cols-2 gap-3 text-sm">
+                                            <div className="bg-gray-50 rounded-lg p-3">
+                                                <p className="text-gray-500">น้ำหนักปลารวม</p>
+                                                <p className="font-bold text-black">{calculatorResult.totalWeightKg} กก.</p>
+                                            </div>
+                                            <div className="bg-gray-50 rounded-lg p-3">
+                                                <p className="text-gray-500">FCR</p>
+                                                <p className="font-bold text-black">{calculatorResult.fcr}</p>
+                                            </div>
+                                            <div className="bg-gray-50 rounded-lg p-3 col-span-2">
+                                                <p className="text-gray-500">อัตราให้อาหาร</p>
+                                                <p className="font-bold text-black">{calculatorResult.feedingRate} ต่อวัน</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-[#093832] text-white rounded-xl p-4 text-center">
+                                            <p className="text-sm opacity-80">🎯 ปริมาณอาหารต่อวัน</p>
+                                            <p className="text-3xl font-bold">{calculatorResult.dailyFeedKg} กก.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                        </div>
+
+                    </div>
+                )}
+
+                {/* Weather Info */}
+                {!selectedFoodType && (
                     <div className="mb-6">
                         <h2 className="text-lg font-bold text-black mb-2">สภาพอากาศปัจจุบัน</h2>
                         {loading ? (
@@ -217,24 +467,21 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                             <div className="flex items-center bg-[#D8EFFF] rounded-xl overflow-hidden shadow-sm">
                                 <div className="flex-1 py-4 flex flex-col items-center justify-center">
                                     <div className="flex items-center gap-1 mb-1">
-                                        <Image src="/nursery-large/fluent_temperature-b.svg" alt="temp" width={20} height={20} />
-                                        <span className="text-sm text-black">อุณหภูมิ</span>
+                                        <span className="text-sm text-black">🌡️ อุณหภูมิ</span>
                                     </div>
                                     <p className="text-xl font-bold text-black">{dashboardData?.summary?.airTemperatureC?.toFixed(1) ?? 'N/A'} °C</p>
                                 </div>
                                 <div className="w-[2px] h-[40px] bg-white"></div>
                                 <div className="flex-1 py-4 flex flex-col items-center justify-center">
                                     <div className="flex items-center gap-1 mb-1">
-                                        <Image src="/nursery-large/fluent_weather-rain-snow-b.svg" alt="rain" width={20} height={20} />
-                                        <span className="text-sm text-black">ปริมาณน้ำฝน</span>
+                                        <span className="text-sm text-black">🌧️ ปริมาณน้ำฝน</span>
                                     </div>
                                     <p className="text-xl font-bold text-black">{dashboardData?.summary?.weather?.rainMm !== undefined ? `${dashboardData?.summary?.weather?.rainMm} mm` : 'N/A'}</p>
                                 </div>
                                 <div className="w-[2px] h-[40px] bg-white"></div>
                                 <div className="flex-1 py-4 flex flex-col items-center justify-center">
                                     <div className="flex items-center gap-1 mb-1">
-                                        <Image src="/nursery-large/mdi_dots-triangle.svg" alt="humidity" width={20} height={20} />
-                                        <span className="text-sm text-black">ความชื้น</span>
+                                        <span className="text-sm text-black">💧 ความชื้น</span>
                                     </div>
                                     <p className="text-xl font-bold text-black">{dashboardData?.summary?.weather?.humidityPct !== undefined ? `${dashboardData?.summary?.weather?.humidityPct}%` : 'N/A'}</p>
                                 </div>
@@ -242,112 +489,6 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                         ) : (
                             <div className="text-center p-4 bg-gray-100 rounded-xl shadow-sm">ไม่มีข้อมูลสภาพอากาศ</div>
                         )}
-                    </div>
-                )}
-
-                {showResult && (
-                    <div className="animate-in fade-in slide-in-from-top-4 duration-500 w-full">
-
-                        <div className="flex items-center gap-2 mb-3 text-[#093832]">
-                            <Image src="/nursery-large/fluent_food-grains.svg" alt="icon" width={24} height={24} />
-                            <span className="text-base font-bold">การให้อาหาร</span>
-                        </div>
-
-                        {/* Yellow Card Info */}
-                        <div className="flex items-center bg-[#FFEFBC] rounded-2xl overflow-hidden mb-6 w-full shadow-sm min-h-[100px]">
-
-                            <div className="flex-1 p-5 flex flex-col items-center justify-center">
-                                <div className="flex items-center gap-2 mb-1 text-black">
-                                    <Image src="/nursery-large/fluent_food-grains.svg" alt="formula" width={20} height={20} />
-                                    <span className="text-base font-medium text-center">สูตรอาหาร</span>
-                                </div>
-                                <p className="text-lg font-bold text-black text-center">
-                                    {feedingInfo?.name || 'N/A'}
-                                </p>
-                            </div>
-
-                            <div className="w-[1px] h-[90px] bg-white"></div>
-
-                            <div className="flex-1 p-5 flex flex-col items-center justify-center">
-                                <div className="flex items-center gap-2 mb-1 text-black">
-                                    <Image src="/nursery-large/famicons_fish-outline.svg" alt="age" width={20} height={20} />
-                                    <span className="text-base font-medium text-center">อายุปลา</span>
-                                </div>
-                                <p className="text-xl font-bold text-black text-center">
-                                    {feedingInfo?.targetStage || 'N/A'}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Blue Card Info */}
-                        <div className="flex items-center bg-[#D8EFFF] rounded-2xl overflow-hidden shadow-sm min-h-[100px] mb-4">
-                            <div className="flex-1 p-4 flex flex-col items-center justify-center">
-                                <div className="flex items-center gap-2 mb-1 text-black">
-                                    <Image src="/nursery-large/fluent_temperature-b.svg" alt="temp" width={20} height={20} />
-                                    <span className="text-base font-medium">อุณหภูมิ</span>
-                                </div>
-                                <p className="text-2xl font-bold text-black">
-                                    {loading ? '...' : `${dashboardData?.summary?.airTemperatureC?.toFixed(1) ?? 'N/A'} °C`}
-                                </p>
-                            </div>
-
-                            <div className="w-[2px] h-[50px] bg-white"></div>
-
-                            <div className="flex-1 p-4 flex flex-col items-center justify-center">
-                                <div className="flex items-center gap-2 mb-1 text-black">
-                                    <Image src="/nursery-large/famicons_fish-outline.svg" alt="eat" width={20} height={20} />
-                                    <span className="text-base font-medium">การทานอาหาร</span>
-                                </div>
-                                <p className="text-xl font-bold text-black text-center">{getFeedingRecommendationText()}</p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-6 w-full">
-
-                            {/* Block 1: ส่วนผสม */}
-                            {feedingInfo?.ingredients && feedingInfo.ingredients.length > 0 && (
-                                <div className="w-full">
-                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">ส่วนผสม</h3>
-                                    <div className="bg-[#F4FFFC] rounded-xl p-4 w-full shadow-sm border border-emerald-50/50">
-                                        <div className="space-y-1">
-                                            {feedingInfo.ingredients.map((text: string, i: number) => (
-                                                <p key={i} className="text-sm text-black">{text}</p>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Block 2: วิธีทำ */}
-                            {feedingInfo?.instruction && feedingInfo.instruction.length > 0 && (
-                                <div className="w-full">
-                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">วิธีทำ</h3>
-                                    <div className="bg-[#F4FFFC] rounded-xl p-4 w-full shadow-sm border border-emerald-50/50">
-                                        <div className="space-y-1">
-                                            {feedingInfo.instruction.map((text: string, i: number) => (
-                                                <p key={i} className="text-sm text-black">{text}</p>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Block 3: คำแนะนำ */}
-                            {feedingInfo?.advice && feedingInfo.advice.length > 0 && (
-                                <div className="w-full">
-                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">คำแนะนำ</h3>
-                                    <div className="bg-[#F4FFFC] rounded-xl p-4 w-full shadow-sm border border-emerald-50/50">
-                                        <div className="space-y-1">
-                                            {feedingInfo.advice.map((text: string, i: number) => (
-                                                <p key={i} className="text-sm text-black">{text}</p>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                        </div>
-
                     </div>
                 )}
 
