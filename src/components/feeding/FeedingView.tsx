@@ -218,31 +218,29 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                                 <div key={option.value} className="border-2 border-gray-200 rounded-xl overflow-hidden">
                                     <button
                                         onClick={toggleExpand}
-                                        className={`w-full p-4 flex items-center gap-4 transition-all text-left ${isExpanded ? 'bg-[#093832] text-white' : 'bg-white hover:bg-[#F4FFFC]'}`}
+                                        className="w-full p-4 flex items-center gap-4 transition-all text-left bg-white hover:bg-[#F4FFFC]"
                                     >
                                         <span className="text-3xl">{option.icon}</span>
-                                        <span className="text-lg font-medium">{option.label}</span>
-                                        <ChevronDown className={`w-5 h-5 ml-auto transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                                        <span className="text-lg font-medium text-black">{option.label}</span>
+                                        <ChevronDown className={`w-5 h-5 ml-auto text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                                     </button>
 
                                     {isExpanded && (
-                                        <div className="border-t border-gray-200 bg-gray-50">
+                                        <div className="p-3 bg-gray-50 space-y-2">
                                             {formulas.length > 0 ? (
-                                                <div className="divide-y divide-gray-200">
-                                                    {formulas.map((formula) => (
-                                                        <button
-                                                            key={formula.id}
-                                                            onClick={() => handleViewData(formula)}
-                                                            className="w-full p-4 flex items-center justify-between hover:bg-[#F4FFFC] transition-all text-left"
-                                                        >
-                                                            <div>
-                                                                <p className="text-base font-medium text-black">{formula.name}</p>
-                                                                <p className="text-sm text-gray-500">{formula.targetStage}</p>
-                                                            </div>
-                                                            <ChevronDown className="w-5 h-5 text-gray-400 -rotate-90" />
-                                                        </button>
-                                                    ))}
-                                                </div>
+                                                formulas.map((formula) => (
+                                                    <button
+                                                        key={formula.id}
+                                                        onClick={() => handleViewData(formula)}
+                                                        className="w-full p-4 flex items-center justify-between bg-white border border-gray-200 rounded-xl hover:border-[#093832] hover:bg-[#F4FFFC] transition-all text-left"
+                                                    >
+                                                        <div>
+                                                            <p className="text-base font-medium text-black">{formula.name}</p>
+                                                            <p className="text-sm text-gray-500">ขนาดปลา: {formula.targetStage}</p>
+                                                        </div>
+                                                        <ChevronDown className="w-5 h-5 text-gray-400 -rotate-90" />
+                                                    </button>
+                                                ))
                                             ) : (
                                                 <div className="p-4 text-center text-gray-500">
                                                     ไม่พบสูตรอาหารในหมวดนี้
@@ -294,10 +292,10 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                                 </div>
                             )}
 
-                            {/* วิธีการให้อาหาร */}
+                            {/* วิธีการให้ */}
                             {feedingInfo?.usage && feedingInfo.usage.length > 0 && (
                                 <div className="w-full">
-                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">วิธีการให้อาหาร</h3>
+                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">วิธีการให้</h3>
                                     <div className="bg-[#F4FFFC] rounded-xl p-4 w-full shadow-sm border border-emerald-50/50">
                                         <div className="space-y-1">
                                             {feedingInfo.usage.map((text: string, i: number) => (
