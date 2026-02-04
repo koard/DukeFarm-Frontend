@@ -211,29 +211,6 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
 
             <div className="px-6 mt-4 w-full max-w-5xl mx-auto">
 
-
-                <div className="flex items-center bg-[#FFEFBC] rounded-2xl overflow-hidden mb-6 w-full shadow-sm">
-                    <div className="flex-1 p-4 flex flex-col items-center justify-center">
-                        <div className="flex items-center gap-2 mb-1 text-gray-600">
-                            <span className="text-sm">🐟 ประเภทปลา</span>
-                        </div>
-                        <p className="text-xl font-bold text-black">
-                            {FARM_TYPE_LABELS[farmType]}
-                        </p>
-                    </div>
-
-                    <div className="w-[1px] h-[60px] bg-white/50"></div>
-
-                    <div className="flex-1 p-4 flex flex-col items-center justify-center">
-                        <div className="flex items-center gap-2 mb-1 text-gray-600">
-                            <span className="text-sm">📏 ขนาดปลา</span>
-                        </div>
-                        <p className="text-xl font-bold text-black">
-                            {FARM_TYPE_SIZE[farmType]}
-                        </p>
-                    </div>
-                </div>
-
                 {/* Food Type Selection */}
                 {!selectedFoodType && (
                     <div className="mb-6">
