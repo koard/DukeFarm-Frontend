@@ -280,10 +280,10 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
 
                         <div className="space-y-4 w-full">
 
-                            {/* สารอาหารที่ได้ */}
+                            {/* สารอาหาร */}
                             {feedingInfo?.nutrients && feedingInfo.nutrients.length > 0 && (
                                 <div className="w-full">
-                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">สารอาหารที่ได้</h3>
+                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">สารอาหาร</h3>
                                     <div className="bg-[#F4FFFC] rounded-xl p-4 w-full shadow-sm border border-emerald-50/50">
                                         <div className="space-y-1">
                                             {feedingInfo.nutrients.map((text: string, i: number) => (
@@ -325,9 +325,8 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                             {/* FCR Calculator Toggle */}
                             <button
                                 onClick={() => setShowCalculator(!showCalculator)}
-                                className="w-full bg-[#093832] text-white rounded-xl p-4 flex items-center justify-center gap-2 hover:bg-[#0a4a42] transition-colors"
+                                className="w-full bg-[#093832] text-white rounded-xl p-4 flex items-center justify-center gap-4 hover:bg-[#0a4a42] transition-colors"
                             >
-                                <Calculator className="w-5 h-5" />
                                 <span className="font-medium">
                                     {showCalculator ? "ซ่อนเครื่องคำนวณ" : "คำนวณปริมาณอาหาร"}
                                 </span>
