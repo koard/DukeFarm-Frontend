@@ -77,7 +77,7 @@ const FARM_TYPE_LABELS: Record<FarmType, string> = {
 const FARM_TYPE_SIZE: Record<FarmType, string> = {
     SMALL: "2-5 ซม.",
     LARGE: "5-10 ซม.",
-    MARKET: ">150 กรัม"
+    MARKET: ">10 ซม."
 };
 
 const FOOD_TYPE_OPTIONS: { value: FoodType; label: string; icon: string }[] = [
@@ -211,69 +211,52 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
 
             <div className="px-6 mt-4 w-full max-w-5xl mx-auto">
 
-                {/* Food Type Selection */}
-                {!selectedFoodType && (
-                    <div className="mb-6">
-                        <label className="block text-lg font-bold text-black mb-3">
-                            เลือกประเภทอาหาร
-                        </label>
-                        <div className="grid grid-cols-1 gap-3">
-                            {FOOD_TYPE_OPTIONS.map((option) => (
-                                <button
-                                    key={option.value}
-                                    onClick={() => handleFoodTypeSelect(option.value)}
-                                    className="w-full bg-white border-2 border-gray-200 rounded-xl p-4 flex items-center gap-4 hover:border-[#093832] hover:bg-[#F4FFFC] transition-all text-left"
-                                >
-                                    <span className="text-3xl">{option.icon}</span>
-                                    <span className="text-lg font-medium text-black">{option.label}</span>
-                                    <ChevronDown className="w-5 h-5 text-gray-400 ml-auto -rotate-90" />
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                {/* Food Type Accordion */}
+                {!showResult && (
+                    <div className="space-y-3">
+                        {FOOD_TYPE_OPTIONS.map((option) => {
+                            const isExpanded = selectedFoodType === option.value;
+                            const formulas = feedFormulas.filter(f => f.foodType === option.value);
 
-                {/* Formula Selection */}
-                {selectedFoodType && !showResult && (
-                    <div className="mb-6">
-                        <button
-                            onClick={handleBack}
-                            className="flex items-center gap-1 text-[#093832] mb-3 hover:underline"
-                        >
-                            <ChevronLeft className="w-5 h-5" />
-                            <span>กลับ</span>
-                        </button>
-
-                        <div className="inline-flex items-center gap-2 bg-[#093832] text-white px-4 py-2 rounded-full mb-4">
-                            <span>{FOOD_TYPE_OPTIONS.find(o => o.value === selectedFoodType)?.icon}</span>
-                            <span className="font-medium">{FOOD_TYPE_OPTIONS.find(o => o.value === selectedFoodType)?.label}</span>
-                        </div>
-
-                        <label className="block text-lg font-bold text-black mb-3">
-                            เลือกสูตรอาหาร
-                        </label>
-
-                        {filteredFormulas.length > 0 ? (
-                            <div className="space-y-3">
-                                {filteredFormulas.map((formula) => (
+                            return (
+                                <div key={option.value} className="border-2 border-gray-200 rounded-xl overflow-hidden">
                                     <button
-                                        key={formula.id}
-                                        onClick={() => handleViewData(formula)}
-                                        className="w-full bg-white border-2 border-gray-200 rounded-xl p-4 flex items-center justify-between hover:border-[#093832] hover:bg-[#F4FFFC] transition-all text-left"
+                                        onClick={() => setSelectedFoodType(isExpanded ? null : option.value)}
+                                        className={`w-full p-4 flex items-center gap-4 transition-all text-left ${isExpanded ? 'bg-[#093832] text-white' : 'bg-white hover:bg-[#F4FFFC]'}`}
                                     >
-                                        <div>
-                                            <p className="text-base font-medium text-black">{formula.name}</p>
-                                            <p className="text-sm text-gray-500">{formula.targetStage}</p>
-                                        </div>
-                                        <ChevronDown className="w-5 h-5 text-gray-400 -rotate-90" />
+                                        <span className="text-3xl">{option.icon}</span>
+                                        <span className="text-lg font-medium">{option.label}</span>
+                                        <ChevronDown className={`w-5 h-5 ml-auto transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
                                     </button>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center p-6 bg-gray-50 rounded-xl">
-                                <p className="text-gray-500">ไม่พบสูตรอาหารในหมวดนี้</p>
-                            </div>
-                        )}
+
+                                    {isExpanded && (
+                                        <div className="border-t border-gray-200 bg-gray-50">
+                                            {formulas.length > 0 ? (
+                                                <div className="divide-y divide-gray-200">
+                                                    {formulas.map((formula) => (
+                                                        <button
+                                                            key={formula.id}
+                                                            onClick={() => handleViewData(formula)}
+                                                            className="w-full p-4 flex items-center justify-between hover:bg-[#F4FFFC] transition-all text-left"
+                                                        >
+                                                            <div>
+                                                                <p className="text-base font-medium text-black">{formula.name}</p>
+                                                                <p className="text-sm text-gray-500">{formula.targetStage}</p>
+                                                            </div>
+                                                            <ChevronDown className="w-5 h-5 text-gray-400 -rotate-90" />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className="p-4 text-center text-gray-500">
+                                                    ไม่พบสูตรอาหารในหมวดนี้
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
 
