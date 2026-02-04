@@ -218,7 +218,7 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                                 <div key={option.value} className="border-2 border-gray-200 rounded-xl overflow-hidden">
                                     <button
                                         onClick={toggleExpand}
-                                        className="w-full p-4 flex items-center gap-4 transition-all text-left bg-white hover:bg-[#F4FFFC]"
+                                        className={`w-full p-4 flex items-center gap-4 transition-all text-left ${isExpanded ? 'bg-gray-50' : 'bg-white hover:bg-[#F4FFFC]'}`}
                                     >
                                         <span className="text-3xl">{option.icon}</span>
                                         <span className="text-lg font-medium text-black">{option.label}</span>
@@ -260,37 +260,32 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
 
                         <button
                             onClick={handleBack}
-                            className="flex items-center gap-1 text-[#093832] mb-4 hover:underline font-medium"
+                            className="flex items-center gap-1 text-[#093832] mb-3 hover:underline"
                         >
                             <ChevronLeft className="w-5 h-5" />
                             <span>กลับ</span>
                         </button>
 
-                        {/* Formula Header Card */}
-                        <div className="bg-gradient-to-r from-[#093832] to-[#0d5249] rounded-2xl p-5 mb-6 shadow-lg">
-                            <div className="flex items-center gap-2 mb-3">
-                                <span className="text-2xl">{FOOD_TYPE_OPTIONS.find(o => o.value === selectedFormula?.foodType)?.icon}</span>
-                                <span className="bg-white/20 text-white px-3 py-1 rounded-full text-sm font-medium">
-                                    {FOOD_TYPE_OPTIONS.find(o => o.value === selectedFormula?.foodType)?.label}
-                                </span>
-                            </div>
-                            <h3 className="text-xl font-bold text-white mb-1">{feedingInfo?.name}</h3>
-                            <p className="text-white/80 text-sm">ขนาดปลา: {feedingInfo?.targetStage}</p>
+                        <div className="inline-flex items-center gap-2 bg-[#093832] text-white px-4 py-2 rounded-full mb-4">
+                            <span>{FOOD_TYPE_OPTIONS.find(o => o.value === selectedFormula?.foodType)?.icon}</span>
+                            <span className="font-medium">{FOOD_TYPE_OPTIONS.find(o => o.value === selectedFormula?.foodType)?.label}</span>
                         </div>
 
-                        <div className="space-y-5 w-full">
+                        <div className="bg-[#F4FFFC] rounded-xl p-4 mb-4 border border-emerald-100">
+                            <h3 className="text-lg font-bold text-black mb-1">{feedingInfo?.name}</h3>
+                            <p className="text-sm text-gray-600">ขนาดปลา: {feedingInfo?.targetStage}</p>
+                        </div>
+
+                        <div className="space-y-4 w-full">
 
                             {/* สารอาหาร */}
                             {feedingInfo?.nutrients && feedingInfo.nutrients.length > 0 && (
                                 <div className="w-full">
-                                    <h3 className="text-base font-bold text-[#093832] mb-2 flex items-center gap-2">
-                                        <span className="w-1.5 h-5 bg-emerald-500 rounded-full"></span>
-                                        สารอาหาร
-                                    </h3>
-                                    <div className="bg-gradient-to-br from-[#F0FDF4] to-[#ECFDF5] rounded-xl p-4 w-full border border-emerald-200/50">
-                                        <div className="space-y-2">
+                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">สารอาหาร</h3>
+                                    <div className="bg-[#F4FFFC] rounded-xl p-4 w-full shadow-sm border border-emerald-50/50">
+                                        <div className="space-y-1">
                                             {feedingInfo.nutrients.map((text: string, i: number) => (
-                                                <p key={i} className="text-sm text-gray-700">{text}</p>
+                                                <p key={i} className="text-sm text-black">{text}</p>
                                             ))}
                                         </div>
                                     </div>
@@ -300,14 +295,11 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                             {/* วิธีการให้ */}
                             {feedingInfo?.usage && feedingInfo.usage.length > 0 && (
                                 <div className="w-full">
-                                    <h3 className="text-base font-bold text-[#093832] mb-2 flex items-center gap-2">
-                                        <span className="w-1.5 h-5 bg-blue-500 rounded-full"></span>
-                                        วิธีการให้
-                                    </h3>
-                                    <div className="bg-gradient-to-br from-[#EFF6FF] to-[#DBEAFE] rounded-xl p-4 w-full border border-blue-200/50">
-                                        <div className="space-y-2">
+                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">วิธีการให้</h3>
+                                    <div className="bg-[#F4FFFC] rounded-xl p-4 w-full shadow-sm border border-emerald-50/50">
+                                        <div className="space-y-1">
                                             {feedingInfo.usage.map((text: string, i: number) => (
-                                                <p key={i} className="text-sm text-gray-700">{text}</p>
+                                                <p key={i} className="text-sm text-black">{text}</p>
                                             ))}
                                         </div>
                                     </div>
@@ -317,14 +309,11 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                             {/* คำแนะนำ */}
                             {feedingInfo?.recommendations && feedingInfo.recommendations.length > 0 && (
                                 <div className="w-full">
-                                    <h3 className="text-base font-bold text-[#093832] mb-2 flex items-center gap-2">
-                                        <span className="w-1.5 h-5 bg-amber-500 rounded-full"></span>
-                                        คำแนะนำ
-                                    </h3>
-                                    <div className="bg-gradient-to-br from-[#FFFBEB] to-[#FEF3C7] rounded-xl p-4 w-full border border-amber-200/50">
-                                        <div className="space-y-2">
+                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">คำแนะนำ</h3>
+                                    <div className="bg-[#FFF4E5] rounded-xl p-4 w-full shadow-sm border border-orange-100">
+                                        <div className="space-y-1">
                                             {feedingInfo.recommendations.map((text: string, i: number) => (
-                                                <p key={i} className="text-sm text-gray-700">{text}</p>
+                                                <p key={i} className="text-sm text-black">{text}</p>
                                             ))}
                                         </div>
                                     </div>
@@ -334,20 +323,18 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                             {/* FCR Calculator Toggle */}
                             <button
                                 onClick={() => setShowCalculator(!showCalculator)}
-                                className="w-full bg-gradient-to-r from-[#093832] to-[#0d5249] text-white rounded-xl p-4 flex items-center justify-center gap-3 hover:from-[#0a4a42] hover:to-[#0f5e55] transition-all shadow-md"
+                                className="w-full bg-[#093832] text-white rounded-xl p-4 flex items-center justify-center gap-4 hover:bg-[#0a4a42] transition-colors"
                             >
-                                <Calculator className="w-5 h-5" />
                                 <span className="font-medium">
                                     {showCalculator ? "ซ่อนเครื่องคำนวณ" : "คำนวณปริมาณอาหาร"}
                                 </span>
-                                <ChevronDown className={`w-5 h-5 transition-transform ${showCalculator ? 'rotate-180' : ''}`} />
                             </button>
 
                             {/* FCR Calculator */}
                             {showCalculator && (
-                                <div className="bg-gradient-to-br from-[#EFF6FF] to-[#DBEAFE] rounded-xl p-5 w-full border border-blue-200">
-                                    <h3 className="text-base font-bold text-[#093832] mb-4 flex items-center gap-2">
-                                        <Calculator className="w-5 h-5 text-blue-600" />
+                                <div className="bg-[#D8EFFF] rounded-xl p-5 w-full shadow-sm border border-blue-100">
+                                    <h3 className="text-base font-bold text-black mb-4 flex items-center gap-2">
+                                        <Calculator className="w-5 h-5" />
                                         คำนวณปริมาณอาหาร
                                     </h3>
 
