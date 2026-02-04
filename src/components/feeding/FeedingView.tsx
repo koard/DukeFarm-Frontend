@@ -294,10 +294,10 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                                 </div>
                             )}
 
-                            {/* วิธีใช้ */}
+                            {/* วิธีการให้อาหาร */}
                             {feedingInfo?.usage && feedingInfo.usage.length > 0 && (
                                 <div className="w-full">
-                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">วิธีใช้</h3>
+                                    <h3 className="text-sm font-bold text-black mb-2 pl-1">วิธีการให้อาหาร</h3>
                                     <div className="bg-[#F4FFFC] rounded-xl p-4 w-full shadow-sm border border-emerald-50/50">
                                         <div className="space-y-1">
                                             {feedingInfo.usage.map((text: string, i: number) => (
@@ -342,18 +342,31 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
 
                                     <div className="mb-4">
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            น้ำหนักปลาเฉลี่ย (กรัม): <span className="font-bold text-[#093832]">{fishWeight} กรัม</span>
+                                            น้ำหนักปลาเฉลี่ย (กรัม)
                                         </label>
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <input
+                                                type="number"
+                                                min="0.1"
+                                                max="500"
+                                                step="0.1"
+                                                value={fishWeight}
+                                                onChange={(e) => setFishWeight(Math.max(0.1, Number(e.target.value) || 0.1))}
+                                                className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-center font-bold focus:outline-none focus:ring-2 focus:ring-[#093832]"
+                                            />
+                                            <span className="text-sm text-gray-600">กรัม</span>
+                                        </div>
                                         <input
                                             type="range"
-                                            min="1"
+                                            min="0.1"
                                             max="500"
+                                            step="0.1"
                                             value={fishWeight}
                                             onChange={(e) => setFishWeight(Number(e.target.value))}
                                             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#093832]"
                                         />
                                         <div className="flex justify-between text-xs text-gray-500 mt-1">
-                                            <span>1 กรัม</span>
+                                            <span>0.1 กรัม</span>
                                             <span>500 กรัม</span>
                                         </div>
                                     </div>
