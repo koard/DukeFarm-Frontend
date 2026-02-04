@@ -211,11 +211,6 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
 
             <div className="px-6 mt-4 w-full max-w-5xl mx-auto">
 
-                {/* Header Card */}
-                <div className="flex items-center gap-2 mb-3 text-[#093832]">
-                    <Fish className="w-6 h-6" />
-                    <span className="text-base font-bold">การให้อาหาร</span>
-                </div>
 
                 <div className="flex items-center bg-[#FFEFBC] rounded-2xl overflow-hidden mb-6 w-full shadow-sm">
                     <div className="flex-1 p-4 flex flex-col items-center justify-center">
@@ -378,7 +373,7 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                             >
                                 <Calculator className="w-5 h-5" />
                                 <span className="font-medium">
-                                    {showCalculator ? "ซ่อนเครื่องคำนวณ" : "🧮 คำนวณปริมาณอาหาร"}
+                                    {showCalculator ? "ซ่อนเครื่องคำนวณ" : "คำนวณปริมาณอาหาร"}
                                 </span>
                             </button>
 
@@ -455,42 +450,6 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                     </div>
                 )}
 
-                {/* Weather Info */}
-                {!selectedFoodType && (
-                    <div className="mb-6">
-                        <h2 className="text-lg font-bold text-black mb-2">สภาพอากาศปัจจุบัน</h2>
-                        {loading ? (
-                            <div className="text-center p-4 bg-[#D8EFFF] rounded-xl shadow-sm">กำลังโหลดข้อมูลสภาพอากาศ...</div>
-                        ) : error ? (
-                            <div className="text-center p-4 bg-red-100 text-red-600 rounded-xl shadow-sm">เกิดข้อผิดพลาด: {error}</div>
-                        ) : dashboardData?.hasData ? (
-                            <div className="flex items-center bg-[#D8EFFF] rounded-xl overflow-hidden shadow-sm">
-                                <div className="flex-1 py-4 flex flex-col items-center justify-center">
-                                    <div className="flex items-center gap-1 mb-1">
-                                        <span className="text-sm text-black">🌡️ อุณหภูมิ</span>
-                                    </div>
-                                    <p className="text-xl font-bold text-black">{dashboardData?.summary?.airTemperatureC?.toFixed(1) ?? 'N/A'} °C</p>
-                                </div>
-                                <div className="w-[2px] h-[40px] bg-white"></div>
-                                <div className="flex-1 py-4 flex flex-col items-center justify-center">
-                                    <div className="flex items-center gap-1 mb-1">
-                                        <span className="text-sm text-black">🌧️ ปริมาณน้ำฝน</span>
-                                    </div>
-                                    <p className="text-xl font-bold text-black">{dashboardData?.summary?.weather?.rainMm !== undefined ? `${dashboardData?.summary?.weather?.rainMm} mm` : 'N/A'}</p>
-                                </div>
-                                <div className="w-[2px] h-[40px] bg-white"></div>
-                                <div className="flex-1 py-4 flex flex-col items-center justify-center">
-                                    <div className="flex items-center gap-1 mb-1">
-                                        <span className="text-sm text-black">💧 ความชื้น</span>
-                                    </div>
-                                    <p className="text-xl font-bold text-black">{dashboardData?.summary?.weather?.humidityPct !== undefined ? `${dashboardData?.summary?.weather?.humidityPct}%` : 'N/A'}</p>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="text-center p-4 bg-gray-100 rounded-xl shadow-sm">ไม่มีข้อมูลสภาพอากาศ</div>
-                        )}
-                    </div>
-                )}
 
             </div>
         </div>
