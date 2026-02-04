@@ -83,7 +83,7 @@ const FARM_TYPE_SIZE: Record<FarmType, string> = {
 const FOOD_TYPE_OPTIONS: { value: FoodType; label: string; icon: string }[] = [
     { value: "FRESH", label: "อาหารสด", icon: "🥩" },
     { value: "PELLET", label: "อาหารเม็ด", icon: "🟤" },
-    { value: "SUPPLEMENT", label: "วิตามิน/โปรไบโอติก", icon: "💊" }
+    { value: "SUPPLEMENT", label: "อาหารเสริม", icon: "💊" }
 ];
 
 export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
