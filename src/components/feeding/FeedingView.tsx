@@ -236,7 +236,7 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                                                     >
                                                         <div>
                                                             <p className="text-base font-medium text-black">{formula.name}</p>
-                                                            <p className="text-sm text-gray-500">ขนาดปลา: {formula.targetStage}</p>
+                                                            <p className="text-sm text-gray-500">สำหรับปลาขนาด {formula.targetStage}</p>
                                                         </div>
                                                         <ChevronDown className="w-5 h-5 text-gray-400 -rotate-90" />
                                                     </button>
@@ -273,7 +273,7 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
 
                         <div className="bg-[#F4FFFC] rounded-xl p-4 mb-4 border border-emerald-100">
                             <h3 className="text-lg font-bold text-black mb-1">{feedingInfo?.name}</h3>
-                            <p className="text-sm text-gray-600">ขนาดปลา: {feedingInfo?.targetStage}</p>
+                            <p className="text-sm text-gray-600">สำหรับปลาขนาด {feedingInfo?.targetStage}</p>
                         </div>
 
                         <div className="space-y-4 w-full">
