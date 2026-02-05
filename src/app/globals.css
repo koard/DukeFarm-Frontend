@@ -69,4 +69,49 @@ body {
   color: var(--foreground);
   font-family: 'Prompt', sans-serif;
   line-height: 1.4;
+  top: 0 !important; 
+}
+
+/* 1. ซ่อน iframe แถบด้านบน (ตัวปัญหาหลัก) */
+.goog-te-banner-frame.skiptranslate {
+    display: none !important;
+}
+
+iframe.goog-te-banner-frame {
+    display: none !important;
+}
+
+/* 2. ซ่อนแถบแปลภาษาที่ Google แทรกเข้ามาใน Body */
+body > .skiptranslate {
+    display: none !important;
+}
+
+/* 3. บังคับ Body ให้ติดขอบบนสุดเสมอ (แก้พื้นที่ว่าง 40px) */
+body {
+    top: 0px !important;
+    position: static !important;
+}
+
+/* 4. ซ่อน Tooltip เวลาเอาเมาส์ชี้ */
+.goog-tooltip {
+    display: none !important;
+}
+
+.goog-tooltip:hover {
+    display: none !important;
+}
+
+.goog-text-highlight {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* 5. ซ่อน Logo Google เล็กๆ */
+.goog-logo-link {
+    display: none !important;
+}
+
+.goog-te-gadget {
+    color: transparent !important;
 }
