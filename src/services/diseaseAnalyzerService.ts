@@ -1,18 +1,13 @@
-export interface SymptomCategory {
-  category: string;
-  chips: string[];
-}
-
 export interface AnalyzeResult {
   requestId: string;
   photoPath?: string | null;
-  symptomText?: string;   
-  symptomTags?: string[];  
+  symptomText?: string;
+  symptomTags?: string[];
   results: {
     diseaseId: string;
     name: string;
     category: string;
-    icon: string;          
+    icon: string;
     treatmentSummary?: string;
     score: number;
     rank: number;
@@ -27,7 +22,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dukefarm-backen
 
 export const diseaseAnalyzerService = {
   // 1. ดึงรายการ Symptom Chips
-  getSymptoms: async (): Promise<SymptomCategory[]> => {
+  getSymptoms: async (): Promise<string[]> => {
     try {
       const res = await fetch(`${API_BASE_URL}/symptoms`, {
         method: 'GET',
@@ -55,14 +50,14 @@ export const diseaseAnalyzerService = {
         const contentType = res.headers.get("content-type");
         let errorMessage = `Error ${res.status}: ${res.statusText}`;
         try {
-            if (contentType && contentType.includes("application/json")) {
-                const errorJson = await res.json();
-                errorMessage = errorJson.message || JSON.stringify(errorJson);
-            } else {
-                const txt = await res.text();
-                if (txt) errorMessage = txt;
-            }
-        } catch (e) {}
+          if (contentType && contentType.includes("application/json")) {
+            const errorJson = await res.json();
+            errorMessage = errorJson.message || JSON.stringify(errorJson);
+          } else {
+            const txt = await res.text();
+            if (txt) errorMessage = txt;
+          }
+        } catch (e) { }
         console.error("🔴 Backend Error Details:", errorMessage);
         throw new Error(errorMessage);
       }
@@ -84,7 +79,7 @@ export const diseaseAnalyzerService = {
       });
 
       if (!res.ok) throw new Error(`Error fetching result: ${res.status}`);
-      
+
       const responseData = await res.json();
       const rawData = responseData.data;
 
@@ -105,8 +100,8 @@ export const diseaseAnalyzerService = {
       return {
         requestId: rawData.requestId,
         photoPath: rawData.photoPath,
-        symptomText: rawData.symptomText, 
-        symptomTags: rawData.symptomTags, 
+        symptomText: rawData.symptomText,
+        symptomTags: rawData.symptomTags,
         results: mappedResults
       };
 

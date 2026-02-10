@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, X, Loader2, AlertCircle } from 'lucide-react';
 import { ProfileDropdownMenu } from '@/components/common/ProfileDropdownMenu';
-import { diseaseAnalyzerService, type SymptomCategory } from '@/services/diseaseAnalyzerService';
+import { diseaseAnalyzerService } from '@/services/diseaseAnalyzerService';
 
 interface DiseaseInfoProps {
   backHref: string;
@@ -15,7 +15,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [symptomCategories, setSymptomCategories] = useState<SymptomCategory[]>([]);
+  const [symptomChips, setSymptomChips] = useState<string[]>([]);
   const [isLoadingTags, setIsLoadingTags] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
@@ -31,8 +31,8 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
   useEffect(() => {
     const fetchSymptoms = async () => {
       try {
-        const categories = await diseaseAnalyzerService.getSymptoms();
-        setSymptomCategories(categories);
+        const chips = await diseaseAnalyzerService.getSymptoms();
+        setSymptomChips(chips);
       } catch (error) {
         console.error("Failed to fetch symptoms:", error);
       } finally {
@@ -194,7 +194,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
               </div>
             ) : (
               <div className="flex flex-wrap gap-2">
-                {symptomCategories.flatMap(group => group.chips).map((tag) => {
+                {symptomChips.map((tag) => {
                   const active = selectedTags.includes(tag);
                   return (
                     <button
