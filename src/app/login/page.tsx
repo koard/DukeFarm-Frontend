@@ -148,15 +148,15 @@ export default function LoginPage() {
                 onClick={() => handleLineLogin("farmer")}
                 className="w-full bg-[#009D64] hover:bg-[#008a57] text-white py-3 px-4 rounded-xl font-medium text-lg transition-colors shadow-lg"
               >
-                เกษตรกร
+                สมัครสมาชิกเกษตรกร
               </button>
               
-              <button
+              {/* <button
                 onClick={() => handleLineLogin("researcher")}
                 className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors opacity-80"
               >
                 เข้าสู่ระบบสำหรับทีมวิจัย
-              </button>
+              </button> */}
             </div>
           </div>
            {/* Partner Logos */}
