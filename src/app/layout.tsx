@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Script from "next/script"; // ✅ อย่าลืม import
+import Script from "next/script";
 import "./globals.css";
-import { LanguageProvider } from "@/app/contexts/LanguageContext"; // ✅ อย่าลืม import Provider
+import { LanguageProvider } from "@/app/contexts/LanguageContext"; 
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,10 +23,8 @@ export default function RootLayout({
             {children}
         </LanguageProvider>
 
-        {/* ✅ ซ่อน Widget ของ Google ไว้ (เราจะใช้ปุ่มเราสั่งแทน) */}
         <div id="google_translate_element" style={{ display: 'none' }}></div>
 
-        {/* ✅ Script ตั้งค่า Google Translate */}
         <Script
           id="google-translate-init"
           strategy="afterInteractive"
@@ -42,7 +40,6 @@ export default function RootLayout({
           `}
         </Script>
         
-        {/* ✅ Script โหลดตัวแปล */}
         <Script
           src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
           strategy="afterInteractive"

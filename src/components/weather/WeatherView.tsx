@@ -217,6 +217,7 @@ export const WeatherView = ({ farmType, backHref }: WeatherViewProps) => {
   }, []);
 
   const currentWeatherInfo = current ? getWeatherInfo(current.weatherCode) : { label: "...", icon: null };
+  const currentTimeDisplay = current?.time || "กำลังโหลด...";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -240,23 +241,26 @@ export const WeatherView = ({ farmType, backHref }: WeatherViewProps) => {
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
             <div className="mb-3 flex justify-between items-start">
                 <div className="max-w-[70%]"> 
-                    <p className="text-[#D66D58] text-xs font-medium">{current?.time || "กำลังโหลด..."}</p>
+                    <p className="text-[#D66D58] text-xs font-medium">
+                        <span key={currentTimeDisplay}>{currentTimeDisplay}</span>
+                    </p>
                     <div className="flex items-start gap-1 mt-1">
                         <MapPin className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" /> 
+                        
                         <h2 className="text-[#1E1E1E] text-lg font-bold leading-tight break-words">
-                            {locationName}
+                            <span key={locationName}>{locationName}</span>
                         </h2>
                     </div>
                 </div>
                 <div className="text-right">
-                    <span className="text-3xl font-bold text-[#179678]">{current?.temp}°C</span>
+                    <span className="text-3xl font-bold text-[#179678] notranslate">{current?.temp ?? "-"}°C</span>
                     <p className="text-xs text-gray-500 flex items-center justify-end gap-1">
-                        {currentWeatherInfo.label}
+                        <span key={currentWeatherInfo.label}>{currentWeatherInfo.label}</span>
                     </p>
                 </div>
             </div>
 
-            <div className="relative w-full h-[280px] bg-slate-100 rounded border border-gray-200 overflow-hidden mb-3 z-0">
+            <div className="relative w-full h-[280px] bg-slate-100 rounded border border-gray-200 overflow-hidden mb-3 z-0 notranslate">
                <MapContainer 
                   key={`${coords.lat}-${coords.lon}`} 
                   center={[coords.lat, coords.lon]} 
@@ -292,17 +296,19 @@ export const WeatherView = ({ farmType, backHref }: WeatherViewProps) => {
                  <div className="bg-blue-50 p-2 rounded-lg">
                     <Droplets className="w-5 h-5 mx-auto text-blue-500 mb-1"/>
                     <p className="text-[10px] text-gray-500">ความชื้น</p>
-                    <p className="font-bold text-gray-700">{current?.humidity}%</p>
+                    <p className="font-bold text-gray-700 notranslate">{current?.humidity ?? 0}%</p>
                  </div>
                  <div className="bg-gray-50 p-2 rounded-lg">
                     <CloudRain className="w-5 h-5 mx-auto text-gray-500 mb-1"/>
                     <p className="text-[10px] text-gray-500">ปริมาณฝน</p>
-                    <p className="font-bold text-gray-700">{current?.rain} มม.</p>
+                    <p className="font-bold text-gray-700 notranslate">{current?.rain ?? 0} มม.</p>
                  </div>
                  <div className="bg-yellow-50 p-2 rounded-lg">
                     <Wind className="w-5 h-5 mx-auto text-yellow-600 mb-1"/>
                     <p className="text-[10px] text-gray-500">สภาพอากาศ</p>
-                    <p className="font-bold text-gray-700 text-xs truncate">{currentWeatherInfo.label}</p>
+                    <p className="font-bold text-gray-700 text-xs truncate">
+                        <span key={currentWeatherInfo.label}>{currentWeatherInfo.label}</span>
+                    </p>
                  </div>
             </div>
         </div>
@@ -315,16 +321,20 @@ export const WeatherView = ({ farmType, backHref }: WeatherViewProps) => {
                     const info = getWeatherInfo(h.weatherCode);
                     return (
                         <div key={i} className="flex flex-col items-center min-w-[85px] bg-gray-50 p-2 rounded-xl border border-gray-100">
-                            <span className="text-xs text-gray-500 mb-1">{h.time}</span>
+                            <span className="text-xs text-gray-500 mb-1">
+                                <span key={h.time}>{h.time}</span>
+                            </span>
                             
                             <div className="flex flex-col items-center justify-center h-14">
                                 {info.icon}
-                                <span className="text-[10px] text-gray-600 font-medium mt-1 text-center leading-none">{info.label}</span>
+                                <span className="text-[10px] text-gray-600 font-medium mt-1 text-center leading-none">
+                                    <span key={info.label}>{info.label}</span>
+                                </span>
                             </div>
 
-                            <span className="text-lg font-bold text-gray-700 mt-1">{Math.round(h.temp)}°</span>
+                            <span className="text-lg font-bold text-gray-700 mt-1 notranslate">{Math.round(h.temp)}°</span>
                             <span className="text-[10px] text-blue-500 flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-full mt-1">
-                                <Droplets className="w-3 h-3"/> ฝน {h.rainProb}%
+                                <Droplets className="w-3 h-3"/> ฝน <span className="notranslate">{h.rainProb}%</span>
                             </span>
                         </div>
                     );
@@ -351,18 +361,22 @@ export const WeatherView = ({ farmType, backHref }: WeatherViewProps) => {
                     const info = getWeatherInfo(item.weatherCode);
                     return (
                         <div key={index} className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
-                            <div className="w-24 text-sm font-medium text-gray-600">{item.date}</div>
+                            <div className="w-24 text-sm font-medium text-gray-600">
+                                <span key={item.date}>{item.date}</span>
+                            </div>
                             
                             <div className="flex flex-col items-center w-24">
                                  {info.icon}
-                                 <span className="text-[10px] text-gray-500 mt-1 text-center">{info.label}</span>
+                                 <span className="text-[10px] text-gray-500 mt-1 text-center">
+                                    <span key={info.label}>{info.label}</span>
+                                 </span>
                             </div>
 
                             <div className="flex flex-col items-end gap-1 w-20">
-                                 <span className="text-sm font-bold text-orange-500 flex items-center gap-1">
+                                 <span className="text-sm font-bold text-orange-500 flex items-center gap-1 notranslate">
                                     <ArrowUp className="w-3 h-3"/> {Math.round(item.tempMax)}°
                                  </span>
-                                 <span className="text-sm font-medium text-blue-500 flex items-center gap-1">
+                                 <span className="text-sm font-medium text-blue-500 flex items-center gap-1 notranslate">
                                     <ArrowDown className="w-3 h-3"/> {Math.round(item.tempMin)}°
                                  </span>
                             </div>

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, Check, Trash2, Plus, AlertTriangle } from "lucide-react";
 import { useLineUser } from "@/hooks/useLineUser";
 import dynamic from "next/dynamic";
 import {
@@ -14,13 +14,21 @@ import {
   mapFarmTypeToRoute,
 } from "@/utils/farmTypes";
 
+type PondData = {
+  id: number; 
+  backendId?: string; 
+  type: 'EARTHEN' | 'CONCRETE'; 
+  width: string;
+  length: string;
+  depth: string;
+};
+
 type ProfileFormState = {
   firstName: string;
   lastName: string;
   phone: string;
   farmTypes: FarmTypeOption[];
   raiCount: string;
-  pondCount: string;
   location: string;
 };
 
@@ -37,6 +45,15 @@ type FarmerProfile = FarmTypeProfileLike & {
   totalPondCount?: number | string | null;
   farmLatitude?: number | string | null;
   farmLongitude?: number | string | null;
+
+  ponds?: Array<{
+      id: string;
+      pondType: 'EARTHEN' | 'CONCRETE';
+      widthM: number;
+      lengthM: number;
+      depthM: number;
+      volumeM3?: number;
+  }>;
 };
 
 const FARM_TYPE_INFO: Record<FarmTypeOption, { label: string; description: string }> = {
@@ -45,31 +62,22 @@ const FARM_TYPE_INFO: Record<FarmTypeOption, { label: string; description: strin
   MARKET: { label: "ปลาตลาด", description: "อายุ 31-180 วัน" },
 };
 
-
 const MapPicker = dynamic(() => import("../register-farmer/MapPicker"), { 
   ssr: false,
   loading: () => <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500">กำลังโหลดแผนที่...</div>
 });
 
 const formatNumericInput = (value: unknown): string => {
-  if (typeof value === "number" && !Number.isNaN(value)) {
-    return String(value);
-  }
-  if (typeof value === "string") {
-    return value;
-  }
+  if (typeof value === "number" && !Number.isNaN(value)) return String(value);
+  if (typeof value === "string") return value;
   return "";
 };
 
 const parseCoordinate = (value: unknown): number | null => {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return value;
-  }
+  if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string") {
     const parsed = parseFloat(value);
-    if (Number.isFinite(parsed)) {
-      return parsed;
-    }
+    if (Number.isFinite(parsed)) return parsed;
   }
   return null;
 };
@@ -78,58 +86,53 @@ const parseLocationValue = (value: string): { lat: number; lng: number } | null 
   const [latStr, lngStr] = value.split(",").map((part) => part.trim());
   const lat = parseFloat(latStr || "");
   const lng = parseFloat(lngStr || "");
-  if (Number.isFinite(lat) && Number.isFinite(lng)) {
-    return { lat, lng };
-  }
+  if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng };
   return null;
-};
-
-const buildFormStateFromProfile = (profile?: FarmerProfile) => {
-  const lat = parseCoordinate(profile?.farmLatitude);
-  const lng = parseCoordinate(profile?.farmLongitude);
-  const coords = lat !== null && lng !== null ? { lat, lng } : null;
-  const farmTypes = deriveFarmTypesFromProfile(profile);
-
-  const areaSource = profile?.totalFarmAreaRai ?? profile?.farmAreaRai ?? profile?.declaredRaiCount;
-  const pondSource = profile?.totalPondCount ?? profile?.declaredPondCount ?? profile?.pondsPerRai;
-
-  const formValues: ProfileFormState = {
-    firstName: profile?.firstName || "",
-    lastName: profile?.lastName || "",
-    phone: profile?.phone || "",
-    farmTypes,
-    raiCount: formatNumericInput(areaSource),
-    pondCount: formatNumericInput(pondSource),
-    location: coords ? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}` : "",
-  };
-
-  return { formValues, coords };
 };
 
 export default function ProfilePage() {
   const router = useRouter();
   const lineUser = useLineUser();
+  
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success'>('idle');
   const [showMap, setShowMap] = useState(false);
   
+  const [deleteModalId, setDeleteModalId] = useState<number | null>(null);
+
   const [formData, setFormData] = useState<ProfileFormState>({
     firstName: "",
     lastName: "",
     phone: "",
     farmTypes: [],
     raiCount: "",
-    pondCount: "",
     location: "",
   });
+
+  const [ponds, setPonds] = useState<PondData[]>([]);
 
   const [initialCoords, setInitialCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [tempCoords, setTempCoords] = useState({ lat: 0, lng: 0 });
 
+
   const populateFormFromProfile = useCallback((profile?: FarmerProfile) => {
-    const { formValues, coords } = buildFormStateFromProfile(profile);
-    setFormData(formValues);
+    const lat = parseCoordinate(profile?.farmLatitude);
+    const lng = parseCoordinate(profile?.farmLongitude);
+    const coords = lat !== null && lng !== null ? { lat, lng } : null;
+    const farmTypes = deriveFarmTypesFromProfile(profile);
+
+    const areaSource = profile?.totalFarmAreaRai ?? profile?.farmAreaRai ?? profile?.declaredRaiCount;
+
+    setFormData({
+      firstName: profile?.firstName || "",
+      lastName: profile?.lastName || "",
+      phone: profile?.phone || "",
+      farmTypes,
+      raiCount: formatNumericInput(areaSource),
+      location: coords ? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}` : "",
+    });
+
     if (coords) {
       setInitialCoords(coords);
       setTempCoords(coords);
@@ -137,6 +140,21 @@ export default function ProfilePage() {
       setInitialCoords(null);
       setTempCoords({ lat: 0, lng: 0 });
     }
+
+    if (profile?.ponds && Array.isArray(profile.ponds) && profile.ponds.length > 0) {
+        const mappedPonds: PondData[] = profile.ponds.map((p, index) => ({
+            id: Date.now() + index,
+            backendId: p.id,
+            type: p.pondType,
+            width: String(p.widthM),
+            length: String(p.lengthM),
+            depth: String(p.depthM)
+        }));
+        setPonds(mappedPonds);
+    } else {
+        setPonds([{ id: Date.now(), type: 'EARTHEN', width: '', length: '', depth: '' }]);
+    }
+
   }, []);
 
   const farmOptions = (Object.keys(FARM_TYPE_INFO) as FarmTypeOption[]).map((value) => ({
@@ -146,13 +164,15 @@ export default function ProfilePage() {
   }));
 
   const hasValidLocation = Boolean(parseLocationValue(formData.location));
+  const isPondsValid = ponds.every(p => p.width && p.length && p.depth);
   const isFormValid =
     formData.firstName.trim() !== "" &&
     formData.lastName.trim() !== "" &&
     formData.phone.trim() !== "" &&
     formData.farmTypes.length > 0 &&
     formData.raiCount.trim() !== "" &&
-    formData.pondCount.trim() !== "" &&
+    ponds.length > 0 && 
+    isPondsValid &&
     hasValidLocation;
 
   useEffect(() => {
@@ -172,7 +192,7 @@ export default function ProfilePage() {
   }, [populateFormFromProfile]);
 
   useEffect(() => {
-    if (submitStatus !== 'idle' || showMap) {
+    if (submitStatus !== 'idle' || showMap || deleteModalId !== null) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -180,7 +200,7 @@ export default function ProfilePage() {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [submitStatus, showMap]);
+  }, [submitStatus, showMap, deleteModalId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isEditing) return;
@@ -215,14 +235,51 @@ export default function ProfilePage() {
     setShowMap(false);
   };
 
+  // ✅ Pond Management Functions
+  const handleAddPond = () => {
+    setPonds(prev => [...prev, { id: Date.now(), type: 'EARTHEN', width: '', length: '', depth: '' }]);
+  };
+
+  const handleClickRemovePond = (id: number) => {
+    if (!isEditing) return;
+    if (ponds.length <= 1) return;
+    setDeleteModalId(id);
+  };
+
+  const confirmRemovePond = () => {
+    if (deleteModalId !== null) {
+        setPonds(prev => prev.filter(p => p.id !== deleteModalId));
+        setDeleteModalId(null);
+    }
+  };
+
+  const cancelRemovePond = () => {
+    setDeleteModalId(null);
+  };
+
+  const handlePondChange = (id: number, field: keyof PondData, value: string) => {
+    if (!isEditing) return;
+    setPonds(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
+  };
+
+  const calculateVolume = (w: string, l: string, d: string) => {
+    const width = parseFloat(w);
+    const length = parseFloat(l);
+    const depth = parseFloat(d);
+    if (!isNaN(width) && !isNaN(length) && !isNaN(depth)) {
+        const volumeM3 = width * length * depth;
+        const volumeLiters = volumeM3 * 1000;
+        return { m3: volumeM3, liters: volumeLiters };
+    }
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isEditing || submitStatus === 'loading') {
-      return;
-    }
+    if (!isEditing || submitStatus === 'loading') return;
 
     if (!isFormValid) {
-      alert("กรุณากรอกข้อมูลให้ครบก่อนบันทึก");
+      alert("กรุณากรอกข้อมูลให้ครบถ้วน");
       return;
     }
 
@@ -235,12 +292,6 @@ export default function ProfilePage() {
     const farmAreaRai = parseFloat(formData.raiCount);
     if (Number.isNaN(farmAreaRai)) {
       alert("กรุณาระบุจำนวนไร่เป็นตัวเลข");
-      return;
-    }
-
-    const declaredPondCount = parseInt(formData.pondCount, 10);
-    if (Number.isNaN(declaredPondCount)) {
-      alert("กรุณาระบุจำนวนบ่อทั้งหมดเป็นตัวเลข");
       return;
     }
 
@@ -265,10 +316,16 @@ export default function ProfilePage() {
         phone: formData.phone,
         primaryFarmType,
         farmTypes: formData.farmTypes,
-        declaredPondCount,
         farmAreaRai,
         farmLatitude: coords.lat,
-        farmLongitude: coords.lng
+        farmLongitude: coords.lng,
+        
+        ponds: ponds.map(p => ({
+            pondType: p.type,
+            widthM: parseFloat(p.width) || 0,
+            lengthM: parseFloat(p.length) || 0,
+            depthM: parseFloat(p.depth) || 0
+        }))
       };
 
       const response = await fetch("https://dukefarm-backend.onrender.com/api/register/farmer", {
@@ -317,9 +374,10 @@ export default function ProfilePage() {
       setSubmitStatus('success');
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setIsEditing(false);
+      setSubmitStatus('idle'); 
 
-      router.push(destination);
-      return;
+      router.push(destination); 
+      
       
     } catch (err) {
       console.error("Error updating profile:", err);
@@ -358,6 +416,37 @@ export default function ProfilePage() {
               </>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalId !== null && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+            <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-in zoom-in duration-200">
+                <div className="flex flex-col items-center text-center">
+                    <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                        <Trash2 className="w-6 h-6 text-red-600" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">ยืนยันการลบ</h3>
+                    <p className="text-gray-500 text-sm mb-6">
+                        คุณต้องการลบข้อมูลบ่อนี้ใช่หรือไม่? <br/> ข้อมูลที่กรอกไว้จะหายไป
+                    </p>
+                    <div className="flex gap-3 w-full">
+                        <button 
+                            onClick={cancelRemovePond}
+                            className="flex-1 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
+                        >
+                            ยกเลิก
+                        </button>
+                        <button 
+                            onClick={confirmRemovePond}
+                            className="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 shadow-md transition-colors"
+                        >
+                            ลบ
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
       )}
 
@@ -407,11 +496,12 @@ export default function ProfilePage() {
           <div className="flex items-center gap-4 mb-6 mt-4">
             <div className="w-20 h-20 rounded-full border-4 border-white shadow-md overflow-hidden bg-gray-200">
               <Image 
-                src={lineUser.pictureUrl || "/default-avatar.png"}
+                src={lineUser.pictureUrl || "https://placehold.co/200x200?text=Profile"}
                 alt="Profile" 
                 width={80}
                 height={80}
                 className="w-full h-full object-cover" 
+                unoptimized
               />
             </div>
             <div className="pt-2">
@@ -514,12 +604,116 @@ export default function ProfilePage() {
                 <input
                   type="number"
                   name="pondCount"
-                  value={formData.pondCount}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500 disabled:bg-gray-100 disabled:text-gray-600"
+                  value={ponds.length}
+                  disabled={true}
+                  className="w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none text-black text-xs text-center cursor-default"
                 />
               </div>
+            </div>
+
+            <div className="space-y-4">
+                {ponds.map((pond, index) => {
+                    const volume = calculateVolume(pond.width, pond.length, pond.depth);
+                    return (
+                        <div key={pond.id} className="rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+                            <div className="bg-[#093832] px-4 py-2 flex justify-between items-center text-white">
+                                <span className="font-bold">− บ่อที่ {index + 1}</span>
+                                {isEditing && (
+                                    <button 
+                                        type="button" 
+                                        onClick={() => handleClickRemovePond(pond.id)}
+                                        className="flex items-center gap-1 text-xs hover:text-red-300 transition-colors"
+                                    >
+                                        <Trash2 className="w-4 h-4" /> ลบ
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="p-4 bg-gray-50 space-y-4">
+                                <div className="flex gap-6">
+                                    <label className={`flex items-center gap-2 ${isEditing ? "cursor-pointer" : "cursor-default"}`}>
+                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${pond.type === 'EARTHEN' ? 'border-black' : 'border-gray-400 bg-white'}`}>
+                                            {pond.type === 'EARTHEN' && <div className="w-3 h-3 bg-black rounded-full" />}
+                                        </div>
+                                        <input 
+                                            type="radio" 
+                                            className="hidden" 
+                                            disabled={!isEditing}
+                                            checked={pond.type === 'EARTHEN'} 
+                                            onChange={() => handlePondChange(pond.id, 'type', 'EARTHEN')} 
+                                        />
+                                        <span className="text-sm text-black">บ่อดิน</span>
+                                    </label>
+                                    <label className={`flex items-center gap-2 ${isEditing ? "cursor-pointer" : "cursor-default"}`}>
+                                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${pond.type === 'CONCRETE' ? 'border-black' : 'border-gray-400 bg-white'}`}>
+                                            {pond.type === 'CONCRETE' && <div className="w-3 h-3 bg-black rounded-full" />}
+                                        </div>
+                                        <input 
+                                            type="radio" 
+                                            className="hidden" 
+                                            disabled={!isEditing}
+                                            checked={pond.type === 'CONCRETE'} 
+                                            onChange={() => handlePondChange(pond.id, 'type', 'CONCRETE')} 
+                                        />
+                                        <span className="text-sm text-black">บ่อปูน</span>
+                                    </label>
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div className="space-y-1">
+                                        <label className="text-xs text-black">กว้าง</label>
+                                        <input 
+                                            type="number" 
+                                            value={pond.width} 
+                                            disabled={!isEditing}
+                                            placeholder="ระบุข้อมูล"
+                                            onChange={(e) => handlePondChange(pond.id, 'width', e.target.value)}
+                                            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs text-black focus:outline-none focus:ring-1 focus:ring-[#0F3B35] disabled:bg-gray-100 disabled:text-gray-600"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs text-black">ยาว</label>
+                                        <input 
+                                            type="number" 
+                                            value={pond.length} 
+                                            disabled={!isEditing}
+                                            placeholder="ระบุข้อมูล"
+                                            onChange={(e) => handlePondChange(pond.id, 'length', e.target.value)}
+                                            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs text-black focus:outline-none focus:ring-1 focus:ring-[#0F3B35] disabled:bg-gray-100 disabled:text-gray-600"
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-xs text-black">ลึก</label>
+                                        <input 
+                                            type="number" 
+                                            value={pond.depth} 
+                                            disabled={!isEditing}
+                                            placeholder="ระบุข้อมูล"
+                                            onChange={(e) => handlePondChange(pond.id, 'depth', e.target.value)}
+                                            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs text-black focus:outline-none focus:ring-1 focus:ring-[#0F3B35] disabled:bg-gray-100 disabled:text-gray-600"
+                                        />
+                                    </div>
+                                </div>
+
+                                {volume && (
+                                    <p className="text-[10px] text-[#093832] font-medium">
+                                        ปริมาตร = {volume.m3.toLocaleString()} ลูกบาศก์เมตร หรือ {volume.liters.toLocaleString()} ลิตร
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+
+                {isEditing && (
+                    <button
+                        type="button"
+                        onClick={handleAddPond}
+                        className="w-full py-2.5 rounded-xl border border-[#EF6E11] text-[#EF6E11] bg-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-orange-50 transition-colors"
+                    >
+                        <Plus className="w-4 h-4" /> เพิ่มบ่อ
+                    </button>
+                )}
             </div>
 
             <div className="space-y-1.5 pt-2">

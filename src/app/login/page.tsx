@@ -6,13 +6,12 @@ import { ChevronDown } from "lucide-react";
 import { useLanguage } from "@/app/contexts/LanguageContext";
 
 export default function LoginPage() {
-  // เรียกใช้ function เปลี่ยนภาษาจาก Context ที่เราเพิ่งแก้
   const { language, changeLanguage } = useLanguage(); 
   
   const [isLangOpen, setIsLangOpen] = useState(false);
 
   const toggleLanguage = (lang: 'th' | 'en') => {
-    changeLanguage(lang); // กดปุ่ม -> แก้ Cookie -> รีโหลดหน้าเว็บ
+    changeLanguage(lang); 
     setIsLangOpen(false);
   };
 
@@ -44,7 +43,6 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen relative overflow-hidden font-sans">
       
-      {/* --- Language Switcher (ปุ่มธงกลับมาแล้ว) --- */}
       <div className="absolute top-6 right-6 z-50">
         <div className="relative">
           
