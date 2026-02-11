@@ -169,18 +169,24 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
       const token = localStorage.getItem('authToken');
       if (!token) return;
 
+      const selectedFeed = foodFormulas.find(f => f.id === feedFormulaId);
+      const selectedSupplement = supplementFormulas.find(f => f.id === supplementId);
+
       const body: Record<string, any> = {
         farmType: fishType || undefined,
+        recordedAt: releaseDate ? new Date(releaseDate).toISOString() : new Date().toISOString(),
+        fishAgeLabel: fishType === 'SMALL' ? 'ปลาตุ้ม' : fishType === 'LARGE' ? 'ปลานิ้ว' : fishType === 'MARKET' ? 'ปลาตลาด' : 'ไม่ระบุ',
         pondId: selectedPondId || undefined,
         fishCount: fishReleased ? parseInt(fishReleased, 10) : undefined,
-        fishCountText: fishRemaining || undefined,
-        foodAmountKg: foodAmount ? parseFloat(foodAmount) : undefined,
-        notes: [
-          fishSize ? `ขนาดปลา: ${fishSize} ${fishSizeUnit === 'KG' ? 'กก.' : 'ก.'}` : '',
-          medicineType ? `ยา: ${medicineType}` : '',
-          foodCost ? `ค่าอาหาร: ${foodCost} บาท` : '',
-          medicineCost ? `ค่ายา: ${medicineCost} บาท` : '',
-        ].filter(Boolean).join(', ') || undefined,
+        fishCountText: undefined,
+        fishRemaining: fishRemaining ? parseInt(fishRemaining, 10) : undefined,
+        averageFishWeightGr: fishSize ? (fishSizeUnit === 'KG' ? parseFloat(fishSize) * 1000 : parseFloat(fishSize)) : undefined,
+        foodAmountKg: foodAmount ? (foodUnit === 'G' ? parseFloat(foodAmount) / 1000 : parseFloat(foodAmount)) : undefined,
+        feedFormulaName: selectedFeed?.name || undefined,
+        supplementName: selectedSupplement?.name || undefined,
+        medicineName: medicineType || undefined,
+        foodCostBaht: foodCost ? parseFloat(foodCost) : undefined,
+        medicineCostBaht: medicineCost ? parseFloat(medicineCost) : undefined,
       };
 
       const res = await fetch(`${API_BASE_URL}/records`, {
