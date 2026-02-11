@@ -341,7 +341,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
               <div className="col-span-5 space-y-1.5">
                 <label className="text-sm font-bold text-black ml-1">ประเภทปลา</label>
                 <div className="relative">
-                  <select disabled={!!activeCycle} value={fishType} onChange={(e) => setFishType(e.target.value)} className="w-full appearance-none bg-white border border-gray-200 rounded-xl pl-3 pr-9 py-3 text-xs font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500">
+                  <select disabled={!!activeCycle} value={fishType} onChange={(e) => setFishType(e.target.value)} className={`w-full appearance-none bg-white border border-gray-200 rounded-xl pl-3 pr-9 py-3 text-xs font-bold focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 ${!fishType ? 'text-gray-400' : 'text-gray-700'}`}>
                     <option value="" disabled>เลือกประเภท</option>
                     <option value="SMALL">ปลาตุ้ม</option>
                     <option value="LARGE">ปลานิ้ว</option>
@@ -352,12 +352,12 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
               </div>
               <div className="col-span-3 space-y-1.5">
                 <label className="text-sm font-bold text-black text-center block">ขนาดปลา</label>
-                <input type="number" placeholder="0" value={fishSize} onChange={(e) => setFishSize(e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-2 py-3 text-xs font-bold text-center text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-400" />
+                <input type="number" placeholder="0" value={fishSize} onChange={(e) => setFishSize(e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl px-2 py-3 text-xs font-bold text-center text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-300" />
               </div>
               <div className="col-span-4 space-y-1.5">
                 <label className="text-sm font-bold text-black ml-1">หน่วย</label>
                 <div className="relative">
-                  <select value={fishSizeUnit} onChange={(e) => setFishSizeUnit(e.target.value)} className="w-full appearance-none bg-white border border-gray-200 rounded-xl pl-3 pr-8 py-3 text-xs font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none">
+                  <select value={fishSizeUnit} onChange={(e) => setFishSizeUnit(e.target.value)} className={`w-full appearance-none bg-white border border-gray-200 rounded-xl pl-3 pr-8 py-3 text-xs font-bold focus:text-black focus:border-[#093832] outline-none ${!fishSizeUnit ? 'text-gray-400' : 'text-gray-700'}`}>
                     <option value="" disabled>เลือกหน่วย</option>
                     <option value="G">กรัม</option>
                     <option value="KG">กิโลกรัม</option>
@@ -369,11 +369,11 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
 
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-black ml-1">วันที่เริ่มปล่อยลงบ่อ</label>
-              <div onClick={handleOpenPicker} className="relative w-full bg-[#CEF2D6] border border-[#093832]/10 rounded-xl px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all">
-                <span className="text-sm font-extrabold text-[#093832]">
+              <div onClick={handleOpenPicker} className={`relative w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all ${!releaseDate ? 'text-gray-400' : 'text-gray-700'}`}>
+                <span className={`text-sm font-bold ${!releaseDate ? 'text-gray-400' : 'text-black'}`}>
                   {releaseDate ? new Date(releaseDate).toLocaleDateString('th-TH') : 'เลือกวันที่'}
                 </span>
-                <Calendar className="w-5 h-5 text-[#093832]" />
+                <Calendar className="w-5 h-5 text-gray-400" />
                 <input disabled={!!activeCycle} ref={dateInputRef} type="date" value={releaseDate} onChange={(e) => setReleaseDate(e.target.value)} className="absolute inset-0 opacity-0 pointer-events-none disabled:pointer-events-none" />
               </div>
             </div>
@@ -381,18 +381,18 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-[13px] font-bold text-black ml-1">จำนวนปลาที่ปล่อย (ตัว)</label>
-                <input disabled={!!activeCycle} type="number" placeholder="ระบุจำนวน" value={fishReleased} onChange={(e) => setFishReleased(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500" />
+                <input disabled={!!activeCycle} type="number" placeholder="ระบุจำนวน" value={fishReleased} onChange={(e) => setFishReleased(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 placeholder:text-gray-400" />
               </div>
               <div className="space-y-1.5">
                 <label className="text-[13px] font-bold text-black ml-1">จำนวนปลาที่เหลือ</label>
-                <input type="number" placeholder="ระบุจำนวน" value={fishRemaining} onChange={(e) => setFishRemaining(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none" />
+                <input type="number" placeholder="ระบุจำนวน" value={fishRemaining} onChange={(e) => setFishRemaining(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-400" />
               </div>
             </div>
 
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-black ml-1">สูตรอาหาร</label>
               <div className="relative">
-                <select value={feedFormulaId} onChange={(e) => setFeedFormulaId(e.target.value)} className="w-full appearance-none border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none">
+                <select value={feedFormulaId} onChange={(e) => setFeedFormulaId(e.target.value)} className={`w-full appearance-none border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold focus:text-black focus:border-[#093832] outline-none ${!feedFormulaId ? 'text-gray-400' : 'text-gray-700'}`}>
                   <option value="" disabled>เลือกสูตรอาหาร</option>
                   {foodFormulas.length > 0 ? (
                     foodFormulas.map(f => (
@@ -412,12 +412,12 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
             <div className="grid grid-cols-12 gap-3">
               <div className="col-span-8 space-y-1.5">
                 <label className="text-sm font-bold text-black ml-1">ปริมาณอาหาร</label>
-                <input type="text" placeholder="ระบุจำนวน เช่น 5, 10, 15" value={foodAmount} onChange={(e) => setFoodAmount(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none" />
+                <input type="text" placeholder="ระบุจำนวน เช่น 5, 10, 15" value={foodAmount} onChange={(e) => setFoodAmount(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-400" />
               </div>
               <div className="col-span-4 space-y-1.5">
                 <label className="text-sm font-bold text-black ml-1">หน่วย</label>
                 <div className="relative">
-                  <select value={foodUnit} onChange={(e) => setFoodUnit(e.target.value)} className="w-full appearance-none border border-gray-200 rounded-xl pl-3 pr-8 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none">
+                  <select value={foodUnit} onChange={(e) => setFoodUnit(e.target.value)} className={`w-full appearance-none border border-gray-200 rounded-xl pl-3 pr-8 py-3.5 text-sm font-bold focus:text-black focus:border-[#093832] outline-none ${!foodUnit ? 'text-gray-400' : 'text-gray-700'}`}>
                     <option value="" disabled>หน่วย</option>
                     <option value="KG">กิโลกรัม</option>
                     <option value="G">กรัม</option>
@@ -431,7 +431,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
               <div className="space-y-1.5">
                 <label className="text-sm font-bold text-black ml-1">อาหารเสริม</label>
                 <div className="relative">
-                  <select value={supplementId} onChange={(e) => setSupplementId(e.target.value)} className="w-full appearance-none border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none">
+                  <select value={supplementId} onChange={(e) => setSupplementId(e.target.value)} className={`w-full appearance-none border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold focus:text-black focus:border-[#093832] outline-none ${!supplementId ? 'text-gray-400' : 'text-gray-700'}`}>
                     <option value="" disabled>เลือกอาหารเสริม</option>
                     {supplementFormulas.length > 0 ? (
                       supplementFormulas.map(f => (
@@ -450,7 +450,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
               <div className="space-y-1.5">
                 <label className="text-sm font-bold text-black ml-1">การให้ยา</label>
                 <div className="relative">
-                  <select value={medicineType} onChange={(e) => setMedicineType(e.target.value)} className="w-full appearance-none border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none">
+                  <select value={medicineType} onChange={(e) => setMedicineType(e.target.value)} className={`w-full appearance-none border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold focus:text-black focus:border-[#093832] outline-none ${!medicineType ? 'text-gray-400' : 'text-gray-700'}`}>
                     <option value="" disabled>ระบุข้อมูลยา</option>
                     <option value="ANTIBIOTIC">ยาปฏิชีวนะละลายน้ำ</option>
                     <option value="FUNGAL">ยารักษาเชื้อรา</option>
@@ -462,11 +462,11 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-sm font-bold text-black ml-1">ค่าอาหาร (บาท)</label>
-                  <input type="number" placeholder="ระบุข้อมูล" value={foodCost} onChange={(e) => setFoodCost(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-bold text-gray-700 focus:text-black outline-none" />
+                  <input type="number" placeholder="ระบุข้อมูล" value={foodCost} onChange={(e) => setFoodCost(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-bold text-gray-700 focus:text-black outline-none placeholder:text-gray-400" />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-bold text-black ml-1">ค่ายา (บาท)</label>
-                  <input type="number" placeholder="ระบุข้อมูล" value={medicineCost} onChange={(e) => setMedicineCost(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-bold text-gray-700 focus:text-black outline-none" />
+                  <input type="number" placeholder="ระบุข้อมูล" value={medicineCost} onChange={(e) => setMedicineCost(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-bold text-gray-700 focus:text-black outline-none placeholder:text-gray-400" />
                 </div>
               </div>
             </div>
