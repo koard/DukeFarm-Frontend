@@ -114,6 +114,8 @@ export default function ProfilePage() {
     location: "",
   });
 
+  const [recordPondCount, setRecordPondCount] = useState('1');
+
   const [ponds, setPonds] = useState<PondData[]>([]);
 
   const [initialCoords, setInitialCoords] = useState<{ lat: number; lng: number } | null>(null);
@@ -255,7 +257,9 @@ export default function ProfilePage() {
   };
 
   const handleAddPond = () => {
-    setPonds(prev => [...prev, { id: Date.now(), type: 'EARTHEN', farmType: 'SMALL', width: '', length: '', depth: '' }]);
+    const newPonds = [...ponds, { id: Date.now(), type: 'EARTHEN' as const, farmType: 'SMALL' as const, width: '', length: '', depth: '' }];
+    setPonds(newPonds);
+    setRecordPondCount(String(newPonds.length));
   };
 
   const handleClickRemovePond = (id: number) => {
@@ -266,7 +270,9 @@ export default function ProfilePage() {
 
   const confirmRemovePond = () => {
     if (deleteModalId !== null) {
-      setPonds(prev => prev.filter(p => p.id !== deleteModalId));
+      const newPonds = ponds.filter(p => p.id !== deleteModalId);
+      setPonds(newPonds);
+      setRecordPondCount(String(newPonds.length));
       setDeleteModalId(null);
     }
   };
@@ -627,6 +633,41 @@ export default function ProfilePage() {
               </div>
             </div>
 
+            <div className="space-y-1.5">
+              <label className="text-base font-bold text-black">จำนวนบ่อที่ต้องการบันทึกข้อมูล</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={recordPondCount}
+                  disabled={!isEditing}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setRecordPondCount(val);
+                    const count = parseInt(val, 10);
+                    if (!isNaN(count) && count >= 1 && count <= 20) {
+                      setPonds(prev => {
+                        if (count > prev.length) {
+                          const newPonds = [...prev];
+                          for (let i = prev.length; i < count; i++) {
+                            newPonds.push({ id: Date.now() + i, type: 'EARTHEN', farmType: 'SMALL', width: '', length: '', depth: '' });
+                          }
+                          return newPonds;
+                        } else if (count < prev.length) {
+                          return prev.slice(0, count);
+                        }
+                        return prev;
+                      });
+                    }
+                  }}
+                  placeholder="ระบุข้อมูล"
+                  min="1"
+                  max="20"
+                  className="w-full pr-14 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs disabled:bg-gray-100 disabled:text-gray-600"
+                />
+                <span className="absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-gray-500">บ่อ</span>
+              </div>
+            </div>
+
             <div className="space-y-4">
               {ponds.map((pond, index) => {
                 const volume = calculateVolume(pond.width, pond.length, pond.depth);
@@ -648,8 +689,8 @@ export default function ProfilePage() {
                     <div className="p-4 bg-gray-50 space-y-4">
                       <div className="flex gap-6">
                         <label className={`flex items-center gap-2 ${isEditing ? "cursor-pointer" : "cursor-default"}`}>
-                          <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${pond.type === 'EARTHEN' ? 'border-black' : 'border-gray-400 bg-white'}`}>
-                            {pond.type === 'EARTHEN' && <div className="w-3 h-3 bg-black rounded-full" />}
+                          <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${pond.type === 'EARTHEN' ? 'border-[#72B544]' : 'border-gray-400 bg-white'}`}>
+                            {pond.type === 'EARTHEN' && <div className="w-3 h-3 bg-[#72B544] rounded-full" />}
                           </div>
                           <input
                             type="radio"
@@ -661,8 +702,8 @@ export default function ProfilePage() {
                           <span className="text-sm text-black">บ่อดิน</span>
                         </label>
                         <label className={`flex items-center gap-2 ${isEditing ? "cursor-pointer" : "cursor-default"}`}>
-                          <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${pond.type === 'CONCRETE' ? 'border-black' : 'border-gray-400 bg-white'}`}>
-                            {pond.type === 'CONCRETE' && <div className="w-3 h-3 bg-black rounded-full" />}
+                          <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${pond.type === 'CONCRETE' ? 'border-[#72B544]' : 'border-gray-400 bg-white'}`}>
+                            {pond.type === 'CONCRETE' && <div className="w-3 h-3 bg-[#72B544] rounded-full" />}
                           </div>
                           <input
                             type="radio"

@@ -620,8 +620,8 @@ export default function RegisterFarmerPage() {
                     <div className="p-4 bg-gray-50 space-y-4">
                       <div className="flex gap-6">
                         <label className="flex items-center gap-2 cursor-pointer">
-                          <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${pond.type === 'EARTHEN' ? 'border-black' : 'border-gray-400 bg-white'}`}>
-                            {pond.type === 'EARTHEN' && <div className="w-3 h-3 bg-black rounded-full" />}
+                          <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${pond.type === 'EARTHEN' ? 'border-[#72B544]' : 'border-gray-400 bg-white'}`}>
+                            {pond.type === 'EARTHEN' && <div className="w-3 h-3 bg-[#72B544] rounded-full" />}
                           </div>
                           <input
                             type="radio"
@@ -632,8 +632,8 @@ export default function RegisterFarmerPage() {
                           <span className="text-sm text-black">บ่อดิน</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
-                          <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${pond.type === 'CONCRETE' ? 'border-black' : 'border-gray-400 bg-white'}`}>
-                            {pond.type === 'CONCRETE' && <div className="w-3 h-3 bg-black rounded-full" />}
+                          <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${pond.type === 'CONCRETE' ? 'border-[#72B544]' : 'border-gray-400 bg-white'}`}>
+                            {pond.type === 'CONCRETE' && <div className="w-3 h-3 bg-[#72B544] rounded-full" />}
                           </div>
                           <input
                             type="radio"
