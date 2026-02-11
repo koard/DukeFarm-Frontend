@@ -50,6 +50,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
   const [medicineType, setMedicineType] = useState('');
   const [foodCost, setFoodCost] = useState('');
   const [medicineCost, setMedicineCost] = useState('');
+  const [activeCycle, setActiveCycle] = useState<any>(null);
 
   // Dynamic dropdown options
   const [foodFormulas, setFoodFormulas] = useState<FormulaOption[]>([]);
@@ -146,7 +147,54 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
     }
   };
 
-  const handleReset = () => {
+  // Fetch active cycle when pond changes
+  useEffect(() => {
+    if (!selectedPondId) return;
+    const fetchCycle = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        const res = await fetch(`${API_BASE_URL}/ponds/${selectedPondId}/active-cycle`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const { data } = await res.json();
+          setActiveCycle(data);
+          if (data) {
+            // Lock fields with cycle data
+            setFishType(data.farmType);
+            if (data.startDate) setReleaseDate(data.startDate.split('T')[0]);
+            if (data.initialStockCount) setFishReleased(String(data.initialStockCount));
+            // Maybe set fishSize/Unit if initialAvgWeightKg exists? 
+            // Users might want to record current size, so maybe don't lock fishSize?
+            // User said: "Initial data (release date, initial count, fish type) should be locked"
+          } else {
+            // No active cycle, unlock
+            // Don't auto-clear here to verify user intent? Or clear 'locked' fields?
+            // Let's rely on manual clear or initial state
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch active cycle', err);
+      }
+    };
+    fetchCycle();
+  }, [selectedPondId]);
+
+  const handleReset = async () => {
+    try {
+      if (activeCycle) {
+        const token = localStorage.getItem('authToken');
+        await fetch(`${API_BASE_URL}/ponds/${selectedPondId}/end-cycle`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setActiveCycle(null);
+      }
+    } catch (err) {
+      console.error('Failed to end cycle', err);
+    }
+
+    // Clear form
     setFishType('');
     setFishSize('');
     setFishSizeUnit('');
@@ -292,7 +340,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
               <div className="col-span-5 space-y-1.5">
                 <label className="text-sm font-bold text-black ml-1">ประเภทปลา</label>
                 <div className="relative">
-                  <select value={fishType} onChange={(e) => setFishType(e.target.value)} className="w-full appearance-none bg-white border border-gray-200 rounded-xl pl-3 pr-9 py-3 text-xs font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none">
+                  <select disabled={!!activeCycle} value={fishType} onChange={(e) => setFishType(e.target.value)} className="w-full appearance-none bg-white border border-gray-200 rounded-xl pl-3 pr-9 py-3 text-xs font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500">
                     <option value="" disabled>เลือกประเภท</option>
                     <option value="SMALL">ปลาตุ้ม</option>
                     <option value="LARGE">ปลานิ้ว</option>
@@ -325,14 +373,14 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
                   {releaseDate ? new Date(releaseDate).toLocaleDateString('th-TH') : 'เลือกวันที่'}
                 </span>
                 <Calendar className="w-5 h-5 text-[#093832]" />
-                <input ref={dateInputRef} type="date" value={releaseDate} onChange={(e) => setReleaseDate(e.target.value)} className="absolute inset-0 opacity-0 pointer-events-none" />
+                <input disabled={!!activeCycle} ref={dateInputRef} type="date" value={releaseDate} onChange={(e) => setReleaseDate(e.target.value)} className="absolute inset-0 opacity-0 pointer-events-none disabled:pointer-events-none" />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-[13px] font-bold text-black ml-1">จำนวนปลาที่ปล่อย (ตัว)</label>
-                <input type="number" placeholder="ระบุจำนวน" value={fishReleased} onChange={(e) => setFishReleased(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none" />
+                <input disabled={!!activeCycle} type="number" placeholder="ระบุจำนวน" value={fishReleased} onChange={(e) => setFishReleased(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500" />
               </div>
               <div className="space-y-1.5">
                 <label className="text-[13px] font-bold text-black ml-1">จำนวนปลาที่เหลือ</label>
