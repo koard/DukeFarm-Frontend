@@ -578,8 +578,8 @@ export default function ProfilePage() {
                     >
                       <div
                         className={`mt-0.5 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all duration-200 ${isSelected
-                            ? "bg-[#72B544] border-[#72B544]"
-                            : "border-gray-300 bg-white"
+                          ? "bg-[#72B544] border-[#72B544]"
+                          : "border-gray-300 bg-white"
                           }`}
                       >
                         {isSelected && <Check className="w-4 h-4 text-white" strokeWidth={3} />}
@@ -634,7 +634,7 @@ export default function ProfilePage() {
                   <div key={pond.id} className="rounded-xl overflow-hidden border border-gray-200 shadow-sm">
                     <div className="bg-[#093832] px-4 py-2 flex justify-between items-center text-white">
                       <span className="font-bold">− บ่อที่ {index + 1}</span>
-                      {isEditing && (
+                      {isEditing && ponds.length > 1 && (
                         <button
                           type="button"
                           onClick={() => handleClickRemovePond(pond.id)}
@@ -675,20 +675,6 @@ export default function ProfilePage() {
                         </label>
                       </div>
 
-                      <div className="space-y-1.5">
-                        <label className="text-xs text-black font-bold">ประเภทกลุ่มการเลี้ยง</label>
-                        <div className="flex gap-3">
-                          {([['SMALL', 'ปลาตุ้ม'], ['LARGE', 'ปลานิ้ว'], ['MARKET', 'ปลาตลาด']] as const).map(([val, lbl]) => (
-                            <label key={val} className={`flex items-center gap-1.5 ${isEditing ? 'cursor-pointer' : 'cursor-default opacity-60'}`}>
-                              <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${pond.farmType === val ? 'border-[#72B544]' : 'border-gray-400 bg-white'}`}>
-                                {pond.farmType === val && <div className="w-2.5 h-2.5 bg-[#72B544] rounded-full" />}
-                              </div>
-                              <input type="radio" className="hidden" disabled={!isEditing} checked={pond.farmType === val} onChange={() => handlePondChange(pond.id, 'farmType', val)} />
-                              <span className="text-xs text-black">{lbl}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
 
                       <div className="grid grid-cols-3 gap-3">
                         <div className="space-y-1">
@@ -731,6 +717,18 @@ export default function ProfilePage() {
                           ปริมาตร = {volume.m3.toLocaleString()} ลูกบาศก์เมตร หรือ {volume.liters.toLocaleString()} ลิตร
                         </p>
                       )}
+
+                      <div className="flex gap-6 pt-1">
+                        {([['SMALL', 'ปลาตุ้ม'], ['LARGE', 'ปลานิ้ว'], ['MARKET', 'ปลาตลาด']] as const).map(([val, lbl]) => (
+                          <label key={val} className={`flex items-center gap-2 ${isEditing ? 'cursor-pointer' : 'cursor-default opacity-60'}`}>
+                            <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${pond.farmType === val ? 'border-[#72B544]' : 'border-gray-400 bg-white'}`}>
+                              {pond.farmType === val && <div className="w-3 h-3 bg-[#72B544] rounded-full" />}
+                            </div>
+                            <input type="radio" className="hidden" disabled={!isEditing} checked={pond.farmType === val} onChange={() => handlePondChange(pond.id, 'farmType', val)} />
+                            <span className="text-sm text-black">{lbl}</span>
+                          </label>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 );
