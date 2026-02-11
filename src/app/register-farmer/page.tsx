@@ -100,6 +100,8 @@ export default function RegisterFarmerPage() {
     location: "",
   });
 
+  const [recordPondCount, setRecordPondCount] = useState('1');
+
   const [ponds, setPonds] = useState<PondData[]>([
     { id: Date.now(), type: 'EARTHEN', farmType: 'SMALL', width: '', length: '', depth: '' }
   ]);
@@ -228,8 +230,9 @@ export default function RegisterFarmerPage() {
   };
 
   const handleAddPond = () => {
-    setPonds(prev => [...prev, { id: Date.now(), type: 'EARTHEN', farmType: 'SMALL', width: '', length: '', depth: '' }]);
-    setFormData(prev => ({ ...prev, totalPondCount: String(ponds.length + 1) }));
+    const newPonds = [...ponds, { id: Date.now(), type: 'EARTHEN' as const, farmType: 'SMALL' as const, width: '', length: '', depth: '' }];
+    setPonds(newPonds);
+    setRecordPondCount(String(newPonds.length));
   };
 
   const handleClickRemovePond = (id: number) => {
@@ -241,7 +244,7 @@ export default function RegisterFarmerPage() {
     if (deleteModalId !== null) {
       const newPonds = ponds.filter(p => p.id !== deleteModalId);
       setPonds(newPonds);
-      setFormData(prev => ({ ...prev, totalPondCount: String(newPonds.length) }));
+      setRecordPondCount(String(newPonds.length));
       setDeleteModalId(null);
     }
   };
@@ -546,38 +549,52 @@ export default function RegisterFarmerPage() {
                 </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-base font-bold text-black">จำนวนบ่อที่ต้องการบันทึกข้อมูล</label>
+                <label className="text-base font-bold text-black">จำนวนบ่อทั้งหมด</label>
                 <div className="relative">
                   <input
                     type="number"
                     name="totalPondCount"
                     value={formData.totalPondCount}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setFormData(prev => ({ ...prev, totalPondCount: val }));
-                      const count = parseInt(val, 10);
-                      if (!isNaN(count) && count >= 1 && count <= 20) {
-                        setPonds(prev => {
-                          if (count > prev.length) {
-                            const newPonds = [...prev];
-                            for (let i = prev.length; i < count; i++) {
-                              newPonds.push({ id: Date.now() + i, type: 'EARTHEN', farmType: 'SMALL', width: '', length: '', depth: '' });
-                            }
-                            return newPonds;
-                          } else if (count < prev.length) {
-                            return prev.slice(0, count);
-                          }
-                          return prev;
-                        });
-                      }
-                    }}
+                    onChange={handleChange}
                     placeholder="ระบุข้อมูล"
-                    min="1"
-                    max="20"
                     className="w-full pr-14 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs"
                   />
                   <span className="absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-gray-500">บ่อ</span>
                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-base font-bold text-black">จำนวนบ่อที่ต้องการบันทึกข้อมูล</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={recordPondCount}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setRecordPondCount(val);
+                    const count = parseInt(val, 10);
+                    if (!isNaN(count) && count >= 1 && count <= 20) {
+                      setPonds(prev => {
+                        if (count > prev.length) {
+                          const newPonds = [...prev];
+                          for (let i = prev.length; i < count; i++) {
+                            newPonds.push({ id: Date.now() + i, type: 'EARTHEN', farmType: 'SMALL', width: '', length: '', depth: '' });
+                          }
+                          return newPonds;
+                        } else if (count < prev.length) {
+                          return prev.slice(0, count);
+                        }
+                        return prev;
+                      });
+                    }
+                  }}
+                  placeholder="ระบุข้อมูล"
+                  min="1"
+                  max="20"
+                  className="w-full pr-14 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs"
+                />
+                <span className="absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-gray-500">บ่อ</span>
               </div>
             </div>
 
