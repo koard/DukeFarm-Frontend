@@ -48,6 +48,7 @@ type RegisterFormState = {
   phone: string;
   farmType: FarmTypeOption[];
   raiCount: string;
+  totalPondCount: string;
   location: string;
 };
 
@@ -94,6 +95,7 @@ export default function RegisterFarmerPage() {
     phone: "",
     farmType: [] as FarmTypeOption[],
     raiCount: "",
+    totalPondCount: "",
     location: "",
   });
 
@@ -158,6 +160,7 @@ export default function RegisterFarmerPage() {
         phone: profile.phone ?? prev.phone,
         farmType: farmTypes.length > 0 ? farmTypes : prev.farmType,
         raiCount: formatNumericInput(areaSource) || prev.raiCount,
+        totalPondCount: formatNumericInput(pondCountSource) || prev.totalPondCount,
         location: coords ? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}` : prev.location,
       }));
     } catch (error) {
@@ -166,7 +169,7 @@ export default function RegisterFarmerPage() {
   }, []);
 
   useEffect(() => {
-    const { firstName, lastName, phone, farmType, raiCount, location } = formData;
+    const { firstName, lastName, phone, farmType, raiCount, totalPondCount, location } = formData;
     const isPondsValid = ponds.every(p => p.width && p.length && p.depth);
 
     setIsFormValid(
@@ -175,6 +178,7 @@ export default function RegisterFarmerPage() {
       phone.trim() !== "" &&
       farmType.length > 0 &&
       raiCount.trim() !== "" &&
+      totalPondCount.trim() !== "" &&
       ponds.length > 0 && 
       isPondsValid &&
       location.trim() !== ""
@@ -393,13 +397,13 @@ export default function RegisterFarmerPage() {
                         คุณต้องการลบข้อมูลบ่อนี้ใช่หรือไม่? <br/> ข้อมูลที่กรอกไว้จะหายไป
                     </p>
                     <div className="flex gap-3 w-full">
-                        <button 
+                        <button
                             onClick={cancelRemovePond}
                             className="flex-1 py-2.5 rounded-xl border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
                         >
                             ยกเลิก
                         </button>
-                        <button 
+                        <button
                             onClick={confirmRemovePond}
                             className="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 shadow-md transition-colors"
                         >
@@ -520,7 +524,6 @@ export default function RegisterFarmerPage() {
               </div>
             </div>
 
-            {/* จำนวนไร่ และ จำนวนบ่อ (Readonly) */}
             <div className="grid grid-cols-2 gap-4 pt-2">
               <div className="space-y-1.5">
                 <label className="text-base font-bold text-black">จำนวนไร่</label>
@@ -530,7 +533,7 @@ export default function RegisterFarmerPage() {
                     name="raiCount"
                     value={formData.raiCount}
                     onChange={handleChange}
-                    placeholder="ระบุข้อมูล เช่น 4, 8"
+                    placeholder="ระบุข้อมูล"
                     className="w-full pr-14 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500"
                   />
                   <span className="absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-gray-500">ไร่</span>
@@ -538,12 +541,17 @@ export default function RegisterFarmerPage() {
               </div>
               <div className="space-y-1.5">
                 <label className="text-base font-bold text-black">จำนวนบ่อทั้งหมด</label>
-                <input 
-                    type="text" 
-                    value={ponds.length} 
-                    readOnly 
-                    className="w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none text-black text-xs text-center cursor-default" 
-                />
+                <div className="relative">
+                    <input
+                        type="number"
+                        name="totalPondCount"
+                        value={formData.totalPondCount}
+                        onChange={handleChange}
+                        placeholder="ระบุข้อมูล"
+                        className="w-full pr-14 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs"
+                    />
+                    <span className="absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-gray-500">บ่อ</span>
+                </div>
               </div>
             </div>
 
@@ -555,8 +563,8 @@ export default function RegisterFarmerPage() {
                         <div key={pond.id} className="rounded-xl overflow-hidden border border-gray-200 shadow-sm">
                             <div className="bg-[#093832] px-4 py-2 flex justify-between items-center text-white">
                                 <span className="font-bold">− บ่อที่ {index + 1}</span>
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     onClick={() => handleClickRemovePond(pond.id)}
                                     className="flex items-center gap-1 text-xs hover:text-red-300 transition-colors"
                                 >
@@ -570,11 +578,11 @@ export default function RegisterFarmerPage() {
                                         <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${pond.type === 'EARTHEN' ? 'border-black' : 'border-gray-400 bg-white'}`}>
                                             {pond.type === 'EARTHEN' && <div className="w-3 h-3 bg-black rounded-full" />}
                                         </div>
-                                        <input 
-                                            type="radio" 
-                                            className="hidden" 
-                                            checked={pond.type === 'EARTHEN'} 
-                                            onChange={() => handlePondChange(pond.id, 'type', 'EARTHEN')} 
+                                        <input
+                                            type="radio"
+                                            className="hidden"
+                                            checked={pond.type === 'EARTHEN'}
+                                            onChange={() => handlePondChange(pond.id, 'type', 'EARTHEN')}
                                         />
                                         <span className="text-sm text-black">บ่อดิน</span>
                                     </label>
@@ -582,11 +590,11 @@ export default function RegisterFarmerPage() {
                                         <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${pond.type === 'CONCRETE' ? 'border-black' : 'border-gray-400 bg-white'}`}>
                                             {pond.type === 'CONCRETE' && <div className="w-3 h-3 bg-black rounded-full" />}
                                         </div>
-                                        <input 
-                                            type="radio" 
-                                            className="hidden" 
-                                            checked={pond.type === 'CONCRETE'} 
-                                            onChange={() => handlePondChange(pond.id, 'type', 'CONCRETE')} 
+                                        <input
+                                            type="radio"
+                                            className="hidden"
+                                            checked={pond.type === 'CONCRETE'}
+                                            onChange={() => handlePondChange(pond.id, 'type', 'CONCRETE')}
                                         />
                                         <span className="text-sm text-black">บ่อปูน</span>
                                     </label>
@@ -594,31 +602,31 @@ export default function RegisterFarmerPage() {
 
                                 <div className="grid grid-cols-3 gap-3">
                                     <div className="space-y-1">
-                                        <label className="text-xs text-black">กว้าง</label>
-                                        <input 
-                                            type="number" 
-                                            value={pond.width} 
-                                            placeholder="ระบุข้อมูล"
+                                        <label className="text-xs text-black font-medium">กว้าง (เมตร)</label>
+                                        <input
+                                            type="number"
+                                            value={pond.width}
+                                            placeholder="0.00"
                                             onChange={(e) => handlePondChange(pond.id, 'width', e.target.value)}
                                             className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs text-black focus:outline-none focus:ring-1 focus:ring-[#0F3B35]"
                                         />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs text-black">ยาว</label>
-                                        <input 
-                                            type="number" 
-                                            value={pond.length} 
-                                            placeholder="ระบุข้อมูล"
+                                        <label className="text-xs text-black font-medium">ยาว (เมตร)</label>
+                                        <input
+                                            type="number"
+                                            value={pond.length}
+                                            placeholder="0.00"
                                             onChange={(e) => handlePondChange(pond.id, 'length', e.target.value)}
                                             className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs text-black focus:outline-none focus:ring-1 focus:ring-[#0F3B35]"
                                         />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs text-black">ลึก</label>
-                                        <input 
-                                            type="number" 
-                                            value={pond.depth} 
-                                            placeholder="ระบุข้อมูล"
+                                        <label className="text-xs text-black font-medium">ลึก (เมตร)</label>
+                                        <input
+                                            type="number"
+                                            value={pond.depth}
+                                            placeholder="0.00"
                                             onChange={(e) => handlePondChange(pond.id, 'depth', e.target.value)}
                                             className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs text-black focus:outline-none focus:ring-1 focus:ring-[#0F3B35]"
                                         />

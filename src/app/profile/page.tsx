@@ -29,6 +29,7 @@ type ProfileFormState = {
   phone: string;
   farmTypes: FarmTypeOption[];
   raiCount: string;
+  totalPondCount: string;
   location: string;
 };
 
@@ -107,6 +108,7 @@ export default function ProfilePage() {
     phone: "",
     farmTypes: [],
     raiCount: "",
+    totalPondCount: "",
     location: "",
   });
 
@@ -115,14 +117,18 @@ export default function ProfilePage() {
   const [initialCoords, setInitialCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [tempCoords, setTempCoords] = useState({ lat: 0, lng: 0 });
 
-
   const populateFormFromProfile = useCallback((profile?: FarmerProfile) => {
     const lat = parseCoordinate(profile?.farmLatitude);
     const lng = parseCoordinate(profile?.farmLongitude);
     const coords = lat !== null && lng !== null ? { lat, lng } : null;
     const farmTypes = deriveFarmTypesFromProfile(profile);
 
-    const areaSource = profile?.totalFarmAreaRai ?? profile?.farmAreaRai ?? profile?.declaredRaiCount;
+    const areaSource =
+      profile?.totalFarmAreaRai ??
+      profile?.farmAreaRai ??
+      profile?.declaredRaiCount;
+
+    const pondCountSource = profile?.declaredPondCount;
 
     setFormData({
       firstName: profile?.firstName || "",
@@ -130,7 +136,10 @@ export default function ProfilePage() {
       phone: profile?.phone || "",
       farmTypes,
       raiCount: formatNumericInput(areaSource),
-      location: coords ? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}` : "",
+      totalPondCount: formatNumericInput(pondCountSource),
+      location: coords
+        ? `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`
+        : "",
     });
 
     if (coords) {
@@ -141,21 +150,27 @@ export default function ProfilePage() {
       setTempCoords({ lat: 0, lng: 0 });
     }
 
-    if (profile?.ponds && Array.isArray(profile.ponds) && profile.ponds.length > 0) {
-        const mappedPonds: PondData[] = profile.ponds.map((p, index) => ({
-            id: Date.now() + index,
-            backendId: p.id,
-            type: p.pondType,
-            width: String(p.widthM),
-            length: String(p.lengthM),
-            depth: String(p.depthM)
-        }));
-        setPonds(mappedPonds);
+    if (
+      profile?.ponds &&
+      Array.isArray(profile.ponds) &&
+      profile.ponds.length > 0
+    ) {
+      const mappedPonds: PondData[] = profile.ponds.map((p, index) => ({
+        id: Date.now() + index,
+        backendId: p.id,
+        type: p.pondType,
+        width: String(p.widthM),
+        length: String(p.lengthM),
+        depth: String(p.depthM),
+      }));
+      setPonds(mappedPonds);
     } else {
-        setPonds([{ id: Date.now(), type: 'EARTHEN', width: '', length: '', depth: '' }]);
+      setPonds([
+        { id: Date.now(), type: "EARTHEN", width: "", length: "", depth: "" },
+      ]);
     }
-
   }, []);
+
 
   const farmOptions = (Object.keys(FARM_TYPE_INFO) as FarmTypeOption[]).map((value) => ({
     value,
@@ -171,6 +186,7 @@ export default function ProfilePage() {
     formData.phone.trim() !== "" &&
     formData.farmTypes.length > 0 &&
     formData.raiCount.trim() !== "" &&
+    formData.totalPondCount.trim() !== "" &&
     ponds.length > 0 && 
     isPondsValid &&
     hasValidLocation;
@@ -235,7 +251,6 @@ export default function ProfilePage() {
     setShowMap(false);
   };
 
-  // ✅ Pond Management Functions
   const handleAddPond = () => {
     setPonds(prev => [...prev, { id: Date.now(), type: 'EARTHEN', width: '', length: '', depth: '' }]);
   };
@@ -317,6 +332,7 @@ export default function ProfilePage() {
         primaryFarmType,
         farmTypes: formData.farmTypes,
         farmAreaRai,
+        declaredPondCount: parseInt(formData.totalPondCount) || 0, 
         farmLatitude: coords.lat,
         farmLongitude: coords.lng,
         
@@ -348,16 +364,13 @@ export default function ProfilePage() {
       }
 
       const result = await response.json();
-
       const latestFarmProfile = result?.data?.profile ?? result?.data;
       const latestUserState = result?.data?.user;
 
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
         const userData = JSON.parse(storedUser);
-        if (latestFarmProfile) {
-          userData.farmerProfile = latestFarmProfile;
-        }
+        if (latestFarmProfile) userData.farmerProfile = latestFarmProfile;
         if (latestUserState) {
           userData.role = latestUserState.role;
           userData.registrationStatus = latestUserState.registrationStatus;
@@ -365,19 +378,14 @@ export default function ProfilePage() {
         localStorage.setItem("user", JSON.stringify(userData));
       }
 
-      if (latestFarmProfile) {
-        populateFormFromProfile(latestFarmProfile);
-      }
+      if (latestFarmProfile) populateFormFromProfile(latestFarmProfile);
 
       const destination = mapFarmTypeToRoute(latestFarmProfile?.primaryFarmType || primaryFarmType);
-
       setSubmitStatus('success');
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setIsEditing(false);
       setSubmitStatus('idle'); 
-
       router.push(destination); 
-      
       
     } catch (err) {
       console.error("Error updating profile:", err);
@@ -531,7 +539,7 @@ export default function ProfilePage() {
                   type="text" 
                   name="lastName" 
                   value={formData.lastName} 
-                  onChange={handleChange}
+                  onChange={handleChange} 
                   disabled={!isEditing}
                   placeholder="ระบุข้อมูล" 
                   className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500 disabled:bg-gray-100 disabled:text-gray-600" 
@@ -545,7 +553,7 @@ export default function ProfilePage() {
                 type="tel" 
                 name="phone" 
                 value={formData.phone} 
-                onChange={handleChange}
+                onChange={handleChange} 
                 disabled={!isEditing}
                 placeholder="ระบุข้อมูล" 
                 className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500 disabled:bg-gray-100 disabled:text-gray-600" 
@@ -586,13 +594,14 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-2 gap-4 pt-2">
               <div className="space-y-1.5">
-                <label className="text-base font-bold text-black">พื้นที่ฟาร์มทั้งหมด</label>
+                <label className="text-base font-bold text-black">จำนวนไร่</label>
                 <div className="relative">
                   <input
                     type="number"
                     name="raiCount"
                     value={formData.raiCount}
                     onChange={handleChange}
+                    placeholder="ระบุข้อมูล"
                     disabled={!isEditing}
                     className="w-full pr-14 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs placeholder:text-xs placeholder:text-gray-500 disabled:bg-gray-100 disabled:text-gray-600"
                   />
@@ -601,13 +610,18 @@ export default function ProfilePage() {
               </div>
               <div className="space-y-1.5">
                 <label className="text-base font-bold text-black">จำนวนบ่อทั้งหมด</label>
-                <input
-                  type="number"
-                  name="pondCount"
-                  value={ponds.length}
-                  disabled={true}
-                  className="w-full px-4 py-2.5 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none text-black text-xs text-center cursor-default"
-                />
+                <div className="relative">
+                  <input 
+                    type="number" 
+                    name="totalPondCount" 
+                    value={formData.totalPondCount} 
+                    onChange={handleChange} 
+                    disabled={!isEditing} 
+                    placeholder="ระบุข้อมูล" 
+                    className="w-full pr-14 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F3B35] text-black text-xs disabled:bg-gray-100 disabled:text-gray-600" 
+                  />
+                  <span className="absolute inset-y-0 right-4 flex items-center text-xs font-semibold text-gray-500">บ่อ</span>
+                </div>
               </div>
             </div>
 
@@ -661,34 +675,34 @@ export default function ProfilePage() {
 
                                 <div className="grid grid-cols-3 gap-3">
                                     <div className="space-y-1">
-                                        <label className="text-xs text-black">กว้าง</label>
+                                        <label className="text-xs text-black font-medium">กว้าง (เมตร)</label>
                                         <input 
                                             type="number" 
                                             value={pond.width} 
                                             disabled={!isEditing}
-                                            placeholder="ระบุข้อมูล"
+                                            placeholder="0.00"
                                             onChange={(e) => handlePondChange(pond.id, 'width', e.target.value)}
                                             className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs text-black focus:outline-none focus:ring-1 focus:ring-[#0F3B35] disabled:bg-gray-100 disabled:text-gray-600"
                                         />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs text-black">ยาว</label>
+                                        <label className="text-xs text-black font-medium">ยาว (เมตร)</label>
                                         <input 
                                             type="number" 
                                             value={pond.length} 
                                             disabled={!isEditing}
-                                            placeholder="ระบุข้อมูล"
+                                            placeholder="0.00"
                                             onChange={(e) => handlePondChange(pond.id, 'length', e.target.value)}
                                             className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs text-black focus:outline-none focus:ring-1 focus:ring-[#0F3B35] disabled:bg-gray-100 disabled:text-gray-600"
                                         />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs text-black">ลึก</label>
+                                        <label className="text-xs text-black font-medium">ลึก (เมตร)</label>
                                         <input 
                                             type="number" 
                                             value={pond.depth} 
                                             disabled={!isEditing}
-                                            placeholder="ระบุข้อมูล"
+                                            placeholder="0.00"
                                             onChange={(e) => handlePondChange(pond.id, 'depth', e.target.value)}
                                             className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs text-black focus:outline-none focus:ring-1 focus:ring-[#0F3B35] disabled:bg-gray-100 disabled:text-gray-600"
                                         />
