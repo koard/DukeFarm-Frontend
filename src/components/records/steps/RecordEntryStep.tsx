@@ -274,7 +274,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
   };
 
   return (
-    <div className="min-h-screen bg-white relative pb-32">
+    <div className="min-h-screen bg-white relative pb-10">
       {/* Header */}
       <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -475,7 +475,8 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
       </div>
 
       {/* ปุ่มวิเคราะห์ข้อมูลหลัก */}
-      <div className="fixed bottom-8 left-0 right-0 px-6 z-20 flex justify-center">
+      {/* ปุ่มวิเคราะห์ข้อมูลหลัก (Static at bottom) */}
+      <div className="mt-8 px-6 mb-10 flex justify-center">
         <button
           onClick={handleSubmit}
           disabled={isSubmitting}
