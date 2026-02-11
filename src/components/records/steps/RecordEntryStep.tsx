@@ -41,6 +41,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
   const [fishSize, setFishSize] = useState('');
   const [fishSizeUnit, setFishSizeUnit] = useState('');
   const [releaseDate, setReleaseDate] = useState('');
+  const [releaseTime, setReleaseTime] = useState(new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
   const [fishReleased, setFishReleased] = useState('');
   const [fishRemaining, setFishRemaining] = useState('');
   const [feedFormulaId, setFeedFormulaId] = useState('');
@@ -161,8 +162,11 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
           setActiveCycle(data);
           if (data) {
             // Lock fields with cycle data
-            setFishType(data.farmType);
-            if (data.startDate) setReleaseDate(data.startDate.split('T')[0]);
+            if (data.startDate) {
+              const startDateTime = new Date(data.startDate);
+              setReleaseDate(startDateTime.toISOString().split('T')[0]);
+              setReleaseTime(startDateTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
+            }
             if (data.initialStockCount) setFishReleased(String(data.initialStockCount));
             // Maybe set fishSize/Unit if initialAvgWeightKg exists? 
             // Users might want to record current size, so maybe don't lock fishSize?
@@ -222,7 +226,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
 
       const body: Record<string, any> = {
         farmType: fishType || undefined,
-        recordedAt: releaseDate ? new Date(releaseDate).toISOString() : new Date().toISOString(),
+        recordedAt: releaseDate ? new Date(`${releaseDate}T${releaseTime}`).toISOString() : new Date().toISOString(),
         fishAgeLabel: fishType === 'SMALL' ? 'ปลาตุ้ม' : fishType === 'LARGE' ? 'ปลานิ้ว' : fishType === 'MARKET' ? 'ปลาตลาด' : 'ไม่ระบุ',
         pondId: selectedPondId || undefined,
         fishCount: fishReleased ? parseInt(fishReleased, 10) : undefined,
@@ -367,13 +371,24 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-bold text-black ml-1">วันที่เริ่มปล่อยลงบ่อ</label>
-              <div onClick={handleOpenPicker} className="relative w-full bg-[#CEF2D6] border border-[#093832]/10 rounded-xl px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all">
-                <span className="text-sm font-extrabold text-[#093832]">
-                  {releaseDate ? new Date(releaseDate).toLocaleDateString('th-TH') : 'เลือกวันที่'}
-                </span>
-                <Calendar className="w-5 h-5 text-[#093832]" />
-                <input disabled={!!activeCycle} ref={dateInputRef} type="date" value={releaseDate} onChange={(e) => setReleaseDate(e.target.value)} className="absolute inset-0 opacity-0 pointer-events-none disabled:pointer-events-none" />
+              <label className="text-sm font-bold text-black ml-1">วันที่และเวลาที่บันทึก/ปล่อย</label>
+              <div className="flex gap-2">
+                <div onClick={handleOpenPicker} className="relative flex-1 bg-[#CEF2D6] border border-[#093832]/10 rounded-xl px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all">
+                  <span className="text-sm font-extrabold text-[#093832]">
+                    {releaseDate ? new Date(releaseDate).toLocaleDateString('th-TH') : 'เลือกวันที่'}
+                  </span>
+                  <Calendar className="w-5 h-5 text-[#093832]" />
+                  <input disabled={!!activeCycle} ref={dateInputRef} type="date" value={releaseDate} onChange={(e) => setReleaseDate(e.target.value)} className="absolute inset-0 opacity-0 pointer-events-none disabled:pointer-events-none" />
+                </div>
+                <div className="w-[110px] bg-white border border-gray-200 rounded-xl px-2 relative flex items-center">
+                  <input
+                    disabled={!!activeCycle}
+                    type="time"
+                    value={releaseTime}
+                    onChange={(e) => setReleaseTime(e.target.value)}
+                    className="w-full text-center text-sm font-bold text-gray-700 focus:text-black outline-none disabled:bg-transparent disabled:text-gray-500"
+                  />
+                </div>
               </div>
             </div>
 
