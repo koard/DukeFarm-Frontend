@@ -11,6 +11,7 @@
   "dependencies": {
     "@types/react-icons": "^2.2.7",
     "autoprefixer": "^10.4.21",
+    "framer-motion": "^12.34.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.554.0",
     "next": "15.4.8",
