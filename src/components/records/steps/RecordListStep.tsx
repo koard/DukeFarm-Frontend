@@ -215,22 +215,32 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-white/70">สถานะ</span>
-                  <span className="bg-emerald-400/20 text-emerald-200 px-2.5 py-0.5 rounded-full text-xs font-bold">
-                    กำลังดำเนินการ
-                  </span>
+                  {activeCycle.status === 'PLANNING' ? (
+                    <span className="bg-yellow-400/20 text-yellow-200 px-2.5 py-0.5 rounded-full text-xs font-bold">
+                      รอการบันทึกข้อมูล
+                    </span>
+                  ) : (
+                    <span className="bg-emerald-400/20 text-emerald-200 px-2.5 py-0.5 rounded-full text-xs font-bold">
+                      กำลังดำเนินการ
+                    </span>
+                  )}
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-white/70">วันที่เริ่มปล่อยปลา</span>
-                  <span className="font-semibold">
-                    {new Date(activeCycle.startDate).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-white/70">ระยะเวลา</span>
-                  <span className="font-semibold">
-                    {Math.max(1, Math.ceil((Date.now() - new Date(activeCycle.startDate).getTime()) / (1000 * 60 * 60 * 24)))} วัน
-                  </span>
-                </div>
+                {activeCycle.status !== 'PLANNING' && (
+                  <>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-white/70">วันที่เริ่มปล่อยปลา</span>
+                      <span className="font-semibold">
+                        {new Date(activeCycle.startDate).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-white/70">ระยะเวลา</span>
+                      <span className="font-semibold">
+                        {Math.max(1, Math.ceil((Date.now() - new Date(activeCycle.startDate).getTime()) / (1000 * 60 * 60 * 24)))} วัน
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
             ) : (
               <p className="text-white/60 text-sm">ยังไม่มีรอบการเลี้ยงที่กำลังดำเนินการ</p>

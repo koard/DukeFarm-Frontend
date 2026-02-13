@@ -176,19 +176,13 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
         if (res.ok) {
           const { data } = await res.json();
           setActiveCycle(data);
-          if (data) {
-            // Lock fields with cycle data
-            setFishType(data.farmType);
+          if (data && data.status !== 'PLANNING') {
+            // Lock fields with cycle data only when cycle already has initial data (not PLANNING)
+            if (data.farmType) setFishType(data.farmType);
             if (data.startDate) setReleaseDate(data.startDate.split('T')[0]);
             if (data.initialStockCount) setFishReleased(String(data.initialStockCount));
-            // Maybe set fishSize/Unit if initialAvgWeightKg exists? 
-            // Users might want to record current size, so maybe don't lock fishSize?
-            // User said: "Initial data (release date, initial count, fish type) should be locked"
-          } else {
-            // No active cycle, unlock
-            // Don't auto-clear here to verify user intent? Or clear 'locked' fields?
-            // Let's rely on manual clear or initial state
           }
+          // If PLANNING or no cycle, fields remain editable
         }
       } catch (err) {
         console.error('Failed to fetch active cycle', err);
@@ -240,7 +234,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
       const body: Record<string, any> = {
         farmType: fishType || undefined,
         recordedAt: new Date().toISOString(),
-        cycleStartDate: (!activeCycle && releaseDate) ? new Date(releaseDate).toISOString() : undefined,
+        cycleStartDate: ((!activeCycle || activeCycle.status === 'PLANNING') && releaseDate) ? new Date(releaseDate).toISOString() : undefined,
         fishAgeLabel: fishType === 'SMALL' ? 'ปลาตุ้ม' : fishType === 'LARGE' ? 'ปลานิ้ว' : fishType === 'MARKET' ? 'ปลาตลาด' : 'ไม่ระบุ',
         pondId: selectedPondId || undefined,
         fishCountText: undefined,
@@ -351,7 +345,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
               <div className="col-span-5 space-y-1.5">
                 <label className="text-sm font-bold text-black ml-1">ประเภทปลา</label>
                 <div className="relative">
-                  <select value={fishType} onChange={(e) => setFishType(e.target.value)} className={`w-full appearance-none bg-white border border-gray-200 rounded-xl pl-3 pr-9 py-3 text-xs font-bold focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 ${!fishType ? 'text-gray-400' : 'text-gray-700'}`}>
+                  <select disabled={!!activeCycle && activeCycle.status !== 'PLANNING'} value={fishType} onChange={(e) => setFishType(e.target.value)} className={`w-full appearance-none bg-white border border-gray-200 rounded-xl pl-3 pr-9 py-3 text-xs font-bold focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 ${!fishType ? 'text-gray-400' : 'text-gray-700'}`}>
                     <option value="" disabled>เลือกประเภท</option>
                     <option value="SMALL">ปลาตุ้ม</option>
                     <option value="LARGE">ปลานิ้ว</option>
@@ -376,7 +370,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
                   {releaseDate ? new Date(releaseDate).toLocaleDateString('th-TH') : 'เลือกวันที่'}
                 </span>
                 <Calendar className="w-5 h-5 text-gray-400" />
-                <input disabled={!!activeCycle} ref={dateInputRef} type="date" value={releaseDate} onChange={(e) => setReleaseDate(e.target.value)} className="absolute inset-0 opacity-0 pointer-events-none disabled:pointer-events-none" />
+                <input disabled={!!activeCycle && activeCycle.status !== 'PLANNING'} ref={dateInputRef} type="date" value={releaseDate} onChange={(e) => setReleaseDate(e.target.value)} className="absolute inset-0 opacity-0 pointer-events-none disabled:pointer-events-none" />
               </div>
             </div>
 
@@ -384,7 +378,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
               <div className="space-y-1.5">
                 <label className="text-[13px] font-bold text-black ml-1">จำนวนปลาที่ปล่อย</label>
                 <div className="relative">
-                  <input disabled={!!activeCycle} type="number" placeholder="ระบุจำนวน" value={fishReleased} onChange={(e) => setFishReleased(e.target.value)} className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 placeholder:text-gray-400" />
+                  <input disabled={!!activeCycle && activeCycle.status !== 'PLANNING'} type="number" placeholder="ระบุจำนวน" value={fishReleased} onChange={(e) => setFishReleased(e.target.value)} className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 placeholder:text-gray-400" />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">ตัว</span>
                 </div>
               </div>
