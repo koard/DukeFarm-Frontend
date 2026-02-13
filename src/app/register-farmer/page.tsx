@@ -36,8 +36,8 @@ type FarmerProfile = FarmTypeProfileLike & {
 
 type PondData = {
   id: number;
-  type: 'EARTHEN' | 'CONCRETE';
-  farmType: 'SMALL' | 'LARGE' | 'MARKET';
+  type: 'EARTHEN' | 'CONCRETE' | null;
+  farmType: 'SMALL' | 'LARGE' | 'MARKET' | null;
   width: string;
   length: string;
   depth: string;
@@ -103,7 +103,7 @@ export default function RegisterFarmerPage() {
   const [recordPondCount, setRecordPondCount] = useState('1');
 
   const [ponds, setPonds] = useState<PondData[]>([
-    { id: Date.now(), type: 'EARTHEN', farmType: 'SMALL', width: '', length: '', depth: '' }
+    { id: Date.now(), type: null, farmType: null, width: '', length: '', depth: '' }
   ]);
 
   const farmOptions: Array<{ value: FarmTypeOption; label: string; description: string }> = [
@@ -147,8 +147,8 @@ export default function RegisterFarmerPage() {
         if (count > 0) {
           const initPonds: PondData[] = Array.from({ length: count }).map((_, i) => ({
             id: Date.now() + i,
-            type: 'EARTHEN',
-            farmType: 'SMALL' as const,
+            type: null,
+            farmType: null,
             width: '',
             length: '',
             depth: ''
@@ -174,7 +174,12 @@ export default function RegisterFarmerPage() {
 
   useEffect(() => {
     const { firstName, lastName, phone, farmType, raiCount, totalPondCount, location } = formData;
-    const isPondsValid = ponds.every(p => p.width && p.length && p.depth);
+    const isPondsValid = ponds.every(p => {
+      const w = parseFloat(p.width);
+      const l = parseFloat(p.length);
+      const d = parseFloat(p.depth);
+      return p.type && p.farmType && !isNaN(w) && w > 0 && !isNaN(l) && l > 0 && !isNaN(d) && d > 0;
+    });
 
     setIsFormValid(
       firstName.trim() !== "" &&
@@ -230,7 +235,7 @@ export default function RegisterFarmerPage() {
   };
 
   const handleAddPond = () => {
-    const newPonds = [...ponds, { id: Date.now(), type: 'EARTHEN' as const, farmType: 'SMALL' as const, width: '', length: '', depth: '' }];
+    const newPonds = [...ponds, { id: Date.now(), type: null, farmType: null, width: '', length: '', depth: '' }];
     setPonds(newPonds);
     setRecordPondCount(String(newPonds.length));
   };
@@ -579,7 +584,7 @@ export default function RegisterFarmerPage() {
                         if (count > prev.length) {
                           const newPonds = [...prev];
                           for (let i = prev.length; i < count; i++) {
-                            newPonds.push({ id: Date.now() + i, type: 'EARTHEN', farmType: 'SMALL', width: '', length: '', depth: '' });
+                            newPonds.push({ id: Date.now() + i, type: null, farmType: null, width: '', length: '', depth: '' });
                           }
                           return newPonds;
                         } else if (count < prev.length) {
