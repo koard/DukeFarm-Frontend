@@ -257,7 +257,7 @@ function DashboardContent() {
       {/* -------------------------------------------------------------------------
           (ส่วนหัวฟาร์ม - ห้ามแก้ตามต้นฉบับเดิม)
           ------------------------------------------------------------------------- */}
-      <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-50">
+      <div className="bg-[#093832] text-white px-4 pt-5 pb-6 rounded-b-3xl shadow-md relative z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Image src="/dashboard/Group.svg" alt="Overview" width={24} height={24} />

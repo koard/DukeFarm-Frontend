@@ -117,7 +117,7 @@ function DiseaseResultContent() {
     <div className="min-h-screen bg-white pb-10 relative">
 
       {/* Header */}
-      <header className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-30 flex items-center justify-between">
+      <header className="bg-[#093832] text-white px-4 pt-5 pb-6 rounded-b-3xl shadow-md relative z-30 flex items-center justify-between">
         <div className="flex items-center gap-2 max-w-[80%]">
           <button
             onClick={handleBack}

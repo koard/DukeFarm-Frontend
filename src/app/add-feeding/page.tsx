@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { 
+import {
   FiArrowLeft,
   FiCalendar,
   FiThermometer,
@@ -47,12 +47,12 @@ export default function AddFeedingPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // บันทึกข้อมูลลง localStorage
     localStorage.setItem("lastFeedingRecord", JSON.stringify(formData));
-    
+
     console.log("Feeding record:", formData);
-    
+
     // เปลี่ยนเส้นทางไปหน้าผลวิเคราะห์
     router.push("/feeding-result");
   };
@@ -68,7 +68,7 @@ export default function AddFeedingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-teal-50 to-gray-100">
       {/* Header */}
-      <header className="bg-[#093832] text-white px-4 base:px-6 py-4 base:py-5 rounded-b-3xl relative">
+      <header className="bg-[#093832] text-white px-4 pt-5 pb-6 rounded-b-3xl relative">
         <div className="flex items-center space-x-3">
           <button
             onClick={() => router.back()}
@@ -105,7 +105,7 @@ export default function AddFeedingPage() {
                   required
                 />
               </div>
-              
+
               <div>
                 <input
                   type="time"
@@ -143,7 +143,7 @@ export default function AddFeedingPage() {
                     placeholder="เดือน"
                     min="0"
                   />
-                  
+
                   <input
                     type="number"
                     name="fishAgeDays"
@@ -194,7 +194,7 @@ export default function AddFeedingPage() {
                     <option value="อาหารเสริม">อาหารเสริม</option>
                   </select>
                 </div>
-                
+
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-2">
                     ปริมาณอาหาร (กิโลกรัม)
@@ -225,7 +225,7 @@ export default function AddFeedingPage() {
                     placeholder="ระบุข้อมูล เช่น 5,000 เป็นต้น"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-2">
                     พฤติกรรมปลา
@@ -271,7 +271,7 @@ export default function AddFeedingPage() {
                     step="0.1"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-2">
                     อัตราการรอด
@@ -316,7 +316,7 @@ export default function AddFeedingPage() {
                     step="0.1"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-2">
                     ปริมาณฝน (มม.)
@@ -332,7 +332,7 @@ export default function AddFeedingPage() {
                     min="0"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-2">
                     ความชื้น

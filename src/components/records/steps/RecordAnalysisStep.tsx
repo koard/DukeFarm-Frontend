@@ -13,7 +13,7 @@ interface RecordAnalysisStepProps {
 export const RecordAnalysisStep: React.FC<RecordAnalysisStepProps> = ({ onClose, onBack }) => {
   return (
     <div className="min-h-screen bg-white relative pb-32 font-sans">
-      <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10 flex items-center justify-between">
+      <div className="bg-[#093832] text-white px-4 pt-5 pb-6 rounded-b-3xl shadow-md relative z-10 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button onClick={onBack} className="p-1 hover:bg-white/10 rounded-full transition-colors">
             <ChevronLeft className="w-8 h-8" />
@@ -35,7 +35,7 @@ export const RecordAnalysisStep: React.FC<RecordAnalysisStepProps> = ({ onClose,
           <div className="bg-[#093832] px-6 py-4 text-white font-bold text-lg">
             − บ่อที่ 1
           </div>
-          
+
           {/* ข้อมูลขนาดบ่อ */}
           <div className="px-6 text-xs text-[#093832] font-semibold leading-relaxed">
             <p>บ่อปูน - กว้าง 3 x ยาว 5 x ลึก 1</p>
@@ -129,7 +129,7 @@ export const RecordAnalysisStep: React.FC<RecordAnalysisStepProps> = ({ onClose,
 
       {/* --- ปุ่มปิด --- */}
       <div className="fixed bottom-8 left-0 right-0 px-6 z-20 flex justify-center">
-        <button 
+        <button
           onClick={onClose}
           className="w-full max-w-md bg-white border border-[#EF6E11] text-[#EF6E11] text-xl font-bold py-4 rounded-[15px] active:scale-95 transition-all"
         >
