@@ -58,7 +58,10 @@ export const RecordEntryForm = ({ farmType, backHref, pondId }: RecordEntryFormP
     setCurrentStep(3);
   };
 
-  const handleAnalyze = () => setCurrentStep(3);
+  const handleAnalyze = (id?: string) => {
+    if (id) setSelectedRecordId(id);
+    setCurrentStep(3);
+  };
   const handleBackToList = () => {
     setSelectedRecordId(null);
     setCurrentStep(1);
@@ -100,6 +103,7 @@ export const RecordEntryForm = ({ farmType, backHref, pondId }: RecordEntryFormP
         <RecordAnalysisStep
           onClose={handleBackToList}
           onBack={handleBackToList}
+          recordId={selectedRecordId || undefined}
         />
       )}
     </div>

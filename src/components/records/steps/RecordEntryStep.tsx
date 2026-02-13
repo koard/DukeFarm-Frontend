@@ -22,7 +22,7 @@ const POND_TYPE_LABELS: Record<string, string> = { EARTHEN: 'บ่อดิน'
 const FARM_TYPE_LABELS: Record<string, string> = { SMALL: 'ปลาตุ้ม', LARGE: 'ปลานิ้ว', MARKET: 'ปลาตลาด' };
 
 interface RecordEntryStepProps {
-  onAnalyze: () => void;
+  onAnalyze: (recordId?: string) => void;
   onBack: () => void;
   initialPondId?: string;
 }
@@ -243,7 +243,6 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
         cycleStartDate: (!activeCycle && releaseDate) ? new Date(releaseDate).toISOString() : undefined,
         fishAgeLabel: fishType === 'SMALL' ? 'ปลาตุ้ม' : fishType === 'LARGE' ? 'ปลานิ้ว' : fishType === 'MARKET' ? 'ปลาตลาด' : 'ไม่ระบุ',
         pondId: selectedPondId || undefined,
-        fishCount: fishRemaining ? parseInt(fishRemaining, 10) : (fishReleased ? parseInt(fishReleased, 10) : undefined),
         fishCountText: undefined,
         fishRemaining: fishRemaining ? parseInt(fishRemaining, 10) : undefined,
         averageFishWeightGr: fishSize ? parseFloat(fishSize) : undefined, // Fixed unit: Grams
@@ -264,15 +263,20 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
         body: JSON.stringify(body),
       });
 
+      const result = await res.json();
+
       if (res.ok) {
         setIsSuccessModalOpen(true);
         setTimeout(() => {
           setIsSuccessModalOpen(false);
-          onAnalyze();
+          if (result.data?.id) {
+            onAnalyze(result.data.id);
+          } else {
+            onAnalyze(); // Fallback
+          }
         }, 1500);
       } else {
-        const err = await res.json().catch(() => null);
-        console.error('Failed to save record', err);
+        console.error('Failed to save record', result);
         alert('ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
       }
     } catch (err) {
