@@ -7,6 +7,30 @@ import { ProfileDropdownMenu } from '@/components/common/ProfileDropdownMenu';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dukefarm-backend.onrender.com/api";
 
+interface PondData {
+  id: string;
+  pondType: string;
+  farmType: string;
+  widthM: number;
+  lengthM: number;
+  depthM: number;
+}
+
+interface RecordData {
+  pond: PondData | null;
+  fishAgeLabel: string;
+  averageFishWeightGr: number | null;
+  recordedAt: string;
+  fishReleased: number | null;
+  fishRemaining: number | null;
+  feedFormulaName: string | null;
+  foodAmountKg: number | null;
+  foodCostBaht: number | null;
+  medicineName: string | null;
+  supplementName: string | null;
+  medicineCostBaht: number | null;
+}
+
 interface RecordAnalysisStepProps {
   onClose: () => void;
   onBack: () => void;
@@ -14,8 +38,26 @@ interface RecordAnalysisStepProps {
 }
 
 export const RecordAnalysisStep: React.FC<RecordAnalysisStepProps> = ({ onClose, onBack, recordId }) => {
-  const [data, setData] = React.useState<any>(null);
+  const [data, setData] = React.useState<RecordData | null>(null);
   const [loading, setLoading] = React.useState(true);
+  const [pondIndex, setPondIndex] = React.useState<number>(-1);
+
+  // Load ponds from localStorage to determine correct pond number
+  React.useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        const profilePonds = user?.farmerProfile?.ponds;
+        if (Array.isArray(profilePonds) && data?.pond?.id) {
+          const idx = profilePonds.findIndex((p: { id: string }) => p.id === data.pond?.id);
+          setPondIndex(idx);
+        }
+      }
+    } catch (e) {
+      console.error('Error loading ponds from localStorage:', e);
+    }
+  }, [data]);
 
   React.useEffect(() => {
     if (!recordId) {
@@ -62,7 +104,7 @@ export const RecordAnalysisStep: React.FC<RecordAnalysisStepProps> = ({ onClose,
     );
   }
 
-  const pondName = data.pond?.pondType === 'EARTH' ? 'บ่อดิน' : 'บ่อปูน';
+  const pondName = data.pond?.pondType === 'EARTHEN' ? 'บ่อดิน' : 'บ่อปูน';
   const width = data.pond?.widthM || 0;
   const length = data.pond?.lengthM || 0;
   const depth = data.pond?.depthM || 0;
@@ -91,7 +133,7 @@ export const RecordAnalysisStep: React.FC<RecordAnalysisStepProps> = ({ onClose,
         <div className="rounded-[30px] overflow-hidden shadow-lg border border-gray-100 bg-white pb-6 space-y-4">
           {/* ส่วนหัวบ่อ */}
           <div className="bg-[#093832] px-6 py-4 text-white font-bold text-lg">
-            − บ่อที่ {data.pond?.id ? parseInt(data.pond.id.split('-').pop() || '0', 16) % 100 : '-'}
+            − บ่อที่ {pondIndex >= 0 ? pondIndex + 1 : '-'}
           </div>
 
           {/* ข้อมูลขนาดบ่อ */}
@@ -106,14 +148,14 @@ export const RecordAnalysisStep: React.FC<RecordAnalysisStepProps> = ({ onClose,
               <div className="bg-[#D8EFFF] p-4 rounded-[20px] space-y-2">
                 <div className="flex items-center gap-2 text-[#093832]">
                   <Image src="/records/fish.svg" alt="fish" width={18} height={18} />
-                  <span className="text-sm font-bold">อายุ/รุ่น</span>
+                  <span className="text-sm font-bold">ประเภทปลา</span>
                 </div>
                 <p className="text-lg font-extrabold text-[#093832] text-center">{data.fishAgeLabel}</p>
               </div>
               <div className="bg-[#D8EFFF] p-4 rounded-[20px] space-y-2">
                 <div className="flex items-center gap-2 text-[#093832]">
                   <Image src="/records/ri_ruler-2-line.svg" alt="ruler" width={18} height={18} />
-                  <span className="text-sm font-bold">ขนาดปลา</span>
+                  <span className="text-sm font-bold">น้ำหนักปลา</span>
                 </div>
                 <p className="text-lg font-extrabold text-[#093832] text-center">
                   {data.averageFishWeightGr ? `${data.averageFishWeightGr} กรัม` : '-'}
