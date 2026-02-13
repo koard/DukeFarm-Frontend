@@ -87,9 +87,7 @@ export default function DiseaseInformationPage() {
           </h1>
         </div>
 
-        <div >
-          {!selectedDisease && <ProfileDropdownMenu showGreeting={false} />}
-        </div>
+        <ProfileDropdownMenu showGreeting={false} />
       </header>
 
       <div className="px-5 mt-8 w-full max-w-2xl mx-auto flex flex-col min-h-[calc(100vh-180px)] justify-between gap-6">

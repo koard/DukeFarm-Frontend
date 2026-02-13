@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
@@ -79,9 +79,9 @@ const COMFORT_RANGES: Record<FarmTypeOption, ComfortRange> = {
   MARKET: { min: 26, max: 36 },
 };
 
-const getComfortRange = (type: FarmTypeOption) => COMFORT_RANGES[type] || COMFORT_RANGES.SMALL;
+const _getComfortRange = (type: FarmTypeOption) => COMFORT_RANGES[type] || COMFORT_RANGES.SMALL;
 
-const calculateRealTimeAge = (asOfDate?: string | null, recordedAge?: number | null): number | undefined => {
+const _calculateRealTimeAge = (asOfDate?: string | null, recordedAge?: number | null): number | undefined => {
   if (!asOfDate || typeof recordedAge !== 'number') {
     return undefined;
   }
@@ -176,7 +176,7 @@ function DashboardContent() {
     return () => clearInterval(timer);
   }, []);
 
-  const { data: dashboardData, loading, error } = useDashboardData<DashboardData>(farmType, pondId);
+  const { data: dashboardData, loading, error: _error } = useDashboardData<DashboardData>(farmType, pondId);
 
   const getWeatherBg = () => {
     switch (weatherState) {
@@ -225,7 +225,7 @@ function DashboardContent() {
           const data = await res.json();
           const ponds = data.ponds || [];
           if (pondId) {
-            const idx = ponds.findIndex((p: any) => p.id === pondId);
+            const idx = ponds.findIndex((p: { id: string }) => p.id === pondId);
             setPondName(idx !== -1 ? `บ่อที่ ${idx + 1}` : "บ่อที่ 1");
           } else {
             setPondName(ponds.length > 0 ? "บ่อที่ 1" : "ยังไม่มีบ่อ");
@@ -256,23 +256,19 @@ function DashboardContent() {
   };
   const marketSize = marketSizeMap[farmType] || "-";
 
-  const survivalStatus = getSurvivalStatusStyles(survivalRate);
-
   return (
     <div className="min-h-screen bg-white pb-10 font-sans">
 
       {/* -------------------------------------------------------------------------
           (ส่วนหัวฟาร์ม - ห้ามแก้ตามต้นฉบับเดิม)
           ------------------------------------------------------------------------- */}
-      <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-30">
-              <div className="max-w-7xl mx-auto flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                  <Image src="/dashboard/Group.svg" alt="Overview" width={24} height={24} />
-                  <h1 className="text-2xl font-bold">ภาพรวมฟาร์ม</h1>
-                </div>
-                <ProfileDropdownMenu />
-              </div>
-            </div>
+      <div className="bg-[#093832] text-white px-4 pt-5 pb-4 rounded-b-3xl shadow-md relative z-30 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Image src="/dashboard/Group.svg" alt="Overview" width={24} height={24} />
+          <h1 className="text-2xl font-bold">ภาพรวมฟาร์ม</h1>
+        </div>
+        <ProfileDropdownMenu showGreeting={false} />
+      </div>
 
       {/* -------------------------------------------------------------------------
           1. NAVIGATION
