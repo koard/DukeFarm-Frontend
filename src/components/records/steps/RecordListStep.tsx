@@ -58,6 +58,11 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
         url.searchParams.append('pondId', pondId);
       }
 
+      // Filter by active production cycle
+      if (activeCycle?.id) {
+        url.searchParams.append('productionCycleId', activeCycle.id);
+      }
+
       const res = await fetch(url.toString(), {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -71,7 +76,7 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
     } finally {
       setLoading(false);
     }
-  }, [farmType, pondId]);
+  }, [farmType, pondId, activeCycle]);
 
   useEffect(() => {
     fetchRecords();
@@ -201,12 +206,8 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
           <div className="bg-gradient-to-r from-[#093832] to-[#0f5e4e] rounded-2xl p-5 mb-6 shadow-lg text-white">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <RefreshCw className="w-5 h-5" />
-                <h2 className="text-base font-bold">รอบการเลี้ยง</h2>
+                <h2 className="text-base font-bold">รอบการเลี้ยงที่ {cycleNumber || '-'}</h2>
               </div>
-              <span className="bg-white/20 px-3 py-1 rounded-full text-sm font-bold">
-                รอบที่ {cycleNumber || '-'}
-              </span>
             </div>
 
             {activeCycle ? (
@@ -218,7 +219,7 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-white/70">วันที่เริ่ม</span>
+                  <span className="text-white/70">วันที่เริ่มปล่อยปลา</span>
                   <span className="font-semibold">
                     {new Date(activeCycle.startDate).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                   </span>
