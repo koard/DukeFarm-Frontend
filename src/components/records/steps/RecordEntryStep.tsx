@@ -244,6 +244,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
         fishAgeLabel: fishType === 'SMALL' ? 'ปลาตุ้ม' : fishType === 'LARGE' ? 'ปลานิ้ว' : fishType === 'MARKET' ? 'ปลาตลาด' : 'ไม่ระบุ',
         pondId: selectedPondId || undefined,
         fishCountText: undefined,
+        fishReleased: fishReleased ? parseInt(fishReleased, 10) : undefined,
         fishRemaining: fishRemaining ? parseInt(fishRemaining, 10) : undefined,
         averageFishWeightGr: fishSize ? parseFloat(fishSize) : undefined, // Fixed unit: Grams
         foodAmountKg: foodAmount ? parseFloat(foodAmount) : undefined, // Fixed unit: KG
