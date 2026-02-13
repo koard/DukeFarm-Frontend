@@ -300,7 +300,7 @@ function DashboardContent() {
           {/* ---- Temperature Report (inside weather card) ---- */}
           <div className="relative z-10 mx-6 border-t-2 border-white/30" />
           <div className="relative z-10 px-6 py-5">
-            <div className="text-lg font-medium text-white text-center leading-relaxed drop-shadow-sm">
+            <div className="text-lg font-medium text-white text-center leading-snug drop-shadow-sm">
               {loading ? (
                 <p className="animate-pulse">กำลังโหลดข้อมูล...</p>
               ) : (
