@@ -19,11 +19,6 @@ interface GraphDataPoint {
   value: number;
 }
 
-interface ComfortRange {
-  min: number;
-  max: number;
-}
-
 interface ForecastData {
   date: string;
   highTemperatureC: number;
@@ -72,27 +67,6 @@ interface DashboardData {
 // ----------------------------------------------------------------------
 // Constants & Helpers
 // ----------------------------------------------------------------------
-
-const COMFORT_RANGES: Record<FarmTypeOption, ComfortRange> = {
-  SMALL: { min: 28, max: 34 },
-  LARGE: { min: 27, max: 35 },
-  MARKET: { min: 26, max: 36 },
-};
-
-const _getComfortRange = (type: FarmTypeOption) => COMFORT_RANGES[type] || COMFORT_RANGES.SMALL;
-
-const _calculateRealTimeAge = (asOfDate?: string | null, recordedAge?: number | null): number | undefined => {
-  if (!asOfDate || typeof recordedAge !== 'number') {
-    return undefined;
-  }
-  const lastUpdate = new Date(asOfDate);
-  const now = new Date();
-  lastUpdate.setHours(0, 0, 0, 0);
-  now.setHours(0, 0, 0, 0);
-  const diffTime = now.getTime() - lastUpdate.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  return Math.max(0, recordedAge + diffDays);
-};
 
 const getSurvivalStatusStyles = (percentage: number | null) => {
   if (percentage === null) {
@@ -176,7 +150,7 @@ function DashboardContent() {
     return () => clearInterval(timer);
   }, []);
 
-  const { data: dashboardData, loading, error: _error } = useDashboardData<DashboardData>(farmType, pondId);
+  const { data: dashboardData, loading } = useDashboardData<DashboardData>(farmType, pondId);
 
   const getWeatherBg = () => {
     switch (weatherState) {
@@ -324,20 +298,19 @@ function DashboardContent() {
           </div>
 
           {/* ---- Temperature Report (inside weather card) ---- */}
-          <div className="relative z-10 px-3 pb-3">
-            <div className="bg-gradient-to-r from-[#BBE3FB] to-[#CFFFD5] rounded-[25px] p-6">
-              <div className="text-xl font-black text-[#093832] text-center leading-relaxed">
-                {loading ? (
-                  <p className="animate-pulse">กำลังโหลดข้อมูล...</p>
-                ) : (
-                  <>
-                    <p>{tempAdvice || "ไม่มีข้อมูลอุณหภูมิ"}</p>
-                    {feedAdvice && (
-                      <p className="mt-1">{feedAdvice}</p>
-                    )}
-                  </>
-                )}
-              </div>
+          <div className="relative z-10 mx-6 border-t border-white/30" />
+          <div className="relative z-10 px-6 py-5">
+            <div className="text-lg font-medium text-white text-center leading-relaxed drop-shadow-sm">
+              {loading ? (
+                <p className="animate-pulse">กำลังโหลดข้อมูล...</p>
+              ) : (
+                <>
+                  <p>{tempAdvice || "ไม่มีข้อมูลอุณหภูมิ"}</p>
+                  {feedAdvice && (
+                    <p className="mt-1">{feedAdvice}</p>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </motion.div>
