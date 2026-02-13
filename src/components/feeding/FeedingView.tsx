@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronDown, Calculator, Fish } from "lucide-react";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
@@ -86,7 +87,11 @@ const FOOD_TYPE_OPTIONS: { value: FoodType; label: string; icon: string }[] = [
     { value: "SUPPLEMENT", label: "อาหารเสริม", icon: "💊" }
 ];
 
+
+
 export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const [selectedFormula, setSelectedFormula] = useState<FeedFormula | null>(null);
     const [showResult, setShowResult] = useState(false);
     const [expandedFoodTypes, setExpandedFoodTypes] = useState<Set<FoodType>>(new Set());
@@ -177,6 +182,13 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
         setSelectedFormula(null);
     };
 
+    // Handle changing fish type
+    const handleTypeChange = (newType: FarmType) => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("type", newType);
+        router.push(`/dashboard-farmer/feeding?${params.toString()}`);
+    };
+
     return (
         <div className="min-h-screen bg-white pb-10">
 
@@ -194,6 +206,30 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
             </div>
 
             <div className="px-6 mt-4 w-full max-w-5xl mx-auto">
+
+                {/* Fish Type Chips */}
+                {!showResult && (
+                    <div className="flex gap-2 mb-4 overflow-x-auto pb-2 no-scrollbar">
+                        {(Object.keys(FARM_TYPE_LABELS) as FarmType[]).map((type) => {
+                            const isActive = farmType === type;
+                            return (
+                                <button
+                                    key={type}
+                                    onClick={() => handleTypeChange(type)}
+                                    className={`
+                                        flex-1 px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all border
+                                        ${isActive
+                                            ? 'bg-[#093832] text-white border-[#093832] shadow-md'
+                                            : 'bg-white text-gray-500 border-gray-200 hover:border-[#093832] hover:text-[#093832]'
+                                        }
+                                    `}
+                                >
+                                    {FARM_TYPE_LABELS[type]}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
 
                 {/* Food Type Accordion */}
                 {!showResult && (
