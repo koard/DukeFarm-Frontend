@@ -347,177 +347,174 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
               <div className="col-span-5 space-y-1.5">
                 <label className="text-sm font-bold text-black ml-1">ประเภทปลา</label>
                 <div className="relative">
-                  <div className="relative">
-                    <select value={fishType} onChange={(e) => setFishType(e.target.value)} className={`w-full appearance-none bg-white border border-gray-200 rounded-xl pl-3 pr-9 py-3 text-xs font-bold focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 ${!fishType ? 'text-gray-400' : 'text-gray-700'}`}>
-                      <option value="" disabled>เลือกประเภท</option>
-                      <option value="SMALL">ปลาตุ้ม</option>
-                      <option value="LARGE">ปลานิ้ว</option>
-                      <option value="MARKET">ปลาตลาด</option>
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                  </div>
-                </div>
-                <div className="col-span-7 space-y-1.5">
-                  <label className="text-sm font-bold text-black ml-1">น้ำหนักปลาต่อตัว (กรัม)</label>
-                  <div className="relative">
-                    <input type="number" placeholder="0" value={fishSize} onChange={(e) => setFishSize(e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-xs font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-300" />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">กรัม</span>
-                  </div>
+                  <select value={fishType} onChange={(e) => setFishType(e.target.value)} className={`w-full appearance-none bg-white border border-gray-200 rounded-xl pl-3 pr-9 py-3 text-xs font-bold focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 ${!fishType ? 'text-gray-400' : 'text-gray-700'}`}>
+                    <option value="" disabled>เลือกประเภท</option>
+                    <option value="SMALL">ปลาตุ้ม</option>
+                    <option value="LARGE">ปลานิ้ว</option>
+                    <option value="MARKET">ปลาตลาด</option>
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 </div>
               </div>
-
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold text-black ml-1">วันที่เริ่มปล่อยลงบ่อ</label>
-                <div onClick={handleOpenPicker} className={`relative w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all ${!releaseDate ? 'text-gray-400' : 'text-gray-700'}`}>
-                  <span className={`text-sm font-bold ${!releaseDate ? 'text-gray-400' : 'text-black'}`}>
-                    {releaseDate ? new Date(releaseDate).toLocaleDateString('th-TH') : 'เลือกวันที่'}
-                  </span>
-                  <Calendar className="w-5 h-5 text-gray-400" />
-                  <input disabled={!!activeCycle} ref={dateInputRef} type="date" value={releaseDate} onChange={(e) => setReleaseDate(e.target.value)} className="absolute inset-0 opacity-0 pointer-events-none disabled:pointer-events-none" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-bold text-black ml-1">จำนวนปลาที่ปล่อย</label>
-                  <div className="relative">
-                    <input disabled={!!activeCycle} type="number" placeholder="ระบุจำนวน" value={fishReleased} onChange={(e) => setFishReleased(e.target.value)} className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 placeholder:text-gray-400" />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">ตัว</span>
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[13px] font-bold text-black ml-1">จำนวนปลาที่เหลือ</label>
-                  <div className="relative">
-                    <input type="number" placeholder="ระบุจำนวน" value={fishRemaining} onChange={(e) => setFishRemaining(e.target.value)} className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-400" />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">ตัว</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold text-black ml-1">สูตรอาหาร</label>
+              <div className="col-span-7 space-y-1.5">
+                <label className="text-sm font-bold text-black ml-1">น้ำหนักปลาต่อตัว (กรัม)</label>
                 <div className="relative">
-                  <select value={feedFormulaId} onChange={(e) => setFeedFormulaId(e.target.value)} className={`w-full appearance-none border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold focus:text-black focus:border-[#093832] outline-none ${!feedFormulaId ? 'text-gray-400' : 'text-gray-700'}`}>
-                    <option value="" disabled>เลือกสูตรอาหาร</option>
-                    {foodFormulas.length > 0 ? (
-                      foodFormulas.map(f => (
-                        <option key={f.id} value={f.id}>{f.name} ({f.foodType === 'FRESH' ? 'อาหารสด' : 'อาหารเม็ด'})</option>
+                  <input type="number" placeholder="0" value={fishSize} onChange={(e) => setFishSize(e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-xs font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-300" />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">กรัม</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-black ml-1">วันที่เริ่มปล่อยลงบ่อ</label>
+              <div onClick={handleOpenPicker} className={`relative w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all ${!releaseDate ? 'text-gray-400' : 'text-gray-700'}`}>
+                <span className={`text-sm font-bold ${!releaseDate ? 'text-gray-400' : 'text-black'}`}>
+                  {releaseDate ? new Date(releaseDate).toLocaleDateString('th-TH') : 'เลือกวันที่'}
+                </span>
+                <Calendar className="w-5 h-5 text-gray-400" />
+                <input disabled={!!activeCycle} ref={dateInputRef} type="date" value={releaseDate} onChange={(e) => setReleaseDate(e.target.value)} className="absolute inset-0 opacity-0 pointer-events-none disabled:pointer-events-none" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-bold text-black ml-1">จำนวนปลาที่ปล่อย</label>
+                <div className="relative">
+                  <input disabled={!!activeCycle} type="number" placeholder="ระบุจำนวน" value={fishReleased} onChange={(e) => setFishReleased(e.target.value)} className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 placeholder:text-gray-400" />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">ตัว</span>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[13px] font-bold text-black ml-1">จำนวนปลาที่เหลือ</label>
+                <div className="relative">
+                  <input type="number" placeholder="ระบุจำนวน" value={fishRemaining} onChange={(e) => setFishRemaining(e.target.value)} className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-400" />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">ตัว</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-black ml-1">สูตรอาหาร</label>
+              <div className="relative">
+                <select value={feedFormulaId} onChange={(e) => setFeedFormulaId(e.target.value)} className={`w-full appearance-none border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold focus:text-black focus:border-[#093832] outline-none ${!feedFormulaId ? 'text-gray-400' : 'text-gray-700'}`}>
+                  <option value="" disabled>เลือกสูตรอาหาร</option>
+                  {foodFormulas.length > 0 ? (
+                    foodFormulas.map(f => (
+                      <option key={f.id} value={f.id}>{f.name} ({f.foodType === 'FRESH' ? 'อาหารสด' : 'อาหารเม็ด'})</option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="FRESH">อาหารสด</option>
+                      <option value="PELLET">อาหารเม็ด</option>
+                    </>
+                  )}
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-black ml-1">ปริมาณอาหาร</label>
+              <div className="relative">
+                <input type="text" placeholder="ระบุจำนวน" value={foodAmount} onChange={(e) => setFoodAmount(e.target.value)} className="w-full border border-gray-200 rounded-xl pl-4 pr-16 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-400" />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">กิโลกรัม</span>
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-2">
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-black ml-1">อาหารเสริม</label>
+                <div className="relative">
+                  <select value={supplementId} onChange={(e) => setSupplementId(e.target.value)} className={`w-full appearance-none border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold focus:text-black focus:border-[#093832] outline-none ${!supplementId ? 'text-gray-400' : 'text-gray-700'}`}>
+                    <option value="" disabled>เลือกอาหารเสริม</option>
+                    {supplementFormulas.length > 0 ? (
+                      supplementFormulas.map(f => (
+                        <option key={f.id} value={f.id}>{f.name}</option>
                       ))
                     ) : (
                       <>
-                        <option value="FRESH">อาหารสด</option>
-                        <option value="PELLET">อาหารเม็ด</option>
+                        <option value="EM">จุลินทรีย์ EM</option>
+                        <option value="VIT">วิตามินรวมเข้มข้น</option>
                       </>
                     )}
                   </select>
                   <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                 </div>
               </div>
-
-              <div className="grid grid-cols-12 gap-3">
-                <div className="col-span-12 space-y-1.5">
-                  <label className="text-sm font-bold text-black ml-1">ปริมาณอาหาร</label>
-                  <div className="relative">
-                    <input type="text" placeholder="ระบุจำนวน" value={foodAmount} onChange={(e) => setFoodAmount(e.target.value)} className="w-full border border-gray-200 rounded-xl pl-4 pr-16 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-400" />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">กิโลกรัม</span>
-                  </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-black ml-1">การให้ยา</label>
+                <div className="relative">
+                  <select value={medicineType} onChange={(e) => setMedicineType(e.target.value)} className={`w-full appearance-none border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold focus:text-black focus:border-[#093832] outline-none ${!medicineType ? 'text-gray-400' : 'text-gray-700'}`}>
+                    <option value="" disabled>ระบุข้อมูลยา</option>
+                    <option value="ANTIBIOTIC">ยาปฏิชีวนะละลายน้ำ</option>
+                    <option value="FUNGAL">ยารักษาเชื้อรา</option>
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                 </div>
               </div>
 
-              <div className="space-y-4 pt-2">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-black ml-1">อาหารเสริม</label>
-                  <div className="relative">
-                    <select value={supplementId} onChange={(e) => setSupplementId(e.target.value)} className={`w-full appearance-none border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold focus:text-black focus:border-[#093832] outline-none ${!supplementId ? 'text-gray-400' : 'text-gray-700'}`}>
-                      <option value="" disabled>เลือกอาหารเสริม</option>
-                      {supplementFormulas.length > 0 ? (
-                        supplementFormulas.map(f => (
-                          <option key={f.id} value={f.id}>{f.name}</option>
-                        ))
-                      ) : (
-                        <>
-                          <option value="EM">จุลินทรีย์ EM</option>
-                          <option value="VIT">วิตามินรวมเข้มข้น</option>
-                        </>
-                      )}
-                    </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                  </div>
+                  <label className="text-sm font-bold text-black ml-1">ค่าอาหาร (บาท)</label>
+                  <input type="number" placeholder="ระบุข้อมูล" value={foodCost} onChange={(e) => setFoodCost(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-bold text-gray-700 focus:text-black outline-none placeholder:text-gray-400" />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-black ml-1">การให้ยา</label>
-                  <div className="relative">
-                    <select value={medicineType} onChange={(e) => setMedicineType(e.target.value)} className={`w-full appearance-none border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold focus:text-black focus:border-[#093832] outline-none ${!medicineType ? 'text-gray-400' : 'text-gray-700'}`}>
-                      <option value="" disabled>ระบุข้อมูลยา</option>
-                      <option value="ANTIBIOTIC">ยาปฏิชีวนะละลายน้ำ</option>
-                      <option value="FUNGAL">ยารักษาเชื้อรา</option>
-                    </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-bold text-black ml-1">ค่าอาหาร (บาท)</label>
-                    <input type="number" placeholder="ระบุข้อมูล" value={foodCost} onChange={(e) => setFoodCost(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-bold text-gray-700 focus:text-black outline-none placeholder:text-gray-400" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-bold text-black ml-1">ค่ายา (บาท)</label>
-                    <input type="number" placeholder="ระบุข้อมูล" value={medicineCost} onChange={(e) => setMedicineCost(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-bold text-gray-700 focus:text-black outline-none placeholder:text-gray-400" />
-                  </div>
+                  <label className="text-sm font-bold text-black ml-1">ค่ายา (บาท)</label>
+                  <input type="number" placeholder="ระบุข้อมูล" value={medicineCost} onChange={(e) => setMedicineCost(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-bold text-gray-700 focus:text-black outline-none placeholder:text-gray-400" />
                 </div>
               </div>
             </div>
           </div>
         </div>
-
-        {/* ปุ่มวิเคราะห์ข้อมูลหลัก */}
-        {/* ปุ่มวิเคราะห์ข้อมูลหลัก (Static at bottom) */}
-        <div className="mt-8 px-6 mb-10 flex justify-center">
-          <button
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="w-full max-w-md bg-[#EF6E11] text-white text-xl font-extrabold py-4 rounded-[25px] active:scale-95 transition-all tracking-wide shadow-md disabled:opacity-50"
-          >
-            {isSubmitting ? 'กำลังบันทึก...' : 'เริ่มวิเคราะห์ข้อมูล'}
-          </button>
-        </div>
-
-        {/* --- Reset Confirmation Modal --- */}
-        {isResetModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsResetModalOpen(false)}></div>
-            <div className="relative bg-white w-full max-w-sm rounded-[35px] p-8 text-center animate-in zoom-in duration-200 shadow-2xl">
-              <div className="flex justify-center mb-5">
-                <div className="bg-[#EF6E11]/10 p-5 rounded-full ring-8 ring-[#EF6E11]/5">
-                  <RefreshCw className="w-10 h-10 text-[#EF6E11]" />
-                </div>
-              </div>
-              <h3 className="text-[#093832] text-xl font-extrabold mb-3">ยืนยันการเริ่มรอบใหม่?</h3>
-              <p className="text-gray-500 text-sm mb-8 leading-relaxed font-bold">ข้อมูลที่กรอกค้างไว้จะถูกล้างค่าทั้งหมด</p>
-              <div className="flex flex-col gap-3">
-                <button onClick={handleReset} className="w-full bg-[#EF6E11] text-white font-bold py-4 rounded-2xl shadow-md">ยืนยันการเริ่มรอบใหม่</button>
-                <button onClick={() => setIsResetModalOpen(false)} className="w-full bg-gray-100 text-[#093832] font-bold py-4 rounded-2xl">ยกเลิก</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* --- Modal บันทึกข้อมูลสำเร็จ --- */}
-        {isSuccessModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-            <div className="relative bg-white w-full max-w-[280px] rounded-[32px] p-8 text-center animate-in zoom-in duration-300 shadow-2xl">
-              <div className="flex justify-center mb-6">
-                <div className="w-16 h-16 bg-[#22C55E] rounded-full flex items-center justify-center shadow-lg shadow-green-100">
-                  <Check className="w-10 h-10 text-white" strokeWidth={4} />
-                </div>
-              </div>
-              <p className="text-2xl font-bold text-[#093832]">บันทึกข้อมูลสำเร็จ</p>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* ปุ่มวิเคราะห์ข้อมูลหลัก */}
+      {/* ปุ่มวิเคราะห์ข้อมูลหลัก (Static at bottom) */}
+      <div className="mt-8 px-6 mb-10 flex justify-center">
+        <button
+          onClick={handleSubmit}
+          disabled={isSubmitting}
+          className="w-full max-w-md bg-[#EF6E11] text-white text-xl font-extrabold py-4 rounded-[25px] active:scale-95 transition-all tracking-wide shadow-md disabled:opacity-50"
+        >
+          {isSubmitting ? 'กำลังบันทึก...' : 'เริ่มวิเคราะห์ข้อมูล'}
+        </button>
+      </div>
+
+      {/* --- Reset Confirmation Modal --- */}
+      {isResetModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsResetModalOpen(false)}></div>
+          <div className="relative bg-white w-full max-w-sm rounded-[35px] p-8 text-center animate-in zoom-in duration-200 shadow-2xl">
+            <div className="flex justify-center mb-5">
+              <div className="bg-[#EF6E11]/10 p-5 rounded-full ring-8 ring-[#EF6E11]/5">
+                <RefreshCw className="w-10 h-10 text-[#EF6E11]" />
+              </div>
+            </div>
+            <h3 className="text-[#093832] text-xl font-extrabold mb-3">ยืนยันการเริ่มรอบใหม่?</h3>
+            <p className="text-gray-500 text-sm mb-8 leading-relaxed font-bold">ข้อมูลที่กรอกค้างไว้จะถูกล้างค่าทั้งหมด</p>
+            <div className="flex flex-col gap-3">
+              <button onClick={handleReset} className="w-full bg-[#EF6E11] text-white font-bold py-4 rounded-2xl shadow-md">ยืนยันการเริ่มรอบใหม่</button>
+              <button onClick={() => setIsResetModalOpen(false)} className="w-full bg-gray-100 text-[#093832] font-bold py-4 rounded-2xl">ยกเลิก</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- Modal บันทึกข้อมูลสำเร็จ --- */}
+      {isSuccessModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+          <div className="relative bg-white w-full max-w-[280px] rounded-[32px] p-8 text-center animate-in zoom-in duration-300 shadow-2xl">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 bg-[#22C55E] rounded-full flex items-center justify-center shadow-lg shadow-green-100">
+                <Check className="w-10 h-10 text-white" strokeWidth={4} />
+              </div>
+            </div>
+            <p className="text-2xl font-bold text-[#093832]">บันทึกข้อมูลสำเร็จ</p>
+          </div>
+        </div>
+      )}
     </div>
+    </div >
   );
 };
