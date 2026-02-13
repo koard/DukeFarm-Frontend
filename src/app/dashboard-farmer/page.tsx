@@ -325,10 +325,6 @@ function DashboardContent() {
             4. TEMPERATURE REPORT
             ------------------------------------------------------------------------- */}
         <div className="rounded-[25px] p-6 shadow-sm border border-white/20 bg-white/60 backdrop-blur-md">
-          <div className="flex items-center gap-2 mb-3 text-[#093832]/80">
-            <Image src="/dashboard/fluent_temperature.svg" alt="temp" width={20} height={20} className="opacity-70" />
-            <span className="text-base font-bold uppercase tracking-wider">รายงานอุณหภูมิ</span>
-          </div>
           <p className="text-lg font-medium text-[#093832] leading-relaxed">
             {loading ? "..." : (
               <>
