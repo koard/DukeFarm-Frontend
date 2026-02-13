@@ -121,6 +121,48 @@ const formatThaiDate = (isoDate?: string | null): string => {
   return parsed.toLocaleDateString("th-TH", { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
+const getThaiWeatherCondition = (condition: string): string => {
+  const weatherMap: Record<string, string> = {
+    'sunny': 'ท้องฟ้าแจ่มใส',
+    'clear': 'ท้องฟ้าแจ่มใส',
+    'partly cloudy': 'เมฆบางส่วน',
+    'cloudy': 'เมฆปกคลุม',
+    'overcast': 'เมฆปกคลุมมาก',
+    'mist': 'มีหมอก',
+    'fog': 'หมอกลึก',
+    'light drizzle': 'ฝนเบาบาง',
+    'drizzle': 'ฝนเบาบาง',
+    'light rain': 'ฝนเบา',
+    'rain': 'ฝนตก',
+    'moderate rain': 'ฝนตกปานกลาง',
+    'heavy rain': 'ฝนตกหนัก',
+    'thunderstorm': 'พายุฝนฟ้าคั่นกลาง',
+    'thunder': 'พายุฝนฟ้า',
+    'storm': 'พายุ',
+    'snow': 'หิมะตกลง',
+    'sleet': 'ฝนปะปนกับหิมะ',
+    'hail': 'ตกลูกเห็บ',
+    'unknown': 'สภาพอากาศไม่ชัดเจน'
+  };
+
+  const lowerCondition = (condition || '').toLowerCase().trim();
+  
+  // Check for exact match first
+  if (weatherMap[lowerCondition]) {
+    return weatherMap[lowerCondition];
+  }
+  
+  // Check for partial match
+  for (const [key, value] of Object.entries(weatherMap)) {
+    if (lowerCondition.includes(key)) {
+      return value;
+    }
+  }
+  
+  // Default: return original condition
+  return condition || 'ไม่ทราบสภาพอากาศ';
+};
+
 // ----------------------------------------------------------------------
 // Component
 // ----------------------------------------------------------------------
@@ -131,7 +173,6 @@ function DashboardContent() {
   const initialType = (searchParams.get("type") as FarmTypeOption) || "SMALL";
 
   const [farmType, setFarmType] = useState<FarmTypeOption>(initialType);
-  const [weatherState] = useState("sunny_day"); // Could be dynamic based on time/code
 
   useEffect(() => {
     const typeParam = searchParams.get("type");
@@ -152,12 +193,49 @@ function DashboardContent() {
 
   const { data: dashboardData, loading } = useDashboardData<DashboardData>(farmType, pondId);
 
+  // Derive weather state from actual time + weather data
+  const weatherState = (() => {
+    const hour = currentTime ? currentTime.getHours() : 12;
+    const condition = (dashboardData?.summary?.weather?.conditionText ?? "").toLowerCase();
+    const rainMm = dashboardData?.summary?.weather?.rainMm ?? 0;
+    const temp = dashboardData?.summary?.weather?.temperatureC ?? 28;
+
+    // Rain takes priority
+    if (rainMm > 0 || condition.includes("rain") || condition.includes("thunder") || condition.includes("storm") || condition.includes("drizzle") || condition.includes("ฝน")) {
+      return "rain";
+    }
+    // Night: 18:00 - 05:59
+    if (hour >= 18 || hour < 6) {
+      return "night";
+    }
+    // Hot day: temp >= 35
+    if (temp >= 35) {
+      return "hot_day";
+    }
+    // Sunrise/sunset golden hour
+    if (hour >= 6 && hour < 8) {
+      return "sunrise";
+    }
+    if (hour >= 16 && hour < 18) {
+      return "sunset";
+    }
+    // Cloudy
+    if (condition.includes("cloud") || condition.includes("overcast") || condition.includes("เมฆ")) {
+      return "cloudy";
+    }
+    // Default: sunny day
+    return "sunny_day";
+  })();
+
   const getWeatherBg = () => {
     switch (weatherState) {
-      case "hot_day": return "from-[#FF8C61] to-[#FFD54F]"; // Warm Orange/Yellow
-      case "night": return "from-[#101820] to-[#2C3E50]";   // Deep Dark Blue/Black
-      case "rain": return "from-[#4B6CB7] to-[#182848]";    // Rainy Blue
-      default: return "from-[#4FACFE] to-[#00F2FE]";         // Bright Blue (Cyan)
+      case "hot_day":  return "from-[#FF8C61] to-[#FFD54F]";  // Warm Orange/Yellow
+      case "night":    return "from-[#0F2027] to-[#203A43]";   // Deep Dark Blue
+      case "rain":     return "from-[#4B6CB7] to-[#182848]";   // Rainy Blue
+      case "sunrise":  return "from-[#FF9A9E] to-[#FAD0C4]";   // Soft pink/peach
+      case "sunset":   return "from-[#F7971E] to-[#FFD200]";   // Orange/Gold
+      case "cloudy":   return "from-[#8E9EAB] to-[#667B87]";   // Grey-blue
+      default:         return "from-[#4FACFE] to-[#00F2FE]";    // Bright Blue (Cyan)
     }
   };
 
@@ -278,16 +356,16 @@ function DashboardContent() {
 
           <div className="relative z-10 flex flex-col items-center justify-center text-center p-8 pb-6">
 
-            <span className="text-2xl font-medium tracking-wide drop-shadow-sm mb-2">
+            <span className="text-2xl font-extrabold tracking-wide drop-shadow-sm mb-2">
               {currentTime ? currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : (loading ? "กำลังโหลด..." : "--:--")}
             </span>
 
-            <span className="text-[90px] font-thin leading-none tracking-tighter drop-shadow-lg my-1">
+            <span className="text-[90px] font-black leading-none tracking-tighter drop-shadow-lg my-1">
               {loading ? "--" : Math.round(currentTemp)}°
             </span>
 
             <span className="text-xl font-medium opacity-90 tracking-wide mb-1">
-              {currentCondition}
+              {loading ? "..." : getThaiWeatherCondition(currentCondition)}
             </span>
 
             <div className="flex gap-3 text-lg font-medium opacity-90">
