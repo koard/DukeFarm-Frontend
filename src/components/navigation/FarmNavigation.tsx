@@ -124,8 +124,8 @@ export default function FarmNavigation() {
             >
               <Image
                 src={isActive
-                  ? "/nursery-large/famicons_fish-w.svg"
-                  : "/nursery-large/famicons_fish-bb.svg"
+                  ? "/dashboard/famicons_fish-w.svg"
+                  : "/dashboard/famicons_fish-bb.svg"
                 }
                 alt="fish icon"
                 width={20}

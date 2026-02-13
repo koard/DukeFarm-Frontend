@@ -11,28 +11,28 @@ const MARKETS = [
     name: 'ตลาดไท',
     url: 'https://talaadthai.com/search/%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B8%94%E0%B8%B8%E0%B8%81%E0%B9%80%E0%B8%A5%E0%B8%B5%E0%B9%89%E0%B8%A2%E0%B8%87',
     color: 'bg-[#00A550]',
-    logo: '/nursery-large/Talat Thai.png' 
+    logo: '/dashboard/Talat Thai.png'
   },
   {
     id: 'simummuang',
     name: 'สี่มุมเมือง',
     url: 'https://www.simummuangonline.com/search?searchtype=all&search=%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B8%94%E0%B8%B8%E0%B8%81',
     color: 'bg-[#B02427]',
-    logo: '/nursery-large/Si mum mueang.png'
+    logo: '/dashboard/Si mum mueang.png'
   },
   {
     id: 'freshket',
     name: 'Freshket',
     url: 'https://freshket.co/search?q=%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B8%94%E0%B8%B8%E0%B8%81',
-    color: 'bg-black', 
-    logo: '/nursery-large/Freshket.png',
+    color: 'bg-black',
+    logo: '/dashboard/Freshket.png',
   },
   {
     id: 'yingcharoen',
     name: 'ตลาดยิ่งเจริญ',
     url: 'https://songsod.com/search/%E0%B8%9B%E0%B8%A5%E0%B8%B2%E0%B8%94%E0%B8%B8%E0%B8%81',
     color: 'bg-[#182A4E]',
-    logo: '/nursery-large/Song Sot.png'
+    logo: '/dashboard/Song Sot.png'
   }
 ];
 
@@ -72,7 +72,7 @@ export const MarketPriceView = ({ backHref }: MarketPriceViewProps) => {
             {selectedMarket ? selectedMarket.name : 'ตรวจสอบราคาตลาด'}
           </h1>
         </div>
-        
+
         <ProfileDropdownMenu showGreeting={false} />
       </div>
 
@@ -88,7 +88,7 @@ export const MarketPriceView = ({ backHref }: MarketPriceViewProps) => {
             <div className="grid grid-cols-2 gap-x-4 gap-y-6">
               {MARKETS.map((market) => (
                 <div key={market.id} className="flex flex-col items-center gap-2">
-                  
+
                   <button
                     onClick={() => handleSelectMarket(market)}
                     className={`
@@ -98,11 +98,11 @@ export const MarketPriceView = ({ backHref }: MarketPriceViewProps) => {
                     `}
                   >
                     <div className="relative w-full h-full flex items-center justify-center">
-                        <img 
-                          src={market.logo} 
-                          alt={market.name}
-                          className="w-full h-full object-contain drop-shadow-md"
-                        />
+                      <img
+                        src={market.logo}
+                        alt={market.name}
+                        className="w-full h-full object-contain drop-shadow-md"
+                      />
                     </div>
                   </button>
 
