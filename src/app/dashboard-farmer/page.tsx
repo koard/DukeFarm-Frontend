@@ -389,7 +389,7 @@ function DashboardContent() {
 
                       {/* Feed Advice */}
                       <div className="w-16 text-right">
-                        <span className={`text-sm font-bold px-2 py-1 rounded-full ${item.feedAdjustmentPct > 0
+                        <span className={`text-xs font-bold px-2 py-1 rounded-full ${item.feedAdjustmentPct > 0
                           ? "bg-green-100 text-green-700"
                           : item.feedAdjustmentPct < 0
                             ? "bg-red-100 text-red-700"
