@@ -360,7 +360,7 @@ function DashboardContent() {
               {currentTime ? currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : (loading ? "กำลังโหลด..." : "--:--")}
             </span>
 
-            <span className="text-[90px] font-semibold leading-none tracking-tighter drop-shadow-lg my-1">
+            <span className="text-[90px] font-semibold leading-none tracking-tighter drop-shadow-lg mb-3">
               {loading ? "--" : Math.round(currentTemp)}°
             </span>
 
@@ -368,7 +368,7 @@ function DashboardContent() {
               {loading ? "..." : getThaiWeatherCondition(currentCondition)}
             </span>
 
-            <div className="flex gap-3 text-lg font-medium opacity-90">
+            <div className="flex gap-3 text-lg font-medium opacity-90 pt">
               <span className="drop-shadow-sm">สูงสุด:{Math.round(highTemp)}°</span>
               <span>|</span>
               <span className="drop-shadow-sm">ต่ำสุด:{Math.round(lowTemp)}°</span>
