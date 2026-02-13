@@ -137,7 +137,7 @@ const formatThaiDate = (isoDate?: string | null): string => {
   if (Number.isNaN(parsed.getTime())) {
     return "-";
   }
-  return parsed.toLocaleDateString("th-TH", { day: '2-digit', month: '2-digit', year: '2-digit' });
+  return parsed.toLocaleDateString("th-TH", { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
 // ----------------------------------------------------------------------
@@ -158,6 +158,16 @@ function DashboardContent() {
       setFarmType(typeParam as FarmTypeOption);
     }
   }, [searchParams]);
+
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setCurrentTime(new Date());
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const { data: dashboardData, loading, error } = useDashboardData<DashboardData>(farmType, pondId);
 
@@ -292,7 +302,7 @@ function DashboardContent() {
           <div className="relative z-10 flex flex-col items-center justify-center text-center">
 
             <span className="text-2xl font-medium tracking-wide drop-shadow-sm mb-2">
-              {loading ? "กำลังโหลด..." : (dashboardData?.summary?.weather?.time ? new Date(dashboardData.summary.weather.time).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : "ขณะนี้")}
+              {currentTime ? currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : (loading ? "กำลังโหลด..." : "--:--")}
             </span>
 
             <span className="text-[90px] font-thin leading-none tracking-tighter drop-shadow-lg my-1">

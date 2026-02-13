@@ -133,10 +133,10 @@ export default function FarmNavigation() {
               key={item.pondId || `${item.type}-${idx}`}
               href={item.path}
               className={`
-                flex-shrink-0 flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm md:text-base font-semibold transition-all border whitespace-nowrap
+                flex-shrink-0 flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm md:text-base font-semibold transition-all whitespace-nowrap
                  ${isActive
-                  ? "bg-[#009D64] border-[#009D64] text-white shadow-md"
-                  : "bg-white border-gray-300 text-black hover:bg-gray-50"
+                  ? "bg-[#093832] text-white shadow-lg shadow-[#093832]/20 ring-2 ring-[#093832] ring-offset-2"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }
                `}
             >
