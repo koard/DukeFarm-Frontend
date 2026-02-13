@@ -350,9 +350,16 @@ function DashboardContent() {
           transition={{ duration: 0.6, ease: "easeOut" }}
           className={`relative overflow-hidden rounded-[35px] text-white transition-all bg-gradient-to-b ${getWeatherBg()}`}
         >
-          {/* Background decoration */}
-          <div className="absolute -top-10 -right-10 w-64 h-64 bg-white/20 rounded-full blur-[90px]" />
-          <div className="absolute top-1/2 -left-10 w-40 h-40 bg-white/10 rounded-full blur-[60px]" />
+          {/* Background decoration - Multi-layer blur effects */}
+          {/* Top-right glow */}
+          <div className="absolute -top-20 -right-20 w-80 h-80 bg-white/25 rounded-full blur-[100px] opacity-60" />
+          {/* Left side glow */}
+          <div className="absolute top-1/2 -left-16 w-48 h-48 bg-white/15 rounded-full blur-[70px] opacity-50" />
+          {/* Bottom-right accent */}
+          <div className="absolute -bottom-10 right-12 w-56 h-56 bg-white/10 rounded-full blur-[85px] opacity-40" />
+          
+          {/* Subtle overlay gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-transparent" />
 
           <div className="relative z-10 flex flex-col items-center justify-center text-center px-8 py-6">
 
