@@ -296,13 +296,13 @@ function DashboardContent() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className={`relative overflow-hidden rounded-[35px] p-8 text-white shadow-2xl transition-all bg-gradient-to-b ${getWeatherBg()}`}
+          className={`relative overflow-hidden rounded-[35px] text-white transition-all bg-gradient-to-b ${getWeatherBg()}`}
         >
           {/* Background decoration */}
           <div className="absolute -top-10 -right-10 w-64 h-64 bg-white/20 rounded-full blur-[90px]" />
           <div className="absolute top-1/2 -left-10 w-40 h-40 bg-white/10 rounded-full blur-[60px]" />
 
-          <div className="relative z-10 flex flex-col items-center justify-center text-center">
+          <div className="relative z-10 flex flex-col items-center justify-center text-center p-8 pb-6">
 
             <span className="text-2xl font-medium tracking-wide drop-shadow-sm mb-2">
               {currentTime ? currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : (loading ? "กำลังโหลด..." : "--:--")}
@@ -322,25 +322,25 @@ function DashboardContent() {
               <span className="drop-shadow-sm">ต่ำสุด:{Math.round(lowTemp)}°</span>
             </div>
           </div>
-        </motion.div>
 
-        {/* -------------------------------------------------------------------------
-            4. TEMPERATURE REPORT
-            ------------------------------------------------------------------------- */}
-          <div className="bg-gradient-to-r from-[#BBE3FB] to-[#CFFFD5] rounded-[25px] p-6 shadow-sm border border-white/50">
-            <div className="text-xl font-black text-[#093832] text-center leading-relaxed">
-              {loading ? (
-                <p className="animate-pulse">กำลังโหลดข้อมูล...</p>
-              ) : (
-                <>
-                  <p>{tempAdvice || "ไม่มีข้อมูลอุณหภูมิ"}</p>
-                  {feedAdvice && (
-                    <p className="mt-1">{feedAdvice}</p>
-                  )}
-                </>
-              )}
+          {/* ---- Temperature Report (inside weather card) ---- */}
+          <div className="relative z-10 px-3 pb-3">
+            <div className="bg-gradient-to-r from-[#BBE3FB] to-[#CFFFD5] rounded-[25px] p-6">
+              <div className="text-xl font-black text-[#093832] text-center leading-relaxed">
+                {loading ? (
+                  <p className="animate-pulse">กำลังโหลดข้อมูล...</p>
+                ) : (
+                  <>
+                    <p>{tempAdvice || "ไม่มีข้อมูลอุณหภูมิ"}</p>
+                    {feedAdvice && (
+                      <p className="mt-1">{feedAdvice}</p>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           </div>
+        </motion.div>
 
         {/* -------------------------------------------------------------------------
             5. FORECAST SECTION (iOS Style)
