@@ -335,10 +335,6 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
                   <span className="text-[#009D64] bg-white px-2 py-0.5 rounded-lg border border-[#CEF2D6] shadow-sm">
                     {POND_TYPE_LABELS[selectedPond.pondType] || selectedPond.pondType}
                   </span>
-                  <span className="text-gray-400 mx-1">•</span>
-                  <span className="text-[#093832]">
-                    {FARM_TYPE_LABELS[selectedPond.farmType] || selectedPond.farmType}
-                  </span>
                 </p>
 
                 <p className="mt-1">

@@ -332,11 +332,6 @@ function DashboardContent() {
             4. TEMPERATURE REPORT
             ------------------------------------------------------------------------- */}
           <div className="bg-gradient-to-r from-[#BBE3FB] to-[#CFFFD5] rounded-[25px] p-6 shadow-sm border border-white/50">
-            <div className="flex items-center gap-3 mb-2 text-[#093832]">
-              <Image src="/dashboard/fluent_temperature.svg" alt="temp" width={22} height={22} />
-              <span className="text-base font-bold">รายงานอุณหภูมิ</span>
-            </div>
-            
             <div className="text-xl font-black text-[#093832] text-center leading-relaxed">
               {loading ? (
                 <p className="animate-pulse">กำลังโหลดข้อมูล...</p>
@@ -357,7 +352,7 @@ function DashboardContent() {
         <div className="space-y-4">
           <div className="flex items-center gap-2 ml-2 opacity-80">
             <Image src="/dashboard/solar_calendar-outline.svg" alt="forecast" width={18} height={18} />
-            <h3 className="text-base font-bold text-black uppercase tracking-widest">พยากรณ์ล่วงหน้า 7 วัน</h3>
+            <h3 className="text-base font-bold text-black">พยากรณ์ล่วงหน้า 7 วัน</h3>
           </div>
 
           <div className="bg-white/40 backdrop-blur-xl rounded-[25px] p-5 shadow-sm border border-white/30">
