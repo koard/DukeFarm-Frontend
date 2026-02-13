@@ -94,7 +94,14 @@ const calculateRealTimeAge = (asOfDate?: string | null, recordedAge?: number | n
   return Math.max(0, recordedAge + diffDays);
 };
 
-const getSurvivalStatusStyles = (percentage: number) => {
+const getSurvivalStatusStyles = (percentage: number | null) => {
+  if (percentage === null) {
+    return {
+      bg: "bg-gray-50",
+      text: "text-gray-400",
+      label: "-"
+    };
+  }
   if (percentage >= 90) {
     return {
       bg: "bg-[#E6FFFA]",
@@ -239,7 +246,7 @@ function DashboardContent() {
   const releaseDate = formatThaiDate(summary?.releaseDate);
   const releaseCount = summary?.totalReleased ? summary.totalReleased.toLocaleString() : "-";
   const remainingCount = summary?.currentCount ? summary.currentCount.toLocaleString() : "-";
-  const survivalRate = summary?.survivalRatePct ?? 100;
+  const survivalRate = summary?.survivalRatePct ?? null;
 
   // Market size mapping (Mock/Approximation based on type)
   const marketSizeMap: Record<string, string> = {
@@ -491,27 +498,32 @@ function DashboardContent() {
             </div>
           </div>
 
-          {/* 8. SURVIVAL RATE */}
-          <div className={`${survivalStatus.bg} rounded-2xl p-4 flex flex-col shadow-sm border border-white/40 transition-colors duration-300`}>
-
-            <div className="flex items-center gap-2 mb-2">
-              <Image src="/dashboard/famicons_fish-outline.svg" alt="survival" width={22} height={22} />
-              <span className="text-base font-bold text-gray-700">อัตราการรอด</span>
+          {/* อัตราการรอด */}
+          <div className={`p-4 rounded-[20px] shadow-sm backdrop-blur-sm border ${(survivalRate ?? 0) >= 80 ? 'bg-[#F0FFFA] border-[#E0F7FA]' :
+            (survivalRate ?? 0) >= 50 ? 'bg-[#FFFDE7] border-[#FFF9C4]' :
+              'bg-[#FFEBEE] border-[#FFCDD2]'
+            }`}>
+            <div className="flex items-center gap-2 mb-2 text-[#434343]">
+              <Image src="/dashboard/fluent_animal-turtle-16-regular.svg" alt="survival" width={20} height={20} />
+              <span className="text-base font-bold">อัตราการรอด</span>
             </div>
-
-            <div className="flex flex-col items-center justify-center">
-              <div className="flex items-baseline gap-1">
-                <span className={`text-3xl font-black ${survivalStatus.text}`}>
-                  {survivalRate}%
+            <div className="flex items-end gap-2">
+              <span className={`text-4xl font-extrabold ${(survivalRate ?? 0) >= 80 ? 'text-[#00897B]' :
+                (survivalRate ?? 0) >= 50 ? 'text-[#FBC02D]' :
+                  'text-[#D32F2F]'
+                }`}>
+                {survivalRate !== null ? `${survivalRate}%` : "-"}
+              </span>
+              {survivalRate !== null && (
+                <span className={`text-sm font-bold mb-1 ${survivalRate >= 80 ? 'text-[#00897B]' :
+                  survivalRate >= 50 ? 'text-[#FBC02D]' :
+                    'text-[#D32F2F]'
+                  }`}>
+                  {survivalRate >= 80 ? '▲ (สูง)' : survivalRate >= 50 ? '● (ปานกลาง)' : '▼ (ต่ำ)'}
                 </span>
-                <span className={`text-xs font-bold ${survivalStatus.text}`}>
-                  {survivalStatus.label}
-                </span>
-              </div>
+              )}
             </div>
-
           </div>
-
           {/* 9. MARKET SIZE */}
           <div className="bg-[#F1DFFF] rounded-2xl p-4 flex flex-col shadow-sm border border-purple-100/30">
             <div className="flex items-center gap-2 mb-2">
