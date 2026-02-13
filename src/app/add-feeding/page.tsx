@@ -68,7 +68,7 @@ export default function AddFeedingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-teal-50 to-gray-100">
       {/* Header */}
-      <header className="bg-[#093832] text-white px-4 pt-5 pb-6 rounded-b-3xl relative">
+      <header className="bg-[#093832] text-white px-4 pt-6 pb-4 rounded-b-3xl relative">
         <div className="flex items-center space-x-3">
           <button
             onClick={() => router.back()}

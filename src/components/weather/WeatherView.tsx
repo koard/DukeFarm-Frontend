@@ -223,7 +223,7 @@ export const WeatherView = ({ farmType, backHref, pondId }: WeatherViewProps) =>
   return (
     <div className="min-h-screen bg-gray-50">
 
-      <div className="bg-[#093832] text-white px-4 pt-5 pb-6 rounded-b-3xl shadow-md relative z-30 flex items-center justify-between">
+      <div className="bg-[#093832] text-white px-4 pt-6 pb-4 rounded-b-3xl shadow-md relative z-30 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
             href={backHref}
