@@ -356,11 +356,11 @@ function DashboardContent() {
 
           <div className="relative z-10 flex flex-col items-center justify-center text-center p-8 pb-6">
 
-            <span className="text-2xl font-extrabold tracking-wide drop-shadow-sm mb-2">
+            <span className="text-2xl font-semibold tracking-wide drop-shadow-sm mb-2">
               {currentTime ? currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : (loading ? "กำลังโหลด..." : "--:--")}
             </span>
 
-            <span className="text-[90px] font-black leading-none tracking-tighter drop-shadow-lg my-1">
+            <span className="text-[90px] font-semibold leading-none tracking-tighter drop-shadow-lg my-1">
               {loading ? "--" : Math.round(currentTemp)}°
             </span>
 
