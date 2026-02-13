@@ -160,9 +160,10 @@ function DashboardContent() {
 
   const getWeatherBg = () => {
     switch (weatherState) {
-      case "hot_day": return "from-[#FF5F6D] to-[#FFC371]";
-      case "night": return "from-[#1A2A6C] via-[#B21F1F] to-[#FDBB2D]";
-      default: return "from-[#4facfe] to-[#00f2fe]";
+      case "hot_day": return "from-[#FF8C61] to-[#FFD54F]"; // Warm Orange/Yellow
+      case "night": return "from-[#101820] to-[#2C3E50]";   // Deep Dark Blue/Black
+      case "rain": return "from-[#4B6CB7] to-[#182848]";    // Rainy Blue
+      default: return "from-[#4FACFE] to-[#00F2FE]";         // Bright Blue (Cyan)
     }
   };
 
@@ -251,29 +252,33 @@ function DashboardContent() {
             3. IPHONE WEATHER CARD
             ------------------------------------------------------------------------- */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className={`relative overflow-hidden rounded-[35px] p-8 text-white bg-gradient-to-br ${getWeatherBg()} shadow-2xl transition-all`}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className={`relative overflow-hidden rounded-[35px] p-8 text-white shadow-2xl transition-all bg-gradient-to-b ${getWeatherBg()}`}
         >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[80px] -mr-20 -mt-20" />
+          {/* Background decoration */}
+          <div className="absolute -top-10 -right-10 w-64 h-64 bg-white/20 rounded-full blur-[90px]" />
+          <div className="absolute top-1/2 -left-10 w-40 h-40 bg-white/10 rounded-full blur-[60px]" />
 
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="flex items-center gap-1 opacity-80 mb-1">
-              <span className="text-[10px] transform -rotate-45">▲</span>
-              <span className="text-xl font-medium tracking-wide">
-                {loading ? "Loading..." : "สภาพอากาศปัจจุบัน"}
-              </span>
-            </div>
+          <div className="relative z-10 flex flex-col items-center justify-center text-center">
 
-            <span className="text-[110px] font-extralight leading-none my-4 drop-shadow-md">
+            <span className="text-2xl font-medium tracking-wide drop-shadow-sm mb-2">
+              {loading ? "กำลังโหลด..." : (dashboardData?.summary?.weather?.time ? new Date(dashboardData.summary.weather.time).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : "ขณะนี้")}
+            </span>
+
+            <span className="text-[90px] font-thin leading-none tracking-tighter drop-shadow-lg my-1">
               {loading ? "--" : Math.round(currentTemp)}°
             </span>
 
-            <span className="text-xl font-medium opacity-90">{currentCondition}</span>
-            <div className="flex gap-4 mt-3 text-lg font-bold opacity-80">
-              <span>H:{Math.round(highTemp)}°</span>
-              <span>L:{Math.round(lowTemp)}°</span>
+            <span className="text-xl font-medium opacity-90 tracking-wide mb-1">
+              {currentCondition}
+            </span>
+
+            <div className="flex gap-3 text-lg font-medium opacity-90">
+              <span className="drop-shadow-sm">สูงสุด:{Math.round(highTemp)}°</span>
+              <span>|</span>
+              <span className="drop-shadow-sm">ต่ำสุด:{Math.round(lowTemp)}°</span>
             </div>
           </div>
         </motion.div>
@@ -281,12 +286,12 @@ function DashboardContent() {
         {/* -------------------------------------------------------------------------
             4. TEMPERATURE REPORT
             ------------------------------------------------------------------------- */}
-        <div className="bg-gradient-to-r from-[#BBE3FB] to-[#CFFFD5] rounded-[25px] p-6 shadow-sm border border-white/50">
-          <div className="flex items-center gap-3 mb-2 text-[#093832]">
-            <Image src="/dashboard/fluent_temperature.svg" alt="temp" width={22} height={22} />
-            <span className="text-base font-bold">รายงานอุณหภูมิ</span>
+        <div className="rounded-[25px] p-6 shadow-sm border border-white/20 bg-white/60 backdrop-blur-md">
+          <div className="flex items-center gap-2 mb-3 text-[#093832]/80">
+            <Image src="/dashboard/fluent_temperature.svg" alt="temp" width={20} height={20} className="opacity-70" />
+            <span className="text-sm font-bold uppercase tracking-wider">รายงานอุณหภูมิ</span>
           </div>
-          <p className="text-xl font-black text-[#093832] text-center leading-relaxed">
+          <p className="text-lg font-medium text-[#093832] leading-relaxed">
             {loading ? "..." : (
               <>
                 วันนี้{tempAdvice} <br />
@@ -297,48 +302,63 @@ function DashboardContent() {
         </div>
 
         {/* -------------------------------------------------------------------------
-            5. FORECAST SECTION
+            5. FORECAST SECTION (iOS Style)
             ------------------------------------------------------------------------- */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2 ml-1">
-            <Image src="/dashboard/fluent_weather-hail-day.svg" alt="forecast" width={24} height={24} />
-            <h3 className="text-base font-bold text-[#093832]">คาดการณ์สภาพอากาศและการให้อาหาร</h3>
+          <div className="flex items-center gap-2 ml-2 opacity-80">
+            <Image src="/dashboard/solar_calendar-outline.svg" alt="forecast" width={18} height={18} />
+            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">พยากรณ์ล่วงหน้า 5 วัน</h3>
           </div>
 
-          <div className="bg-[#F4FFFC] rounded-[30px] p-6 shadow-sm border border-emerald-50">
-            <div className="grid grid-cols-3 mb-5 border-b border-emerald-100 pb-4">
-              <div className="text-sm font-bold text-[#75CFB6] text-center">วันที่</div>
-              <div className="text-sm font-bold text-[#75CFB6] text-center">สภาพอากาศ</div>
-              <div className="text-sm font-bold text-[#75CFB6] text-center">ปริมาณอาหารที่แนะนำ</div>
-            </div>
-
-            <div className="space-y-6">
+          <div className="bg-white/40 backdrop-blur-xl rounded-[25px] p-5 shadow-sm border border-white/30">
+            <div className="space-y-1">
               {loading ? (
                 <div className="text-center text-gray-400 py-4">Loading...</div>
               ) : (
                 dashboardData?.feedingPlan?.slice(0, 5).map((item, index) => {
-                  const tempRange = `${Math.round(item.highTemperatureC)} / ${Math.round(item.lowTemperatureC)} °C`;
-                  const advice = item.feedAdjustmentPct > 0
-                    ? `เพิ่มขึ้น ${item.feedAdjustmentPct}%`
-                    : item.feedAdjustmentPct < 0
-                      ? `ลดลง ${Math.abs(item.feedAdjustmentPct)}%`
-                      : "ปกติ";
+                  const dayName = new Date(item.date).toLocaleDateString("th-TH", { weekday: 'short' });
+                  // Simple mock progress bar for temp range visualization
+                  // Assuming range 20-40 for width calc
+                  const min = 20;
+                  const max = 40;
+                  const leftPct = ((item.lowTemperatureC - min) / (max - min)) * 100;
+                  const widthPct = ((item.highTemperatureC - item.lowTemperatureC) / (max - min)) * 100;
 
                   return (
-                    <div key={index} className="grid grid-cols-3 items-center hover:bg-[#E0F7FA] rounded-xl transition-colors duration-200 -mx-2 px-2 py-1">
-                      <div className="text-sm font-bold text-[#0F614E] text-center">
-                        {formatThaiDate(item.date)}
+                    <div key={index} className="flex items-center justify-between py-3 px-2 border-b border-gray-100 last:border-none hover:bg-white/30 rounded-lg transition-colors">
+
+                      {/* Day */}
+                      <div className="w-16 text-base font-semibold text-[#093832]">
+                        {index === 0 ? "วันนี้" : dayName}
                       </div>
 
-                      <div className="flex items-center justify-center gap-3">
+                      {/* Icon */}
+                      <div className="flex justify-center w-10">
                         <Image src={`/dashboard/${getWeatherIconFromCode(item.weatherCode)}`} alt="weather" width={24} height={24} />
-                        <span className="text-sm font-bold text-[#0F614E]">
-                          {tempRange}
-                        </span>
                       </div>
 
-                      <div className="text-sm font-bold text-[#0F614E] text-center uppercase">
-                        {advice}
+                      {/* Temp Bar (iOS style) */}
+                      <div className="flex-1 flex items-center gap-2 mx-4 text-xs font-semibold text-gray-500">
+                        <span className="w-6 text-right opacity-80">{Math.round(item.lowTemperatureC)}°</span>
+                        <div className="flex-1 h-1.5 bg-gray-200 rounded-full relative overflow-hidden">
+                          <div
+                            className="absolute h-full rounded-full bg-gradient-to-r from-blue-400 to-orange-400 opacity-80"
+                            style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
+                          />
+                        </div>
+                        <span className="w-6 text-left opacity-80">{Math.round(item.highTemperatureC)}°</span>
+                      </div>
+
+                      {/* Feed Advice */}
+                      <div className="w-16 text-right">
+                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${item.feedAdjustmentPct > 0
+                            ? "bg-green-100 text-green-700"
+                            : item.feedAdjustmentPct < 0
+                              ? "bg-red-100 text-red-700"
+                              : "bg-gray-100 text-gray-600"
+                          }`}>
+                          {item.feedAdjustmentPct > 0 ? `+${item.feedAdjustmentPct}%` : item.feedAdjustmentPct < 0 ? `${item.feedAdjustmentPct}%` : "ปกติ"}
+                        </span>
                       </div>
                     </div>
                   );
