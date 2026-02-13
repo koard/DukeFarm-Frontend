@@ -376,7 +376,7 @@ function DashboardContent() {
                       </div>
 
                       {/* Temp Bar (iOS style) */}
-                      <div className="flex-1 flex items-center gap-2 mx-4 text-xs font-semibold text-gray-500">
+                      <div className="flex-1 flex items-center gap-2 mx-4 text-sm font-semibold text-gray-500">
                         <span className="w-6 text-right opacity-80">{Math.round(item.lowTemperatureC)}°</span>
                         <div className="flex-1 h-1.5 bg-gray-200 rounded-full relative overflow-hidden">
                           <div
@@ -389,7 +389,7 @@ function DashboardContent() {
 
                       {/* Feed Advice */}
                       <div className="w-16 text-right">
-                        <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${item.feedAdjustmentPct > 0
+                        <span className={`text-sm font-bold px-2 py-1 rounded-full ${item.feedAdjustmentPct > 0
                           ? "bg-green-100 text-green-700"
                           : item.feedAdjustmentPct < 0
                             ? "bg-red-100 text-red-700"
