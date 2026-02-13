@@ -112,7 +112,7 @@ export default function FarmNavigation() {
 
   return (
     <div className="w-full mt-2">
-      <div className="flex overflow-x-auto gap-3 pb-2 w-full no-scrollbar px-5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      <div className="flex overflow-x-auto gap-3 py-2 w-full no-scrollbar px-5" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <style jsx>{`
           div::-webkit-scrollbar {
             display: none;

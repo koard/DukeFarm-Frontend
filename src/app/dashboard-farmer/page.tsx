@@ -270,7 +270,7 @@ function DashboardContent() {
       {/* -------------------------------------------------------------------------
           1. NAVIGATION
           ------------------------------------------------------------------------- */}
-      <div className="sticky top-0 z-40 -mt-6 mx-0 pt-4 pb-2 bg-white rounded-b-3xl shadow-sm transition-all duration-300">
+      <div className="sticky top-0 z-40 -mt-6 mx-0 pt-4 pb-2 bg-white shadow-sm transition-all duration-300">
         <FarmNavigation />
       </div>
 
