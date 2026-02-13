@@ -160,8 +160,9 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
 
       if (res.ok) {
         await fetchCycleInfo();
-        await fetchRecords();
         setIsConfirmNewCycleOpen(false);
+        // Navigate to data entry form
+        onAddNew();
       } else {
         alert('ไม่สามารถเริ่มรอบการเลี้ยงใหม่ได้');
       }
