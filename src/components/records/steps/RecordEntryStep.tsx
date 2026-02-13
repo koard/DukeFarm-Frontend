@@ -515,6 +515,5 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
         </div>
       )}
     </div>
-    </div >
   );
 };
