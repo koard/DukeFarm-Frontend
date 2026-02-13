@@ -195,16 +195,16 @@ function DashboardContent() {
 
   const tempDelta = dashboardData?.summary?.temperatureDeltaC ?? 0;
   const tempAdvice = (() => {
-    if (tempDelta === 0) return "อุณหภูมิปกติ";
-    if (tempDelta > 0) return `สูงกว่าปกติ ${tempDelta.toFixed(1)}°C`;
-    return `ต่ำกว่าปกติ ${Math.abs(tempDelta).toFixed(1)}°C`;
+    if (tempDelta === 0) return "อุณหภูมิอยู่ในเกณฑ์ที่เหมาะสม";
+    if (tempDelta > 0) return `อุณหภูมิสูงกว่าปกติ ${tempDelta.toFixed(1)} องศา`;
+    return `อุณหภูมิต่ำกว่าปกติ ${Math.abs(tempDelta).toFixed(1)} องศา`;
   })();
 
   const feedAdvice = (() => {
     const pct = dashboardData?.summary?.recommendedFeedAdjustmentPct ?? 0;
-    if (pct === 0) return "ให้อาหารปกติ";
-    if (pct > 0) return `เพิ่มอาหาร ${pct}%`;
-    return `ลดอาหาร ${Math.abs(pct)}%`;
+    if (pct === 0) return null;
+    if (pct > 0) return `แนะนำให้เพิ่มอาหารขึ้น ${pct}%`;
+    return `แนะนำให้ลดอาหารลง ${Math.abs(pct)}%`;
   })();
 
   const [pondName, setPondName] = useState<string>("");
@@ -328,8 +328,8 @@ function DashboardContent() {
           <p className="text-lg font-medium text-[#093832] leading-relaxed">
             {loading ? "..." : (
               <>
-                วันนี้{tempAdvice} <br />
-                แนะนำให้{feedAdvice}
+                {tempAdvice}
+                {feedAdvice && <><br />{feedAdvice}</>}
               </>
             )}
           </p>
@@ -412,7 +412,7 @@ function DashboardContent() {
         </div>
 
         <div className="space-y-4">
-          {/* (ประเภทปลา และ ขนาดเฉลี่ย */}
+          {/* (ประเภทปลา และ น้ำหนักปลาเฉลี่ย */}
           <div className="bg-gradient-to-r from-[#FFF6E2] via-[#FFF6E2] to-[#E6DAFF] rounded-2xl shadow-sm flex overflow-hidden h-28 border border-orange-50/20">
 
             {/* ฝั่งซ้าย: ประเภทปลา */}
@@ -429,12 +429,12 @@ function DashboardContent() {
               <div className="absolute right-0 top-2 bottom-2 w-px bg-white shadow-sm"></div>
             </div>
 
-            {/* ฝั่งขวา: ขนาดเฉลี่ย */}
+            {/* ฝั่งขวา: น้ำหนักปลาเฉลี่ย */}
             <div className="flex-1 flex flex-col p-4">
               <div className="flex items-center gap-1.5 mb-1">
                 {/* Use a weight icon if available, reusing temp or similar for now if specific weight icon missing from snippet */}
                 <Image src="/dashboard/famicons_fish-outline.svg" alt="avg" width={18} height={18} />
-                <span className="text-sm font-bold text-gray-900 ">ขนาดเฉลี่ย</span>
+                <span className="text-sm font-bold text-gray-900 ">น้ำหนักปลาเฉลี่ย</span>
               </div>
 
               <div className="flex-1 flex items-center justify-center">
@@ -449,7 +449,7 @@ function DashboardContent() {
           <div className="flex items-center justify-between px-2 pt-1 text-[#434343]">
             <div className="flex items-center gap-2">
               <Image src="/dashboard/solar_calendar-outline.svg" alt="date" width={20} height={20} />
-              <span className="text-base font-bold">วันที่ปล่อยลงบ่อ (บันทึกล่าสุด)</span>
+              <span className="text-base font-bold">วันที่ปล่อยลงบ่อ</span>
             </div>
             <span className="text-base font-bold">{releaseDate}</span>
           </div>
