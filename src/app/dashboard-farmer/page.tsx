@@ -164,6 +164,249 @@ const getThaiWeatherCondition = (condition: string): string => {
 };
 
 // ----------------------------------------------------------------------
+// Skeleton Loading Component
+// ----------------------------------------------------------------------
+
+const DashboardLoadingSkeleton = () => (
+  <div className="px-5 mt-4 max-w-7xl mx-auto space-y-6">
+    {/* Date skeleton */}
+    <div className="flex items-center gap-2 ml-1">
+      <div className="w-[22px] h-[22px] rounded-md bg-emerald-100 animate-pulse" />
+      <div className="relative overflow-hidden h-4 w-52 rounded-full bg-gray-200">
+        <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+      </div>
+    </div>
+
+    {/* Weather card skeleton - animated gradient with floating orbs */}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="relative overflow-hidden rounded-[35px] bg-gradient-to-br from-[#a8d8ea] via-[#88c4e0] to-[#4FACFE] min-h-[280px]"
+    >
+      {/* Animated floating orbs */}
+      <motion.div
+        animate={{ y: [-10, 10, -10], x: [-5, 5, -5] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -top-16 -right-16 w-72 h-72 bg-white/25 rounded-full blur-[100px]"
+      />
+      <motion.div
+        animate={{ y: [8, -8, 8], x: [5, -5, 5] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        className="absolute bottom-0 -left-12 w-48 h-48 bg-white/20 rounded-full blur-[80px]"
+      />
+      <motion.div
+        animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0.5, 0.3] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+        className="absolute top-1/3 right-1/4 w-32 h-32 bg-white/15 rounded-full blur-[60px]"
+      />
+
+      {/* Shimmer sweep across card */}
+      <motion.div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          animate={{ x: ["-100%", "200%"] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
+          className="h-full w-1/3 bg-gradient-to-r from-transparent via-white/15 to-transparent -skew-x-12"
+        />
+      </motion.div>
+
+      {/* Content skeleton placeholders */}
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-[280px] gap-4 px-8">
+        <motion.div
+          animate={{ opacity: [0.4, 0.8, 0.4] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="h-7 w-28 rounded-full bg-white/35"
+        />
+        <motion.div
+          animate={{ opacity: [0.3, 0.7, 0.3] }}
+          transition={{ duration: 2.5, repeat: Infinity, delay: 0.3 }}
+          className="h-[72px] w-36 rounded-2xl bg-white/25"
+        />
+        <motion.div
+          animate={{ opacity: [0.4, 0.8, 0.4] }}
+          transition={{ duration: 2, repeat: Infinity, delay: 0.6 }}
+          className="h-5 w-32 rounded-full bg-white/30"
+        />
+        <motion.div
+          animate={{ opacity: [0.3, 0.7, 0.3] }}
+          transition={{ duration: 2, repeat: Infinity, delay: 0.9 }}
+          className="h-4 w-44 rounded-full bg-white/25"
+        />
+        <div className="w-4/5 pt-4 border-t-2 border-white/20 flex flex-col items-center gap-2">
+          <motion.div
+            animate={{ opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity, delay: 1.2 }}
+            className="h-4 w-52 rounded-full bg-white/20"
+          />
+        </div>
+      </div>
+    </motion.div>
+
+    {/* Forecast skeleton with staggered row animations */}
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 ml-2">
+        <div className="w-[18px] h-[18px] rounded bg-gray-200 animate-pulse" />
+        <div className="relative overflow-hidden h-4 w-44 rounded-full bg-gray-200">
+          <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+        </div>
+      </div>
+
+      <div className="bg-white/60 backdrop-blur-xl rounded-[25px] p-5 shadow-sm border border-gray-100 space-y-1">
+        {[...Array(5)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 + i * 0.08, duration: 0.4 }}
+            className="flex items-center gap-3 py-3 px-2 border-b border-gray-100 last:border-none"
+          >
+            <div className="w-12 h-4 rounded-full bg-gray-200 animate-pulse" />
+            <div className="w-7 h-7 rounded-full bg-gray-200 animate-pulse" />
+            <div className="flex-1 flex items-center gap-2">
+              <div className="w-6 h-3 rounded bg-gray-200 animate-pulse" />
+              <div className="flex-1 h-1.5 rounded-full bg-gray-100 animate-pulse" />
+              <div className="w-6 h-3 rounded bg-gray-200 animate-pulse" />
+            </div>
+            <div className="w-11 h-5 rounded-full bg-gray-200 animate-pulse" />
+          </motion.div>
+        ))}
+      </div>
+    </div>
+
+    {/* Summary header skeleton */}
+    <div className="flex items-center gap-2 mt-8 ml-1">
+      <div className="w-[22px] h-[22px] rounded bg-gray-200 animate-pulse" />
+      <div className="relative overflow-hidden h-4 w-36 rounded-full bg-gray-200">
+        <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+      </div>
+    </div>
+
+    {/* Fish type + weight card skeleton with shimmer sweep */}
+    <div className="space-y-4">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.4 }}
+        className="relative bg-gradient-to-r from-[#FFF6E2] via-[#FFF6E2] to-[#E6DAFF] rounded-2xl h-28 flex overflow-hidden border border-orange-50/20"
+      >
+        <div className="absolute inset-0 overflow-hidden">
+          <motion.div
+            animate={{ x: ["-100%", "200%"] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.5 }}
+            className="h-full w-1/3 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12"
+          />
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 p-4 relative">
+          <div className="h-3 w-20 rounded-full bg-orange-200/60 animate-pulse" />
+          <div className="h-7 w-24 rounded-lg bg-orange-200/40 animate-pulse" />
+          <div className="absolute right-0 top-3 bottom-3 w-px bg-white/80" />
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 p-4">
+          <div className="h-3 w-24 rounded-full bg-purple-200/60 animate-pulse" />
+          <div className="h-7 w-20 rounded-lg bg-purple-200/40 animate-pulse" />
+        </div>
+      </motion.div>
+
+      {/* Release date skeleton */}
+      <div className="flex items-center justify-between px-2 pt-1">
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 rounded bg-gray-200 animate-pulse" />
+          <div className="h-4 w-28 rounded-full bg-gray-200 animate-pulse" />
+        </div>
+        <div className="h-4 w-32 rounded-full bg-gray-200 animate-pulse" />
+      </div>
+    </div>
+
+    {/* Quantity cards skeleton */}
+    <div className="grid grid-cols-2 gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
+        className="relative bg-[#4A59FF]/30 rounded-2xl h-28 p-4 overflow-hidden"
+      >
+        <div className="absolute inset-0 overflow-hidden">
+          <motion.div
+            animate={{ x: ["-100%", "200%"] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 2 }}
+            className="h-full w-1/3 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
+          />
+        </div>
+        <div className="h-4 w-20 rounded-full bg-white/40 animate-pulse mb-4" />
+        <div className="flex justify-center">
+          <div className="h-8 w-24 rounded-lg bg-white/30 animate-pulse" />
+        </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
+        className="relative bg-[#E0A84D]/30 rounded-2xl h-28 p-4 overflow-hidden"
+      >
+        <div className="absolute inset-0 overflow-hidden">
+          <motion.div
+            animate={{ x: ["-100%", "200%"] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 2.5 }}
+            className="h-full w-1/3 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
+          />
+        </div>
+        <div className="h-4 w-16 rounded-full bg-white/40 animate-pulse mb-4" />
+        <div className="flex justify-center">
+          <div className="h-8 w-24 rounded-lg bg-white/30 animate-pulse" />
+        </div>
+      </motion.div>
+    </div>
+
+    {/* Survival rate skeleton */}
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.8 }}
+      className="relative bg-gray-50 rounded-2xl p-4 overflow-hidden border border-gray-100"
+    >
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          animate={{ x: ["-100%", "200%"] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", repeatDelay: 2 }}
+          className="h-full w-1/3 bg-gradient-to-r from-transparent via-gray-200/60 to-transparent -skew-x-12"
+        />
+      </div>
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-[22px] h-[22px] rounded bg-gray-200 animate-pulse" />
+        <div className="h-4 w-24 rounded-full bg-gray-200 animate-pulse" />
+      </div>
+      <div className="flex justify-center">
+        <div className="h-8 w-20 rounded-lg bg-gray-200 animate-pulse" />
+      </div>
+    </motion.div>
+
+    {/* Market size skeleton */}
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.9 }}
+      className="relative bg-[#F1DFFF]/40 rounded-2xl p-4 overflow-hidden border border-purple-100/30"
+    >
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          animate={{ x: ["-100%", "200%"] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.5 }}
+          className="h-full w-1/3 bg-gradient-to-r from-transparent via-purple-100/50 to-transparent -skew-x-12"
+        />
+      </div>
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-5 h-5 rounded bg-purple-200 animate-pulse" />
+        <div className="h-4 w-44 rounded-full bg-purple-200/60 animate-pulse" />
+      </div>
+      <div className="flex justify-center">
+        <div className="h-8 w-24 rounded-lg bg-purple-100 animate-pulse" />
+      </div>
+    </motion.div>
+  </div>
+);
+
+// ----------------------------------------------------------------------
 // Component
 // ----------------------------------------------------------------------
 
@@ -329,7 +572,10 @@ function DashboardContent() {
         <FarmNavigation />
       </div>
 
-      <div className="px-5 mt-4 max-w-7xl mx-auto space-y-6">
+      {/* Skeleton loading state */}
+      {loading && <DashboardLoadingSkeleton />}
+
+      <div className={`px-5 mt-4 max-w-7xl mx-auto space-y-6 ${loading ? 'hidden' : ''}`}>
 
         {/* -------------------------------------------------------------------------
             2. DATE VIEW
@@ -622,7 +868,7 @@ function DashboardContent() {
           {/* -------------------------------------------------------------------------
               ACTION BUTTONS 
               ------------------------------------------------------------------------- */}
-          <div className="px-5 max-w-7xl mx-auto mt-4">
+          <div className={`px-5 max-w-7xl mx-auto mt-4 ${loading ? 'hidden' : ''}`}>
             <div className="pt-2 space-y-3 md:space-y-0 md:grid md:grid-cols-3 md:gap-4">
               
               {/* 1. สภาพอากาศ */}
