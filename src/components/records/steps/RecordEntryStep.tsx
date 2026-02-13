@@ -29,7 +29,7 @@ interface RecordEntryStepProps {
 
 export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onBack, initialPondId }) => {
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
-  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  // const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false); // Removed
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dateInputRef = useRef<HTMLInputElement>(null);
 
@@ -141,7 +141,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
   }, []);
 
   useEffect(() => {
-    if (isResetModalOpen || isSuccessModalOpen) {
+    if (isResetModalOpen) {
       document.body.style.overflow = 'hidden';
       document.body.style.touchAction = 'none';
     } else {
@@ -152,7 +152,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
       document.body.style.overflow = '';
       document.body.style.touchAction = '';
     };
-  }, [isResetModalOpen, isSuccessModalOpen]);
+  }, [isResetModalOpen]);
 
   const handleOpenPicker = () => {
     if (dateInputRef.current) {
@@ -267,15 +267,11 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
       const result = await res.json();
 
       if (res.ok) {
-        setIsSuccessModalOpen(true);
-        setTimeout(() => {
-          setIsSuccessModalOpen(false);
-          if (result.data?.id) {
-            onAnalyze(result.data.id);
-          } else {
-            onAnalyze(); // Fallback
-          }
-        }, 1500);
+        if (result.data?.id) {
+          onAnalyze(result.data.id);
+        } else {
+          onAnalyze(); // Fallback
+        }
       } else {
         console.error('Failed to save record', result);
         alert('ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
@@ -510,21 +506,6 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
               <button onClick={handleReset} className="w-full bg-[#EF6E11] text-white font-bold py-4 rounded-2xl shadow-md">ยืนยันการเริ่มรอบใหม่</button>
               <button onClick={() => setIsResetModalOpen(false)} className="w-full bg-gray-100 text-[#093832] font-bold py-4 rounded-2xl">ยกเลิก</button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* --- Modal บันทึกข้อมูลสำเร็จ --- */}
-      {isSuccessModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-          <div className="relative bg-white w-full max-w-[280px] rounded-[32px] p-8 text-center animate-in zoom-in duration-300 shadow-2xl">
-            <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 bg-[#22C55E] rounded-full flex items-center justify-center shadow-lg shadow-green-100">
-                <Check className="w-10 h-10 text-white" strokeWidth={4} />
-              </div>
-            </div>
-            <p className="text-2xl font-bold text-[#093832]">บันทึกข้อมูลสำเร็จ</p>
           </div>
         </div>
       )}
