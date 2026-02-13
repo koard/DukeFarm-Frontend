@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { ChevronLeft } from 'lucide-react';
 import { ProfileDropdownMenu } from '@/components/common/ProfileDropdownMenu';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dukefarm-backend.onrender.com/api";
+
 interface RecordAnalysisStepProps {
   onClose: () => void;
   onBack: () => void;
@@ -24,15 +26,17 @@ export const RecordAnalysisStep: React.FC<RecordAnalysisStepProps> = ({ onClose,
     const fetchData = async () => {
       try {
         const token = localStorage.getItem('authToken');
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/records/${recordId}`, {
+        const res = await fetch(`${API_BASE_URL}/records/${recordId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
           const { data } = await res.json();
           setData(data);
+        } else {
+          console.error('Failed to fetch record analysis:', res.status, res.statusText);
         }
       } catch (err) {
-        console.error(err);
+        console.error('Error fetching record analysis:', err);
       } finally {
         setLoading(false);
       }
