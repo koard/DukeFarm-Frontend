@@ -116,15 +116,18 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
 
         if (freshRes.ok) {
           const r = await freshRes.json();
-          (r.data || []).forEach((f: any) => foods.push({ id: f.id, name: f.name, foodType: 'FRESH' }));
+          const items = r.data?.data || [];
+          items.forEach((f: any) => foods.push({ id: f.id, name: f.name, foodType: 'FRESH' }));
         }
         if (pelletRes.ok) {
           const r = await pelletRes.json();
-          (r.data || []).forEach((f: any) => foods.push({ id: f.id, name: f.name, foodType: 'PELLET' }));
+          const items = r.data?.data || [];
+          items.forEach((f: any) => foods.push({ id: f.id, name: f.name, foodType: 'PELLET' }));
         }
         if (suppRes.ok) {
           const r = await suppRes.json();
-          (r.data || []).forEach((f: any) => supps.push({ id: f.id, name: f.name, foodType: 'SUPPLEMENT' }));
+          const items = r.data?.data || [];
+          items.forEach((f: any) => supps.push({ id: f.id, name: f.name, foodType: 'SUPPLEMENT' }));
         }
 
         setFoodFormulas(foods);
@@ -357,7 +360,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
                 </div>
               </div>
               <div className="col-span-7 space-y-1.5">
-                <label className="text-sm font-bold text-black ml-1">น้ำหนักปลาต่อตัว (กรัม)</label>
+                <label className="text-sm font-bold text-black ml-1">น้ำหนักปลาต่อตัว</label>
                 <div className="relative">
                   <input type="number" placeholder="0" value={fishSize} onChange={(e) => setFishSize(e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-xs font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-300" />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">กรัม</span>
