@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import { ProfileDropdownMenu } from '@/components/common/ProfileDropdownMenu';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dukefarm-backend.onrender.com/api";
@@ -30,8 +30,6 @@ type RecordItem = {
 export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onViewDetails, onBack, farmType, pondId }) => {
   const [records, setRecords] = useState<RecordItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -39,8 +37,11 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
   const [selectedRecord, setSelectedRecord] = useState<RecordItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const startInputRef = useRef<HTMLInputElement>(null);
-  const endInputRef = useRef<HTMLInputElement>(null);
+  // Cycle state
+  const [cycleNumber, setCycleNumber] = useState<number>(0);
+  const [activeCycle, setActiveCycle] = useState<{ id: string; startDate: string; status: string } | null>(null);
+  const [isStartingCycle, setIsStartingCycle] = useState(false);
+  const [isConfirmNewCycleOpen, setIsConfirmNewCycleOpen] = useState(false);
 
   const fetchRecords = useCallback(async () => {
     try {
@@ -100,38 +101,79 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
     }
   };
 
-  const handleOpenPicker = (ref: React.RefObject<HTMLInputElement | null>) => {
-    if (ref.current) {
-      try {
-        const inputElement = ref.current as any;
-        if (typeof inputElement.showPicker === 'function') {
-          inputElement.showPicker();
-        } else {
-          inputElement.click();
-        }
-      } catch (error) {
-        ref.current.click();
+  // Fetch cycle info
+  const fetchCycleInfo = useCallback(async () => {
+    if (!pondId) return;
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+
+      const [cycleRes, countRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/ponds/${pondId}/active-cycle`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API_BASE_URL}/ponds/${pondId}/cycle-count`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      if (cycleRes.ok) {
+        const { data } = await cycleRes.json();
+        setActiveCycle(data);
+      } else {
+        setActiveCycle(null);
       }
+
+      if (countRes.ok) {
+        const { data } = await countRes.json();
+        setCycleNumber(data?.count || 0);
+      }
+    } catch (err) {
+      console.error("Failed to fetch cycle info", err);
+    }
+  }, [pondId]);
+
+  useEffect(() => {
+    fetchCycleInfo();
+  }, [fetchCycleInfo]);
+
+  const handleStartNewCycle = async () => {
+    if (!pondId) return;
+    try {
+      setIsStartingCycle(true);
+      const token = localStorage.getItem("authToken");
+      if (!token) return;
+
+      const res = await fetch(`${API_BASE_URL}/ponds/${pondId}/start-cycle`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ farmType }),
+      });
+
+      if (res.ok) {
+        await fetchCycleInfo();
+        await fetchRecords();
+        setIsConfirmNewCycleOpen(false);
+      } else {
+        alert('ไม่สามารถเริ่มรอบการเลี้ยงใหม่ได้');
+      }
+    } catch (err) {
+      console.error("Failed to start new cycle", err);
+      alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
+    } finally {
+      setIsStartingCycle(false);
     }
   };
 
-  const filteredRecords = useMemo(() => {
-    return records.filter(record => {
-      if (!startDate && !endDate) return true;
-      const d = record.recordedAt.substring(0, 10);
-      if (startDate && endDate) return d >= startDate && d <= endDate;
-      if (startDate) return d >= startDate;
-      if (endDate) return d <= endDate;
-      return true;
-    });
-  }, [records, startDate, endDate]);
-
   const paginatedRecords = useMemo(() => {
     const startIndex = (currentPage - 1) * pageSize;
-    return filteredRecords.slice(startIndex, startIndex + pageSize);
-  }, [filteredRecords, currentPage, pageSize]);
+    return records.slice(startIndex, startIndex + pageSize);
+  }, [records, currentPage, pageSize]);
 
-  const totalPages = Math.ceil(filteredRecords.length / pageSize);
+  const totalPages = Math.ceil(records.length / pageSize);
 
   const formatDate = (iso: string) => {
     const d = new Date(iso);
@@ -154,59 +196,53 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
       </div>
 
       <div className="px-4 mt-6">
-        {/* --- Date Filter --- */}
-        <div className="bg-[#E4F5E7] flex items-center gap-2 px-3 py-2.5 rounded-xl mb-6 shadow-sm border border-[#093832]/5">
-          <div className="p-1">
-            <Image src="/records/solar_calendar-outline.svg" alt="calendar" width={22} height={22} />
-          </div>
-
-          <div className="flex items-center flex-1 gap-2">
-            <div
-              onClick={() => handleOpenPicker(startInputRef)}
-              className="relative flex-1 bg-white border border-[#093832]/10 rounded-lg px-3 py-2 shadow-sm active:scale-95 transition-transform cursor-pointer flex items-center justify-between"
-            >
-              <span className={`text-xs font-bold block ${startDate ? 'text-[#093832]' : 'text-[#093832]/80'}`}>
-                {startDate ? new Date(startDate).toLocaleDateString('th-TH') : "เริ่ม"}
+        {/* --- Cycle Card --- */}
+        {pondId && (
+          <div className="bg-gradient-to-r from-[#093832] to-[#0f5e4e] rounded-2xl p-5 mb-6 shadow-lg text-white">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <RefreshCw className="w-5 h-5" />
+                <h2 className="text-base font-bold">รอบการเลี้ยง</h2>
+              </div>
+              <span className="bg-white/20 px-3 py-1 rounded-full text-sm font-bold">
+                รอบที่ {cycleNumber || '-'}
               </span>
-              <Calendar className="w-3 h-3 text-[#093832]/90" />
-              <input
-                ref={startInputRef}
-                type="date"
-                className="absolute inset-0 opacity-0 pointer-events-none"
-                style={{ colorScheme: 'light' }}
-                onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
-              />
             </div>
 
-            <span className="text-[#093832]/80 font-bold">-</span>
+            {activeCycle ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-white/70">สถานะ</span>
+                  <span className="bg-emerald-400/20 text-emerald-200 px-2.5 py-0.5 rounded-full text-xs font-bold">
+                    กำลังดำเนินการ
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-white/70">วันที่เริ่ม</span>
+                  <span className="font-semibold">
+                    {new Date(activeCycle.startDate).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-white/70">ระยะเวลา</span>
+                  <span className="font-semibold">
+                    {Math.max(1, Math.ceil((Date.now() - new Date(activeCycle.startDate).getTime()) / (1000 * 60 * 60 * 24)))} วัน
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-white/60 text-sm">ยังไม่มีรอบการเลี้ยงที่กำลังดำเนินการ</p>
+            )}
 
-            <div
-              onClick={() => handleOpenPicker(endInputRef)}
-              className="relative flex-1 bg-white border border-[#093832]/10 rounded-lg px-3 py-2 shadow-sm active:scale-95 transition-transform cursor-pointer flex items-center justify-between"
-            >
-              <span className={`text-xs font-bold block ${endDate ? 'text-[#093832]' : 'text-[#093832]/80'}`}>
-                {endDate ? new Date(endDate).toLocaleDateString('th-TH') : "สิ้นสุด"}
-              </span>
-              <Calendar className="w-3 h-3 text-[#093832]/90" />
-              <input
-                ref={endInputRef}
-                type="date"
-                className="absolute inset-0 opacity-0 pointer-events-none"
-                style={{ colorScheme: 'light' }}
-                onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
-              />
-            </div>
-          </div>
-
-          {(startDate || endDate) && (
             <button
-              onClick={() => { setStartDate(''); setEndDate(''); setCurrentPage(1); }}
-              className="bg-[#EF6E11] text-white px-3 py-2 rounded-lg text-xs font-bold shadow-md hover:bg-[#d65d0a] active:scale-95 transition-all whitespace-nowrap"
+              onClick={() => setIsConfirmNewCycleOpen(true)}
+              className="mt-4 w-full bg-[#EF6E11] text-white text-sm font-bold py-3 rounded-xl shadow-md hover:bg-[#d65d0a] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
             >
-              ล้างค่า
+              <RefreshCw className="w-4 h-4" />
+              {activeCycle ? 'เริ่มรอบการเลี้ยงใหม่' : 'เริ่มรอบการเลี้ยง'}
             </button>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Table & Footer */}
         <div className="overflow-hidden rounded-2xl border border-gray-100 shadow-sm bg-white">
@@ -317,6 +353,41 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
                 {isDeleting ? 'กำลังลบ...' : 'ยืนยันการลบ'}
               </button>
               <button onClick={() => setIsDeleteModalOpen(false)} className="w-full bg-gray-100 text-[#093832] font-bold py-4 rounded-2xl">ยกเลิก</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal ยืนยันเริ่มรอบการเลี้ยงใหม่ */}
+      {isConfirmNewCycleOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsConfirmNewCycleOpen(false)}></div>
+          <div className="relative bg-white w-full max-w-sm rounded-[35px] p-8 text-center animate-in zoom-in duration-200">
+            <div className="flex justify-center mb-5">
+              <div className="bg-emerald-50 p-5 rounded-full ring-8 ring-emerald-50/50">
+                <RefreshCw className="w-10 h-10 text-[#093832]" />
+              </div>
+            </div>
+            <h3 className="text-[#093832] text-xl font-bold mb-2">
+              {activeCycle ? 'เริ่มรอบการเลี้ยงใหม่?' : 'เริ่มรอบการเลี้ยง?'}
+            </h3>
+            {activeCycle && (
+              <p className="text-gray-500 text-sm mb-2 px-2 font-bold">
+                รอบที่ {cycleNumber} จะถูกปิด และเริ่มรอบที่ {cycleNumber + 1}
+              </p>
+            )}
+            <p className="text-[#093832]/60 text-sm mb-8">
+              {activeCycle ? 'ข้อมูลรอบเก่าจะยังคงอยู่ในระบบ' : `จะเริ่มรอบที่ ${cycleNumber + 1}`}
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleStartNewCycle}
+                disabled={isStartingCycle}
+                className="w-full bg-[#093832] text-white font-bold py-4 rounded-2xl shadow-lg disabled:opacity-50"
+              >
+                {isStartingCycle ? 'กำลังดำเนินการ...' : 'ยืนยัน'}
+              </button>
+              <button onClick={() => setIsConfirmNewCycleOpen(false)} className="w-full bg-gray-100 text-[#093832] font-bold py-4 rounded-2xl">ยกเลิก</button>
             </div>
           </div>
         </div>
