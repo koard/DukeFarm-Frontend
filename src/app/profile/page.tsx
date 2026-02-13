@@ -17,8 +17,8 @@ import {
 type PondData = {
   id: number;
   backendId?: string;
-  type: 'EARTHEN' | 'CONCRETE';
-  farmType: 'SMALL' | 'LARGE' | 'MARKET';
+  type: 'EARTHEN' | 'CONCRETE' | null;
+  farmType: 'SMALL' | 'LARGE' | 'MARKET' | null;
   width: string;
   length: string;
   depth: string;
@@ -169,10 +169,12 @@ export default function ProfilePage() {
         depth: String(p.depthM),
       }));
       setPonds(mappedPonds);
+      setRecordPondCount(String(mappedPonds.length));
     } else {
       setPonds([
-        { id: Date.now(), type: "EARTHEN", farmType: "SMALL", width: "", length: "", depth: "" },
+        { id: Date.now(), type: null, farmType: null, width: "", length: "", depth: "" },
       ]);
+      setRecordPondCount('1');
     }
   }, []);
 
@@ -184,7 +186,12 @@ export default function ProfilePage() {
   }));
 
   const hasValidLocation = Boolean(parseLocationValue(formData.location));
-  const isPondsValid = ponds.every(p => p.width && p.length && p.depth);
+  const isPondsValid = ponds.every(p => {
+    const w = parseFloat(p.width);
+    const l = parseFloat(p.length);
+    const d = parseFloat(p.depth);
+    return p.type && p.farmType && !isNaN(w) && w > 0 && !isNaN(l) && l > 0 && !isNaN(d) && d > 0;
+  });
   const isFormValid =
     formData.firstName.trim() !== "" &&
     formData.lastName.trim() !== "" &&
@@ -257,7 +264,7 @@ export default function ProfilePage() {
   };
 
   const handleAddPond = () => {
-    const newPonds = [...ponds, { id: Date.now(), type: 'EARTHEN' as const, farmType: 'SMALL' as const, width: '', length: '', depth: '' }];
+    const newPonds = [...ponds, { id: Date.now(), type: null, farmType: null, width: '', length: '', depth: '' }];
     setPonds(newPonds);
     setRecordPondCount(String(newPonds.length));
   };
@@ -649,7 +656,7 @@ export default function ProfilePage() {
                         if (count > prev.length) {
                           const newPonds = [...prev];
                           for (let i = prev.length; i < count; i++) {
-                            newPonds.push({ id: Date.now() + i, type: 'EARTHEN', farmType: 'SMALL', width: '', length: '', depth: '' });
+                            newPonds.push({ id: Date.now() + i, type: null, farmType: null, width: '', length: '', depth: '' });
                           }
                           return newPonds;
                         } else if (count < prev.length) {

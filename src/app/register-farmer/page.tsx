@@ -312,7 +312,8 @@ export default function RegisterFarmerPage() {
         lastName: formData.lastName,
         phone: formData.phone,
         primaryFarmType: primaryTypeKey || "SMALL",
-
+        farmTypes: sortedSelectedTypes,
+        declaredPondCount: parseInt(formData.totalPondCount) || 0,
         farmAreaRai,
         farmLatitude: coords.lat,
         farmLongitude: coords.lng,
