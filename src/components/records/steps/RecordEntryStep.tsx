@@ -24,9 +24,10 @@ const FARM_TYPE_LABELS: Record<string, string> = { SMALL: 'ปลาตุ้ม
 interface RecordEntryStepProps {
   onAnalyze: () => void;
   onBack: () => void;
+  initialPondId?: string;
 }
 
-export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onBack }) => {
+export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onBack, initialPondId }) => {
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,7 +37,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
   const [ponds, setPonds] = useState<PondInfo[]>([]);
 
   // Form state
-  const [selectedPondId, setSelectedPondId] = useState('');
+  const [selectedPondId, setSelectedPondId] = useState(initialPondId || '');
   const [fishType, setFishType] = useState('');
   const [fishSize, setFishSize] = useState('');
   const [fishSizeUnit, setFishSizeUnit] = useState('');
@@ -73,16 +74,27 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
             depthM: Number(p.depthM) || 0,
             volumeM3: Number(p.volumeM3) || 0,
           })));
-          // Auto-select first pond
-          if (profilePonds.length > 0) {
-            setSelectedPondId(profilePonds[0].id);
+
+          // Select initial pond if valid, otherwise first pond
+          if (initialPondId) {
+            const exists = profilePonds.find((p: any) => p.id === initialPondId);
+            if (exists) {
+              setSelectedPondId(initialPondId);
+            } else {
+              setSelectedPondId(profilePonds[0].id);
+            }
+          } else {
+            // Only if not already selected (e.g. from state init)
+            if (!selectedPondId) {
+              setSelectedPondId(profilePonds[0].id);
+            }
           }
         }
       }
     } catch (err) {
       console.error('Failed to load ponds from profile', err);
     }
-  }, []);
+  }, [initialPondId]);
 
   // Fetch feed formulas and supplements from API
   useEffect(() => {

@@ -1,73 +1,337 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
 import Link from "next/link";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useDashboardData } from "@/hooks/useDashboardData";
 import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
+import AgeAdvisoryCard from "@/components/dashboard/AgeAdvisoryCard";
+import FarmNavigation from "@/components/navigation/FarmNavigation";
+import { FarmTypeOption } from "@/utils/farmTypes";
 
-export default function NurserySmallPage() {
-  // -------------------------------------------------------------------------
-  // (ข้อมูล Mock Data สำหรับเปลี่ยนตามบ่อที่เลือก)
-  // -------------------------------------------------------------------------
-  const pondDataMock: Record<number, any> = {
-    0: { fishType: "ปลานิ้ว", avgWeight: "6.0", releaseDate: "17/05/25", releaseCount: 20, remainingCount: 17, survivalRate: 95, marketSize: "15-25" },
-    1: { fishType: "ปลาตุ้ม", avgWeight: "2.5", releaseDate: "10/05/25", releaseCount: 50, remainingCount: 45, survivalRate: 90, marketSize: "10-20" },
-    2: { fishType: "ปลาตลาด", avgWeight: "500", releaseDate: "01/01/25", releaseCount: 100, remainingCount: 98, survivalRate: 98, marketSize: "800-1000" }
-  };
+// ----------------------------------------------------------------------
+// Types & Interfaces
+// ----------------------------------------------------------------------
 
-  const [activePond, setActivePond] = useState(0); 
-  const currentPond = pondDataMock[activePond];
+interface GraphDataPoint {
+  month: string;
+  value: number;
+}
 
-  const mockPlan = [
-    { date: "17/05/25", temp: "31 / 26 °C", icon: "fluent_weather-sunny.svg", advice: "เพิ่มขึ้น 5%" },
-    { date: "18/05/25", temp: "31 / 30 °C", icon: "fluent-color_weather-sunny.svg", advice: "เพิ่มขึ้น 5%" },
-    { date: "19/05/25", temp: "31 / 27 °C", icon: "fluent_weather-rain-snow.svg", advice: "เพิ่มขึ้น 5%" },
-  ];
+interface HoverData {
+  x: number;
+  y: number;
+  value: number;
+  month?: string;
+}
 
-  const [weatherState] = useState("sunny_day"); 
-  const getWeatherBg = () => {
-    switch (weatherState) {
-      case "hot_day": return "from-[#FF5F6D] to-[#FFC371]";
-      case "night": return "from-[#1A2A6C] via-[#B21F1F] to-[#FDBB2D]";
-      default: return "from-[#4facfe] to-[#00f2fe]";
-    }
-  };
+interface Coordinate {
+  x: number;
+  y: number;
+}
 
-  const getSurvivalStatusStyles = (percentage: number) => {
+interface ComfortRange {
+  min: number;
+  max: number;
+}
+
+interface ForecastData {
+  date: string;
+  highTemperatureC: number;
+  lowTemperatureC: number;
+  feedAdjustmentPct: number;
+  feedingRecommendation: "increase" | "decrease" | "normal";
+  weatherCode: number;
+}
+
+interface WeatherData {
+  time: string;
+  temperatureC: number;
+  humidityPct: number;
+  windSpeedKph: number;
+  rainMm: number;
+  conditionText: string;
+}
+
+interface DashboardSummary {
+  asOf: string;
+  airTemperatureC: number | null;
+  temperatureDeltaC: number | null;
+  comfortRangeC: { min: number; max: number };
+  recommendedFeedAdjustmentPct: number | null;
+  weather: WeatherData | null;
+  latestFishAgeLabel: string | null;
+  latestFishAgeDays?: number;
+  pelletFoodCost: number;
+  freshFoodCost: number;
+  survivalRatePct: number;
+  survivalSeries: GraphDataPoint[];
+}
+
+interface DashboardData {
+  group: string;
+  hasData: boolean;
+  summary: DashboardSummary;
+  feedingPlan: ForecastData[];
+}
+
+// ----------------------------------------------------------------------
+// Constants & Helpers
+// ----------------------------------------------------------------------
+
+const COMFORT_RANGES: Record<FarmTypeOption, ComfortRange> = {
+  SMALL: { min: 28, max: 34 },
+  LARGE: { min: 27, max: 35 },
+  MARKET: { min: 26, max: 36 },
+};
+
+const getComfortRange = (type: FarmTypeOption) => COMFORT_RANGES[type] || COMFORT_RANGES.SMALL;
+const getComfortZoneText = (type: FarmTypeOption) => {
+  const range = getComfortRange(type);
+  return `${range.min}-${range.max}°C`;
+};
+
+const calculateRealTimeAge = (asOfDate?: string | null, recordedAge?: number | null): number | undefined => {
+  if (!asOfDate || typeof recordedAge !== 'number') {
+    return undefined;
+  }
+  const lastUpdate = new Date(asOfDate);
+  const now = new Date();
+  lastUpdate.setHours(0, 0, 0, 0);
+  now.setHours(0, 0, 0, 0);
+  const diffTime = now.getTime() - lastUpdate.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  return Math.max(0, recordedAge + diffDays);
+};
+
+const getSurvivalStatusStyles = (percentage: number) => {
   if (percentage >= 90) {
     return {
       bg: "bg-[#E6FFFA]",
       text: "text-[#047857]",
-      label: "▲ (สูง)"
+      stroke: "#10B981",
+      icon: "/nursery-large/famicons_fish-outline.svg"
     };
   } else if (percentage >= 75) {
     return {
       bg: "bg-[#FFF9C4]",
       text: "text-[#854D0E]",
-      label: "● (ปกติ)"
+      stroke: "#EAB308",
+      icon: "/nursery-large/famicons_fish-outline.svg"
     };
   } else if (percentage >= 50) {
     return {
       bg: "bg-[#FFCCBC]",
       text: "text-[#BF360C]",
-      label: "▼ (ค่อนข้างต่ำ)"
+      stroke: "#F97316",
+      icon: "/nursery-large/famicons_fish-outline.svg"
     };
   } else {
     return {
       bg: "bg-[#FFCDD2]",
       text: "text-[#B91C1C]",
-      label: "▼ (ต่ำมาก)"
+      stroke: "#EF4444",
+      icon: "/nursery-large/famicons_fish-outline.svg"
     };
   }
 };
 
+const getWeatherIconFromCode = (code: number): string => {
+  if (code <= 1) return 'fluent_weather-sunny.svg';
+  if (code <= 3) return 'fluent-color_weather-sunny.svg';
+  if (code >= 51 && code <= 67) return 'fluent_weather-rain-snow.svg';
+  if (code >= 80 && code <= 82) return 'fluent_weather-rain-snow.svg';
+  if (code >= 95 && code <= 99) return 'fluent_weather-hail-day.svg';
+  return 'fluent-color_weather-sunny.svg';
+};
+
+const formatThaiDate = (isoDate?: string | null): string => {
+  if (!isoDate) return "-";
+  const parsed = new Date(isoDate);
+  if (Number.isNaN(parsed.getTime())) {
+    return "-";
+  }
+  return parsed.toLocaleDateString("th-TH");
+};
+
+const formatTemperature = (value?: number | null): string => {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "-";
+  }
+  return `${value.toFixed(1)} °C`;
+};
+
+const buildTemperatureDeltaText = (actual?: number | null, comfortRange?: ComfortRange): string => {
+  if (!comfortRange || typeof actual !== "number" || Number.isNaN(actual)) {
+    return "ไม่มีข้อมูล";
+  }
+  if (actual < comfortRange.min) {
+    return `อุณหภูมิต่ำกว่าปกติ ${(comfortRange.min - actual).toFixed(1)}°C`;
+  }
+  if (actual > comfortRange.max) {
+    return `อุณหภูมิสูงกว่าปกติ ${(actual - comfortRange.max).toFixed(1)}°C`;
+  }
+  return "อุณหภูมิอยู่ในช่วงเหมาะสม";
+};
+
+const buildFeedAdviceText = (adjustmentPct?: number | null): string => {
+  if (typeof adjustmentPct !== "number" || Number.isNaN(adjustmentPct)) {
+    return "ไม่มีข้อมูล";
+  }
+  if (adjustmentPct > 0) {
+    return `แนะนำให้เพิ่มอาหารขึ้น ${adjustmentPct}%`;
+  }
+  if (adjustmentPct < 0) {
+    return `แนะนำให้ลดอาหารลง ${Math.abs(adjustmentPct)}%`;
+  }
+  return "ให้อาหารตามปกติ";
+};
+
+const formatSurvivalPct = (value?: number | null): string => {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "-";
+  }
+  const formatter = new Intl.NumberFormat("th-TH", {
+    maximumFractionDigits: 0,
+  });
+  return `${formatter.format(value)}%`;
+};
+
+// ----------------------------------------------------------------------
+// Component
+// ----------------------------------------------------------------------
+
+function DashboardContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // 1. Get query params
+  const pondId = searchParams.get("pondId") || undefined;
+  const initialType = (searchParams.get("type") as FarmTypeOption) || "SMALL";
+
+  // 2. Identify current context (Type & Pond)
+  // We need to know the FarmType associated with the pondId if possible, 
+  // but if pondId is passed, the backend handles filtering.
+  // Frontend mostly needs 'type' for UI config (comfort range).
+  const [farmType, setFarmType] = useState<FarmTypeOption>(initialType);
+
+  // Sync state if URL changes
+  useEffect(() => {
+    const typeParam = searchParams.get("type");
+    if (typeParam) {
+      setFarmType(typeParam as FarmTypeOption);
+    } else {
+      // Fallback: if we have a pondId, we might want to find its type from profile?
+      // For now, let's rely on 'type' query param being present or default SMALL.
+      // Ideally FarmNavigation should pass both.
+    }
+  }, [searchParams]);
+
+  const [hoverData, setHoverData] = useState<HoverData | null>(null);
+
+  // 3. Fetch Data
+  const { data: dashboardData, loading, error } = useDashboardData<DashboardData>(farmType, pondId);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const currentAgeDays = calculateRealTimeAge(
+    dashboardData?.summary?.asOf,
+    dashboardData?.summary?.latestFishAgeDays
+  );
+
+  const hasDashboardData = dashboardData?.hasData;
+
+  const rawSeries = hasDashboardData ? dashboardData?.summary?.survivalSeries ?? [] : [];
+
+  const uniqueSeriesMap = new Map();
+  rawSeries.forEach((item) => {
+    uniqueSeriesMap.set(item.month, item);
+  });
+  const survivalSeries: GraphDataPoint[] = Array.from(uniqueSeriesMap.values());
+
+  const graphData: GraphDataPoint[] = (survivalSeries.length ? survivalSeries : []).map((point) => ({
+    ...point,
+    value: typeof point.value === "number" && Number.isFinite(point.value)
+      ? Math.max(0, Math.min(100, point.value))
+      : 0,
+  }));
+
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth;
+    }
+  }, [graphData]);
+
+  const forecastData: ForecastData[] = dashboardData?.feedingPlan || [];
+
+  const currentSurvivalRate = (() => {
+    if (survivalSeries.length === 0) {
+      return dashboardData?.summary?.survivalRatePct ?? 0;
+    }
+    const sum = survivalSeries.reduce((acc, curr) => acc + curr.value, 0);
+    return sum / survivalSeries.length;
+  })();
+
+  const hasSurvival = hasDashboardData && (survivalSeries.length > 0 || typeof dashboardData?.summary?.survivalRatePct === 'number');
+  const statusStyles = getSurvivalStatusStyles(currentSurvivalRate);
+
+  // Graph Config
+  const SVG_HEIGHT = 150;
+  const PADDING_X = 20;
+  const MIN_POINT_GAP = 60;
+  const MAX_GRAPH_VALUE = 100;
+  const requiredWidth = (graphData.length - 1) * MIN_POINT_GAP + (PADDING_X * 2);
+  const SVG_WIDTH = Math.max(280, requiredWidth);
+
+  const getY = (val: number): number => {
+    const clamped = Math.max(0, Math.min(MAX_GRAPH_VALUE, val));
+    return 130 - (clamped / MAX_GRAPH_VALUE) * 110;
+  };
+
+  const getX = (index: number): number => {
+    if (graphData.length <= 1) return SVG_WIDTH / 2;
+    const step = (SVG_WIDTH - (PADDING_X * 2)) / (graphData.length - 1);
+    return PADDING_X + (index * step);
+  };
+
+  const axisValues = [100, 75, 50, 25, 0];
+
+  const generateSmoothPath = (data: Coordinate[], tension: number = 0.4): string => {
+    if (data.length < 2) return "";
+    let path = `M${data[0].x},${data[0].y}`;
+    for (let i = 0; i < data.length - 1; i++) {
+      const p0 = i > 0 ? data[i - 1] : data[i];
+      const p1 = data[i];
+      const p2 = data[i + 1];
+      const p3 = i < data.length - 2 ? data[i + 2] : p2;
+
+      const cp1x = p1.x + (p2.x - p0.x) / 6 * tension;
+      const cp1y = p1.y + (p2.y - p0.y) / 6 * tension;
+      const cp2x = p2.x - (p3.x - p1.x) / 6 * tension;
+      const cp2y = p2.y - (p3.y - p1.y) / 6 * tension;
+
+      path += `C${cp1x},${cp1y},${cp2x},${cp2y},${p2.x},${p2.y}`;
+    }
+    return path;
+  };
+
+  const smoothPathD = generateSmoothPath(
+    graphData.map((d, i) => ({ x: getX(i), y: getY(d.value) }))
+  );
+
+
+  // Navigation Helper
+  const getSubLink = (sub: string) => {
+    const params = new URLSearchParams();
+    if (pondId) params.set("pondId", pondId);
+    params.set("type", farmType);
+    return `/dashboard-farmer/${sub}?${params.toString()}`;
+  };
+
   return (
-    <div className="min-h-screen bg-white pb-10 font-sans">
-      
-      {/* -------------------------------------------------------------------------
-          (ส่วนหัวฟาร์ม - ห้ามแก้ตามต้นฉบับเดิม)
-          ------------------------------------------------------------------------- */}
+    <div className="min-h-screen bg-white pb-10">
+
       <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-30">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -78,286 +342,314 @@ export default function NurserySmallPage() {
         </div>
       </div>
 
-      {/* -------------------------------------------------------------------------
-          1. NAVIGATION
-          ------------------------------------------------------------------------- */}
-      <div className="relative z-20 mt-4 mx-5">
-        <div className="grid grid-cols-3 gap-3 w-full">
-          {["บ่อที่ 1", "บ่อที่ 2", "บ่อที่ 3"].map((label, idx) => (
-            <div 
-              key={idx} 
-              onClick={() => setActivePond(idx)}
-              className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-full text-sm font-bold border transition-all cursor-pointer ${
-                activePond === idx 
-                  ? "bg-[#009D64] border-[#009D64] text-white shadow-md" 
-                  : "bg-white border-gray-300 text-black"
-              }`}
-            >
-              <Image 
-                src={activePond === idx ? "/nursery-large/famicons_fish-w.svg" : "/nursery-large/famicons_fish-bb.svg"} 
-                alt="fish" width={18} height={18} 
-              />
-              <span>{label}</span>
-            </div>
-          ))}
-        </div>
+      <div className="relative z-20 -mt-6 mx-4">
+        {/* FarmNavigation should now link to /dashboard-farmer?pondId=... */}
+        <FarmNavigation />
       </div>
 
-      <div className="px-5 mt-6 max-w-7xl mx-auto space-y-6">
-        
-        {/* -------------------------------------------------------------------------
-            2. DATE VIEW
-            ------------------------------------------------------------------------- */}
-        <div className="flex items-center gap-2 ml-1">
-           <Image src="/records/calendar.svg" alt="cal" width={22} height={22} />
-           <span className="text-base font-bold text-[#093832]">ข้อมูล ณ วันที่ 17/05/25</span>
-        </div>
+      <div className="px-5 relative z-10 max-w-7xl mx-auto space-y-5">
 
-        {/* -------------------------------------------------------------------------
-            3. IPHONE WEATHER CARD
-            ------------------------------------------------------------------------- */}
-        <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className={`relative overflow-hidden rounded-[35px] p-8 text-white bg-gradient-to-br ${getWeatherBg()} shadow-2xl transition-all`}
-            >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[80px] -mr-20 -mt-20" />
-                
-                <div className="relative z-10 flex flex-col items-center">
-                    <div className="flex items-center gap-1 opacity-80 mb-1">
-                    <span className="text-[10px] transform -rotate-45">▲</span>
-                    <span className="text-xl font-medium tracking-wide font-medium">Khlong Sam Wa District</span>
-                    </div>
-
-                    <span className="text-[110px] font-extralight leading-none my-4 drop-shadow-md">
-                    26°
-                    </span>
-
-                    <span className="text-xl font-medium opacity-90">Mostly Clear</span>
-                    <div className="flex gap-4 mt-3 font-bold text-lg font-bold">
-                        <span>H:33°</span>
-                        <span>L:23°</span>
-                    </div>
-                </div>
-            </motion.div>
-
-        {/* -------------------------------------------------------------------------
-            4. TEMPERATURE REPORT
-            ------------------------------------------------------------------------- */}
-        <div className="bg-gradient-to-r from-[#BBE3FB] to-[#CFFFD5] rounded-[25px] p-6 shadow-sm border border-white/50">
-           <div className="flex items-center gap-3 mb-2 text-[#093832]">
-              <Image src="/nursery-large/fluent_temperature.svg" alt="temp" width={22} height={22} />
-              <span className="text-base font-bold">รายงานอุณหภูมิ</span>
-           </div>
-           <p className="text-xl font-black text-[#093832] text-center leading-relaxed font-black">
-              วันนี้อุณหภูมิลดลงจากเมื่อวาน 2°C <br/>แนะนำให้ลดอาหารลง
-           </p>
-        </div>
-
-        {/* -------------------------------------------------------------------------
-            5. FORECAST SECTION
-            ------------------------------------------------------------------------- */}
-        <div className="space-y-4">
-        <div className="flex items-center gap-2 ml-1">
-            <Image src="/nursery-large/fluent_weather-hail-day.svg" alt="forecast" width={24} height={24} />
-            <h3 className="text-base font-bold text-[#093832]">คาดการณ์สภาพอากาศและการให้อาหาร</h3>
-        </div>
-
-        <div className="bg-[#F4FFFC] rounded-[30px] p-6 shadow-sm border border-emerald-50">
-            <div className="grid grid-cols-3 mb-5 border-b border-emerald-100 pb-4">
-            <div className="text-sm font-bold text-[#75CFB6] text-center">วันที่</div>
-            <div className="text-sm font-bold text-[#75CFB6] text-center">สภาพอากาศ</div>
-            <div className="text-sm font-bold text-[#75CFB6] text-center font-bold">ปริมาณอาหารที่แนะนำ</div>
+        {/* 1. Date & Temp */}
+        <div className="bg-[#F4FFFC] rounded-2xl p-4 shadow-sm border border-emerald-50 flex items-center justify-center h-full mt-2">
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <div className="flex items-center gap-2 mb-3">
+              <Image src="/nursery-large/solar_calendar-outline.svg" alt="date" width={20} height={20} />
+              <span className="text-[#0F614E] text-lg font-medium">ข้อมูล ณ วันที่</span>
             </div>
-
-            <div className="space-y-6">
-            {mockPlan.map((item, index) => (
-                <div key={index} className="grid grid-cols-3 items-center hover:bg-[#E0F7FA] rounded-xl transition-colors duration-200 -mx-2 px-2 py-1">
-                <div className="text-sm font-bold text-[#0F614E] text-center font-bold">
-                    {item.date}
-                </div>
-            
-                <div className="flex items-center justify-center gap-3">
-                    <Image src={`/nursery-large/${item.icon}`} alt="weather" width={24} height={24} />
-                    <span className="text-sm font-bold text-[#0F614E] font-bold">
-                    {item.temp}
-                    </span>
-                </div>
-
-                <div className="text-sm font-bold text-[#0F614E] text-center uppercase font-bold">
-                    {item.advice}
-                </div>
-                </div>
-            ))}
+            <p className="text-2xl font-bold text-[#0F614E]">
+              {loading ? "..." : formatThaiDate(dashboardData?.summary?.asOf)}
+            </p>
+          </div>
+          <div className="w-px h-16 bg-gray-300 mx-2"></div>
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <div className="flex items-center gap-2 mb-3">
+              <Image src="/nursery-large/fluent_temperature.svg" alt="temp" width={20} height={20} />
+              <span className="text-[#0F614E] text-lg font-medium">อุณหภูมิ</span>
             </div>
-        </div>
-        </div>
-
-        {/* -------------------------------------------------------------------------
-            6. POND SUMMARY 
-            ------------------------------------------------------------------------- */}
-        <div className="flex items-center gap-2 mt-8 ml-1">
-          <Image src="/dashboard/food.svg" alt="summary" width={22} height={22} />
-          <h3 className="text-base font-bold text-[#093832] font-bold">สรุปข้อมูล บ่อที่ {activePond + 1}</h3>
+            <p className="text-2xl font-bold text-[#0F614E]">
+              {loading ? "..." : formatTemperature(dashboardData?.summary?.airTemperatureC)}
+            </p>
+          </div>
         </div>
 
-        <div className="space-y-4">
-          {/* (ประเภทปลา และ ขนาดเฉลี่ย */}
-            <div className="bg-gradient-to-r from-[#FFF6E2] via-[#FFF6E2] to-[#E6DAFF] rounded-2xl shadow-sm flex overflow-hidden h-28 border border-orange-50/20">
-            
-            {/* ฝั่งซ้าย: ประเภทปลา */}
-            <div className="flex-1 flex flex-col p-4 relative">
-                <div className="flex items-center gap-1.5 mb-1">
-                <Image src="/dashboard/ion_fish.svg" alt="type" width={18} height={18} />
-                <span className="text-sm font-bold text-gray-900">ประเภทปลา</span>
-                </div>
-  
-                <div className="flex-1 flex items-center justify-center">
-                <p className="text-2xl font-black text-black">{currentPond.fishType}</p>
-                </div>
-                {/* เส้นคั่นสีขาว */}
-                <div className="absolute right-0 top-2 bottom-2 w-px bg-white shadow-sm"></div>
+        {/* 2. Temperature Report */}
+        <div className="bg-[#E0F5FF] rounded-2xl p-5 shadow-sm border border-blue-100">
+          <h3 className="text-base font-bold text-black mb-2">รายงานอุณหภูมิ</h3>
+          {loading ? (
+            <div className="text-center py-4">
+              <p className="text-gray-500">กำลังโหลด...</p>
             </div>
-
-            {/* ฝั่งขวา: ขนาดเฉลี่ย */}
-            <div className="flex-1 flex flex-col p-4">
-                <div className="flex items-center gap-1.5 mb-1">
-                <Image src="/dashboard/line.svg" alt="avg" width={18} height={18} />
-                <span className="text-sm font-bold text-gray-900 ">ขนาดเฉลี่ย</span>
-                </div>
-
-                <div className="flex-1 flex items-center justify-center">
-                <p className="text-2xl font-black text-black">
-                    {currentPond.avgWeight} <span className="text-sm font-bold text-gray-900">กรัม</span>
+          ) : error ? (
+            <div className="text-center py-4">
+              <p className="text-red-500">{error}</p>
+            </div>
+          ) : (
+            <>
+              <div className="text-center mb-4">
+                <p className="text-xl font-medium text-[#054DD3]">
+                  {buildTemperatureDeltaText(dashboardData?.summary?.airTemperatureC, getComfortRange(farmType))}
                 </p>
-                </div>
-            </div>
+                <p className="text-xl font-medium text-[#054DD3]">
+                  {buildFeedAdviceText(dashboardData?.summary?.recommendedFeedAdjustmentPct)}
+                </p>
+              </div>
+              <div>
+                <h4 className="text-base font-bold text-black mb-1">คำแนะนำ :</h4>
+                <p className="text-base text-black leading-relaxed">
+                  หากอุณหภูมิน้ำอยู่ในช่วงที่เหมาะสม ({getComfortZoneText(farmType)}) ปลามักจะกินอาหารและเจริญเติบโตได้ดี ควรเฝ้าดูแนวโน้มอุณหภูมิทุกวัน
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+
+        <AgeAdvisoryCard
+          group={farmType}
+          latestFishAgeLabel={dashboardData?.summary?.latestFishAgeLabel ?? null}
+          latestFishAgeDays={currentAgeDays}
+          loading={loading}
+        />
+
+        {/* 5. Survival Rate Graph */}
+        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+          <h3 className="text-base font-bold text-[#093832] mb-3 ml-1">แนวโน้มอัตราการรอด</h3>
+
+          <div className="flex items-start">
+            {/* Y Axis */}
+            <div
+              className="w-9 shrink-0 relative mr-1 border-r border-gray-100"
+              style={{ height: SVG_HEIGHT }}
+            >
+              <svg width="100%" height="100%" className="overflow-visible">
+                {axisValues.map((val) => (
+                  <text
+                    key={val}
+                    x="100%"
+                    y={getY(val) + 4}
+                    fontSize="10"
+                    fill="#999"
+                    textAnchor="end"
+                    className="pr-1"
+                  >
+                    {formatSurvivalPct(val)}
+                  </text>
+                ))}
+              </svg>
             </div>
 
-          {/* (วันที่ปล่อยลงบ่อ) */}
-          <div className="flex items-center justify-between px-2 pt-1 text-[#434343]">
-            <div className="flex items-center gap-2">
-              <Image src="/dashboard/solar_calendar-outline.svg" alt="date" width={20} height={20} />
-              <span className="text-base font-bold">วันที่ปล่อยลงบ่อ</span>
+            {/* Scrollable Graph Area */}
+            <div
+              ref={scrollContainerRef}
+              className="flex-1 overflow-x-auto pb-2 scrollbar-hide relative"
+              style={{ scrollBehavior: 'smooth' }}
+            >
+              <div className="relative" style={{ width: SVG_WIDTH, height: SVG_HEIGHT }}>
+                {hoverData && (() => {
+                  const isHighValue = hoverData.value > 80;
+                  return (
+                    <div
+                      className="absolute bg-white rounded-lg px-3 py-2 shadow-lg border border-gray-100 pointer-events-none z-30 transition-all duration-100"
+                      style={{
+                        left: `${(hoverData.x / SVG_WIDTH) * 100}%`,
+                        top: `${(hoverData.y / SVG_HEIGHT) * 100}%`,
+                        marginTop: isHighValue ? '12px' : '-12px',
+                        transform: isHighValue ? 'translate(-50%, 0)' : 'translate(-50%, -100%)'
+                      }}
+                    >
+                      <div className="text-xs text-gray-600 font-medium">ค่าเฉลี่ย</div>
+                      <div className="text-sm font-bold" style={{ color: statusStyles.stroke }}>{formatSurvivalPct(hoverData.value)}</div>
+                      <div className={`absolute left-1/2 -translate-x-1/2 border-8 border-transparent drop-shadow-sm ${isHighValue ? 'bottom-full border-b-white' : 'top-full border-t-white'
+                        }`}></div>
+                    </div>
+                  );
+                })()}
+
+                <svg viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`} className="w-full h-full overflow-visible">
+                  {axisValues.map((val) => (
+                    <line
+                      key={val}
+                      x1="0" y1={getY(val)}
+                      x2={SVG_WIDTH} y2={getY(val)}
+                      stroke="#f0f0f0" strokeWidth="1"
+                    />
+                  ))}
+
+                  <path
+                    d={smoothPathD}
+                    fill="none"
+                    stroke={statusStyles.stroke}
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="transition-colors duration-300"
+                  />
+
+                  {graphData.map((item, index) => {
+                    const xCenter = getX(index);
+                    return (
+                      <g key={index}>
+                        <rect
+                          x={xCenter - 15}
+                          y="0"
+                          width="30"
+                          height={SVG_HEIGHT}
+                          fill="transparent"
+                          className="cursor-pointer"
+                          onMouseEnter={() => setHoverData({
+                            x: xCenter,
+                            y: getY(item.value),
+                            value: item.value,
+                            month: item.month
+                          })}
+                          onMouseLeave={() => setHoverData(null)}
+                        />
+                        <text
+                          x={xCenter}
+                          y={SVG_HEIGHT - 5}
+                          fontSize="9"
+                          fill="#999"
+                          textAnchor="middle"
+                          className={`transition-colors ${hoverData?.x === xCenter ? 'font-bold' : ''}`}
+                          style={{ fill: hoverData?.x === xCenter ? statusStyles.stroke : '#999' }}
+                        >
+                          {item.month}
+                        </text>
+                      </g>
+                    );
+                  })}
+                </svg>
+              </div>
             </div>
-            <span className="text-base font-bold">{currentPond.releaseDate}</span>
+          </div>
+        </div>
+
+        {/* 6. Fish Image & Survival Rate */}
+        <div className="grid grid-cols-2 gap-4 items-stretch">
+          <div className="bg-[#EEF8FF] rounded-2xl p-2 flex items-center justify-center h-full min-h-[120px]">
+            <Image
+              src="/nursery-large/duke.png"
+              alt="Catfish"
+              width={160}
+              height={100}
+              className="object-contain drop-shadow-sm"
+            />
           </div>
 
-          {/* 7. QUANTITY & REMAINING */}
-            <div className="grid grid-cols-2 gap-4">
-            {/* กล่องจำนวนที่ปล่อย */}
-            <div className="bg-[#4A59FF] rounded-2xl p-4 relative overflow-hidden text-white shadow-md h-28 flex flex-col">
-                <span className="text-base font-medium opacity-90">จำนวนที่ปล่อย</span>
-                
-                <div className="flex-1 flex items-center justify-center">
-                <p className="text-3xl font-black leading-none">{currentPond.releaseCount}</p>
-                </div>
-
-                <Image 
-                src="/dashboard/ix_water-fish.svg" 
-                alt="fish" 
-                width={60} 
-                height={50} 
-                className="absolute bottom-0 right-0 opacity-90 translate-x-1 translate-y-1" 
-                />
+          <div className={`rounded-2xl p-5 flex flex-col justify-center h-full text-center relative transition-colors duration-300 ${statusStyles.bg}`}>
+            <div className="mb-2 flex items-center justify-center gap-2">
+              <Image src={statusStyles.icon} alt="survival-rate" width={24} height={24} className="text-black shrink-0" />
+              <span className="text-black text-base font-semibold leading-tight text-left">
+                อัตราการรอด
+              </span>
             </div>
 
-            {/* กล่องคงเหลือ */}
-            <div className="bg-[#E0A84D] rounded-2xl p-4 relative overflow-hidden text-white shadow-md h-28 flex flex-col">
-                <span className="text-base font-medium opacity-90">คงเหลือ</span>
-                
-                <div className="flex-1 flex items-center justify-center">
-                <p className="text-3xl font-black leading-none">{currentPond.remainingCount}</p>
-                </div>
-
-                <Image 
-                src="/dashboard/Group 1000003034.svg" 
-                alt="group" 
-                width={60} 
-                height={50} 
-                className="absolute bottom-0 right-0 opacity-90 translate-x-1 translate-y-1" 
-                />
+            <div className="flex flex-col items-center gap-1 mt-1">
+              {hasSurvival ? (
+                <span className={`text-3xl font-bold ${statusStyles.text}`}>
+                  {formatSurvivalPct(currentSurvivalRate)}
+                </span>
+              ) : (
+                <span className="text-3xl font-bold text-black">-</span>
+              )}
             </div>
-            </div>
-
-          {/* 8. SURVIVAL RATE */}
-            {(() => {
-            const status = getSurvivalStatusStyles(currentPond.survivalRate);
-            return (
-                <div className={`${status.bg} rounded-2xl p-4 flex flex-col shadow-sm border border-white/40 transition-colors duration-300`}>
-                
-                <div className="flex items-center gap-2 mb-2">
-                    <Image src="/dashboard/ion_fish (1).svg" alt="survival" width={22} height={22} />
-                    <span className="text-base font-bold text-gray-700">อัตราการรอด</span>
-                </div>
-                
-                <div className="flex flex-col items-center justify-center">
-                    <div className="flex items-baseline gap-1">
-                    <span className={`text-3xl font-black ${status.text}`}>
-                        {currentPond.survivalRate}%
-                    </span>
-                    <span className={`text-xs font-bold ${status.text}`}>
-                        {status.label}
-                    </span>
-                    </div>
-                </div>
-
-                </div>
-            );
-            })()}
-
-          {/* 9. MARKET SIZE */}
-          <div className="bg-[#F1DFFF] rounded-2xl p-4 flex flex-col shadow-sm border border-purple-100/30">
-            <div className="flex items-center gap-2 mb-2">
-                <Image src="/dashboard/weight.svg" alt="weight" width={20} height={20} />
-                <span className="text-base font-bold text-gray-700">ขนาดที่เหมาะสำหรับการขาย</span>
-            </div>
-            
-            <div className="flex justify-center items-baseline gap-1">
-                <p className="text-2xl font-black text-black">{currentPond.marketSize}</p>
-                <span className="text-lg font-bold text-black">กรัม</span>
-            </div>
-            </div>
+          </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* 7. Forecast Table */}
+        <div>
+          <div className="flex items-center gap-2 mb-3">
+            <Image src="/nursery-large/fluent_weather-hail-day.svg" alt="forecast" width={24} height={24} />
+            <h3 className="text-base font-bold text-[#093832]">คาดการณ์สภาพอากาศและการให้อาหาร</h3>
+          </div>
+          <div className="bg-[#F4FFFC] rounded-2xl pt-5 pb-6 p-2 shadow-sm">
+            <div className="grid grid-cols-3 mb-4 border-b border-[#D0EBE5] pb-3">
+              <div className="text-sm font-bold text-[#75CFB6] text-center">วันที่</div>
+              <div className="text-sm font-bold text-[#75CFB6] text-center">สภาพอากาศ</div>
+              <div className="text-sm font-bold text-[#75CFB6] text-center">ปริมาณอาหารที่แนะนำ</div>
+            </div>
+            {loading ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">กำลังโหลด...</p>
+              </div>
+            ) : forecastData.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">ไม่มีข้อมูล</p>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                {forecastData.map((item, index) => {
+                  const displayDate = new Date(item.date).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: '2-digit' });
+                  const displayTemp = `${Math.round(item.lowTemperatureC)} / ${Math.round(item.highTemperatureC)} °C`;
+                  const displayFeed = item.feedAdjustmentPct > 0
+                    ? `เพิ่มขึ้น ${item.feedAdjustmentPct}%`
+                    : item.feedAdjustmentPct < 0
+                      ? `ลดลง ${Math.abs(item.feedAdjustmentPct)}%`
+                      : "ปกติ";
+                  const weatherIcon = getWeatherIconFromCode(item.weatherCode);
+
+                  return (
+                    <div key={index} className="grid grid-cols-3 items-center hover:bg-[#E0F7FA] rounded transition-colors duration-200 -mx-2 px-2 py-1">
+                      <div className="text-xs font-medium text-[#0F614E] text-center">{displayDate}</div>
+                      <div className="flex items-center justify-center gap-3">
+                        <Image src={`/nursery-large/${weatherIcon}`} alt="weather" width={20} height={20} />
+                        <span className="text-xs font-medium text-[#0F614E]">{displayTemp}</span>
+                      </div>
+                      <div className="text-xs font-medium text-[#0F614E] text-center">{displayFeed}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 8. Action Buttons */}
         <div className="pt-2 space-y-3 md:space-y-0 md:grid md:grid-cols-3 md:gap-4 md:col-span-2 lg:col-span-4">
-          <Link href="/small/weather-small" className="block w-full">
+          <Link href={getSubLink('weather')} className="block w-full">
             <button className="w-full bg-[#0084FF] hover:bg-blue-700 text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
               <Image src="/nursery-large/fluent_weather-hail-day-w.svg" alt="icon" width={24} height={24} />
               สภาพอากาศ
             </button>
           </Link>
 
-          <Link href="/small/price-small" className="block w-full">
+          <Link href={getSubLink('price')} className="block w-full">
             <button className="w-full bg-[#FF4242] hover:bg-[#e03535] text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
               <Image src="/nursery-large/healthicons_money-bag.svg" alt="icon" width={24} height={24} />
               ตรวจสอบราคาตลาด
             </button>
           </Link>
 
-          <Link href="/small/feeding-small" className="block w-full">
+          <Link href={getSubLink('feeding')} className="block w-full">
             <button className="w-full bg-[#EF6E11] hover:bg-orange-700 text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
               <Image src="/nursery-large/fluent_food-grains-w.svg" alt="icon" width={24} height={24} />
               การให้อาหาร
             </button>
           </Link>
 
-          <Link href="/small/disease-info-small" className="block w-full">
+          <Link href={getSubLink('disease-info')} className="block w-full">
             <button className="w-full bg-[#A530FF] hover:bg-[#8a2be2] text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
               <Image src="/nursery-large/famicons_fish-w.svg" alt="icon" width={24} height={24} />
               การรักษาโรค
             </button>
           </Link>
 
-          <Link href="/small/record-small" className="block w-full">
+          <Link href={getSubLink('record')} className="block w-full">
             <button className="w-full bg-[#72B544] hover:bg-green-700 text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
               <Image src="/nursery-large/uil_plus.svg" alt="icon" width={24} height={24} />
               บันทึกข้อมูล
             </button>
           </Link>
         </div>
+
       </div>
     </div>
+  );
+}
+
+export default function DashboardFarmerPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+      <DashboardContent />
+    </Suspense>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { FarmTypeOption, deriveFarmTypesFromProfile } from "@/utils/farmTypes";
 
@@ -15,12 +15,6 @@ interface NavItem {
   pondId?: string;
 }
 
-const FARM_TYPE_ROUTES: Record<FarmType, string> = {
-  SMALL: "/small",
-  LARGE: "/large",
-  MARKET: "/market",
-};
-
 const FARM_TYPE_LABELS: Record<FarmType, string> = {
   SMALL: "ปลาตุ้ม",
   LARGE: "ปลานิ้ว",
@@ -28,18 +22,21 @@ const FARM_TYPE_LABELS: Record<FarmType, string> = {
 };
 
 export default function FarmNavigation() {
-  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const currentPondId = searchParams.get("pondId");
+  const currentType = searchParams.get("type");
+
   const [displayItems, setDisplayItems] = useState<NavItem[]>([]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (!storedUser) {
-      // Fallback: show all farm types
+      // Fallback: show all farm types pointing to dashboard-farmer
       setDisplayItems(
-        Object.entries(FARM_TYPE_ROUTES).map(([type, path]) => ({
+        Object.keys(FARM_TYPE_LABELS).map((type) => ({
           type: type as FarmType,
           label: FARM_TYPE_LABELS[type as FarmType],
-          path,
+          path: `/dashboard-farmer?type=${type}`,
         }))
       );
       return;
@@ -58,38 +55,39 @@ export default function FarmNavigation() {
         // Build nav items from ponds — one tab per pond
         const pondItems: NavItem[] = ponds.map((pond, index) => ({
           type: pond.farmType || "SMALL",
-          label: `บ่อที่ ${index + 1}`,
-          path: FARM_TYPE_ROUTES[pond.farmType] || "/small",
+          label: `บ่อที่ ${index + 1} (${FARM_TYPE_LABELS[pond.farmType || "SMALL"]})`,
+          path: `/dashboard-farmer?type=${pond.farmType}&pondId=${pond.id}`,
           pondId: pond.id,
         }));
         setDisplayItems(pondItems);
       } else {
         // Fallback to farm types from profile
         const allowed = deriveFarmTypesFromProfile(profile);
-        if (allowed.length <= 1) {
+        if (allowed.length === 0) {
           setDisplayItems(
-            Object.entries(FARM_TYPE_ROUTES).map(([type, path]) => ({
+            Object.keys(FARM_TYPE_LABELS).map((type) => ({
               type: type as FarmType,
               label: FARM_TYPE_LABELS[type as FarmType],
-              path,
+              path: `/dashboard-farmer?type=${type}`,
             }))
           );
         } else {
           const filtered = allowed.map((type) => ({
             type,
             label: FARM_TYPE_LABELS[type],
-            path: FARM_TYPE_ROUTES[type],
+            path: `/dashboard-farmer?type=${type}`,
           }));
           setDisplayItems(filtered);
         }
       }
     } catch (e) {
       console.error("Parse error", e);
+      // Fallback on error
       setDisplayItems(
-        Object.entries(FARM_TYPE_ROUTES).map(([type, path]) => ({
+        Object.keys(FARM_TYPE_LABELS).map((type) => ({
           type: type as FarmType,
           label: FARM_TYPE_LABELS[type as FarmType],
-          path,
+          path: `/dashboard-farmer?type=${type}`,
         }))
       );
     }
@@ -99,7 +97,18 @@ export default function FarmNavigation() {
     <div className="py-4 mt-4 w-full mt-8">
       <div className={`grid gap-2 md:gap-3 w-full`} style={{ gridTemplateColumns: `repeat(${Math.min(displayItems.length, 4)}, minmax(0, 1fr))` }}>
         {displayItems.map((item, idx) => {
-          const isActive = pathname.startsWith(item.path);
+          // customized isActive logic
+          let isActive = false;
+
+          if (currentPondId && item.pondId) {
+            isActive = currentPondId === item.pondId;
+          } else if (currentType && !currentPondId && !item.pondId) {
+            isActive = currentType === item.type;
+          } else if (!currentType && !currentPondId && idx === 0) {
+            // Default to first item if no params
+            isActive = true;
+          }
+
 
           return (
             <Link

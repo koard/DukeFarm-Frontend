@@ -11,6 +11,8 @@ interface RecordListStepProps {
   onAddNew: () => void;
   onViewDetails: (id: string) => void;
   onBack: () => void;
+  farmType: string;
+  pondId?: string;
 }
 
 type RecordItem = {
@@ -25,7 +27,7 @@ type RecordItem = {
   notes: string | null;
 };
 
-export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onViewDetails, onBack }) => {
+export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onViewDetails, onBack, farmType, pondId }) => {
   const [records, setRecords] = useState<RecordItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState('');
@@ -46,7 +48,16 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
       const token = localStorage.getItem("authToken");
       if (!token) return;
 
-      const res = await fetch(`${API_BASE_URL}/records?limit=200`, {
+      const url = new URL(`${API_BASE_URL}/records`);
+      url.searchParams.append('limit', '200');
+      // Always filter by farmType
+      url.searchParams.append('farmType', farmType);
+
+      if (pondId) {
+        url.searchParams.append('pondId', pondId);
+      }
+
+      const res = await fetch(url.toString(), {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -59,7 +70,7 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [farmType, pondId]);
 
   useEffect(() => {
     fetchRecords();

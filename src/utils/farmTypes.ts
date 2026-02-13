@@ -3,9 +3,9 @@ export type FarmTypeOption = "SMALL" | "LARGE" | "MARKET";
 export const FARM_TYPE_PRIORITY: FarmTypeOption[] = ["SMALL", "LARGE", "MARKET"];
 
 const FARM_TYPE_ROUTES: Record<FarmTypeOption, string> = {
-  SMALL: "/small",
-  LARGE: "/large",
-  MARKET: "/market",
+  SMALL: "/dashboard-farmer?type=SMALL",
+  LARGE: "/dashboard-farmer?type=LARGE",
+  MARKET: "/dashboard-farmer?type=MARKET",
 };
 
 export const resolveFarmType = (value?: string | null): FarmTypeOption | null => {
@@ -59,7 +59,7 @@ export const deriveFarmTypesFromProfile = (profile?: FarmTypeProfileLike): FarmT
   ];
 
   const primary = resolveFarmType(profile.primaryFarmType);
-  
+
   // Always ensure primary farm type is included first
   if (primary && !collected.includes(primary)) {
     collected.unshift(primary); // Add to front instead of push

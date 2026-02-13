@@ -13,9 +13,10 @@ type FarmType = 'SMALL' | 'LARGE' | 'MARKET';
 export type RecordEntryFormProps = {
   farmType: FarmType;
   backHref: string;
+  pondId?: string;
 };
 
-export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) => {
+export const RecordEntryForm = ({ farmType, backHref, pondId }: RecordEntryFormProps) => {
   const router = useRouter();
 
   const [currentStep, setCurrentStep] = useState<number | null>(null); // null = loading
@@ -80,6 +81,8 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
           onAddNew={handleAddNew}
           onViewDetails={handleViewDetails}
           onBack={handleBackToDashboard}
+          farmType={farmType}
+          pondId={pondId}
         />
       )}
 
@@ -88,6 +91,7 @@ export const RecordEntryForm = ({ farmType, backHref }: RecordEntryFormProps) =>
         <RecordEntryStep
           onAnalyze={handleAnalyze}
           onBack={handleBackToList}
+          initialPondId={pondId}
         />
       )}
 

@@ -107,35 +107,36 @@ interface DashboardData {
 interface WeatherViewProps {
   farmType: FarmType;
   backHref: string;
+  pondId?: string;
 }
 
-export const WeatherView = ({ farmType, backHref }: WeatherViewProps) => {
+export const WeatherView = ({ farmType, backHref, pondId }: WeatherViewProps) => {
 
   const [coords, setCoords] = useState({ lat: 13.7563, lon: 100.5018 });
   const [locationName, setLocationName] = useState("กำลังโหลดข้อมูลฟาร์ม...");
-  
+
   const [current, setCurrent] = useState<CurrentWeather | null>(null);
   const [daily, setDaily] = useState<DailyForecast[]>([]);
   const [hourly, setHourly] = useState<HourlyForecast[]>([]);
-  
-  const { data: dashboardData, loading, error } = useDashboardData<DashboardData>(farmType);
+
+  const { data: dashboardData, loading, error } = useDashboardData<DashboardData>(farmType, pondId);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
-        try {
-            const parsedUser = JSON.parse(storedUser);
-            if (parsedUser.farmerProfile?.farmLatitude && parsedUser.farmerProfile?.farmLongitude) {
-                setCoords({
-                    lat: parsedUser.farmerProfile.farmLatitude,
-                    lon: parsedUser.farmerProfile.farmLongitude
-                });
-            } else {
-                setLocationName("ไม่พบพิกัดฟาร์ม");
-            }
-        } catch (error) {
-            console.error("Error parsing user data:", error);
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser.farmerProfile?.farmLatitude && parsedUser.farmerProfile?.farmLongitude) {
+          setCoords({
+            lat: parsedUser.farmerProfile.farmLatitude,
+            lon: parsedUser.farmerProfile.farmLongitude
+          });
+        } else {
+          setLocationName("ไม่พบพิกัดฟาร์ม");
         }
+      } catch (error) {
+        console.error("Error parsing user data:", error);
+      }
     }
   }, []);
 
@@ -206,13 +207,13 @@ export const WeatherView = ({ farmType, backHref }: WeatherViewProps) => {
 
   useEffect(() => {
     import("leaflet").then((L) => {
-        // @ts-expect-error -- Adjusting Leaflet default icon URLs at runtime
-        delete L.Icon.Default.prototype._getIconUrl;
-        L.Icon.Default.mergeOptions({
-            iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-            iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-            shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-        });
+      // @ts-expect-error -- Adjusting Leaflet default icon URLs at runtime
+      delete L.Icon.Default.prototype._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+      });
     });
   }, []);
 
@@ -221,181 +222,181 @@ export const WeatherView = ({ farmType, backHref }: WeatherViewProps) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      
+
       <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-30 flex items-center justify-between">
         <div className="flex items-center gap-3">
-            <Link 
-              href={backHref} 
-              className="p-1 hover:bg-white/10 rounded-full transition-colors"
-            >
-              <ChevronLeft className="w-8 h-8" />
-            </Link>
-            <h1 className="text-2xl font-bold">สภาพอากาศ</h1>
+          <Link
+            href={backHref}
+            className="p-1 hover:bg-white/10 rounded-full transition-colors"
+          >
+            <ChevronLeft className="w-8 h-8" />
+          </Link>
+          <h1 className="text-2xl font-bold">สภาพอากาศ</h1>
         </div>
 
         <ProfileDropdownMenu showGreeting={false} />
       </div>
 
       <div className="px-4 mt-5 pb-10 space-y-4">
-        
+
         <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className="mb-3 flex justify-between items-start">
-                <div className="max-w-[70%]"> 
-                    <p className="text-[#D66D58] text-xs font-medium">
-                        <span key={currentTimeDisplay}>{currentTimeDisplay}</span>
-                    </p>
-                    <div className="flex items-start gap-1 mt-1">
-                        <MapPin className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" /> 
-                        
-                        <h2 className="text-[#1E1E1E] text-lg font-bold leading-tight break-words">
-                            <span key={locationName}>{locationName}</span>
-                        </h2>
-                    </div>
-                </div>
-                <div className="text-right">
-                    <span className="text-3xl font-bold text-[#179678] notranslate">{current?.temp ?? "-"}°C</span>
-                    <p className="text-xs text-gray-500 flex items-center justify-end gap-1">
-                        <span key={currentWeatherInfo.label}>{currentWeatherInfo.label}</span>
-                    </p>
-                </div>
-            </div>
+          <div className="mb-3 flex justify-between items-start">
+            <div className="max-w-[70%]">
+              <p className="text-[#D66D58] text-xs font-medium">
+                <span key={currentTimeDisplay}>{currentTimeDisplay}</span>
+              </p>
+              <div className="flex items-start gap-1 mt-1">
+                <MapPin className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
 
-            <div className="relative w-full h-[280px] bg-slate-100 rounded border border-gray-200 overflow-hidden mb-3 z-0 notranslate">
-               <MapContainer 
-                  key={`${coords.lat}-${coords.lon}`} 
-                  center={[coords.lat, coords.lon]} 
-                  zoom={13} 
-                  style={{ height: "100%", width: "100%" }}
-                  scrollWheelZoom={false}
-               >
-                    <TileLayer
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
-                    <Marker position={[coords.lat, coords.lon]}>
-                        <Popup>
-                            ตำแหน่งฟาร์มของคุณ
-                        </Popup>
-                    </Marker>
-                    <RecenterAutomatically lat={coords.lat} lon={coords.lon} />
-               </MapContainer>
-               
-               <button 
-                onClick={() => {
-                   const mapEvent = new CustomEvent('reset-map-view');
-                   window.dispatchEvent(mapEvent); 
-                }}
-                className="absolute top-2 right-2 z-[1000] bg-white p-2 rounded shadow-md text-gray-600 hover:text-blue-600"
-                title="กลับไปที่ตั้งฟาร์ม"
-               >
-                   <MapPin className="w-5 h-5" />
-               </button>
+                <h2 className="text-[#1E1E1E] text-lg font-bold leading-tight break-words">
+                  <span key={locationName}>{locationName}</span>
+                </h2>
+              </div>
             </div>
+            <div className="text-right">
+              <span className="text-3xl font-bold text-[#179678] notranslate">{current?.temp ?? "-"}°C</span>
+              <p className="text-xs text-gray-500 flex items-center justify-end gap-1">
+                <span key={currentWeatherInfo.label}>{currentWeatherInfo.label}</span>
+              </p>
+            </div>
+          </div>
 
-            <div className="grid grid-cols-3 gap-2 mt-4 text-center">
-                 <div className="bg-blue-50 p-2 rounded-lg">
-                    <Droplets className="w-5 h-5 mx-auto text-blue-500 mb-1"/>
-                    <p className="text-[10px] text-gray-500">ความชื้น</p>
-                    <p className="font-bold text-gray-700 notranslate">{current?.humidity ?? 0}%</p>
-                 </div>
-                 <div className="bg-gray-50 p-2 rounded-lg">
-                    <CloudRain className="w-5 h-5 mx-auto text-gray-500 mb-1"/>
-                    <p className="text-[10px] text-gray-500">ปริมาณฝน</p>
-                    <p className="font-bold text-gray-700 notranslate">{current?.rain ?? 0} มม.</p>
-                 </div>
-                 <div className="bg-yellow-50 p-2 rounded-lg">
-                    <Wind className="w-5 h-5 mx-auto text-yellow-600 mb-1"/>
-                    <p className="text-[10px] text-gray-500">สภาพอากาศ</p>
-                    <p className="font-bold text-gray-700 text-xs truncate">
-                        <span key={currentWeatherInfo.label}>{currentWeatherInfo.label}</span>
-                    </p>
-                 </div>
+          <div className="relative w-full h-[280px] bg-slate-100 rounded border border-gray-200 overflow-hidden mb-3 z-0 notranslate">
+            <MapContainer
+              key={`${coords.lat}-${coords.lon}`}
+              center={[coords.lat, coords.lon]}
+              zoom={13}
+              style={{ height: "100%", width: "100%" }}
+              scrollWheelZoom={false}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <Marker position={[coords.lat, coords.lon]}>
+                <Popup>
+                  ตำแหน่งฟาร์มของคุณ
+                </Popup>
+              </Marker>
+              <RecenterAutomatically lat={coords.lat} lon={coords.lon} />
+            </MapContainer>
+
+            <button
+              onClick={() => {
+                const mapEvent = new CustomEvent('reset-map-view');
+                window.dispatchEvent(mapEvent);
+              }}
+              className="absolute top-2 right-2 z-[1000] bg-white p-2 rounded shadow-md text-gray-600 hover:text-blue-600"
+              title="กลับไปที่ตั้งฟาร์ม"
+            >
+              <MapPin className="w-5 h-5" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 mt-4 text-center">
+            <div className="bg-blue-50 p-2 rounded-lg">
+              <Droplets className="w-5 h-5 mx-auto text-blue-500 mb-1" />
+              <p className="text-[10px] text-gray-500">ความชื้น</p>
+              <p className="font-bold text-gray-700 notranslate">{current?.humidity ?? 0}%</p>
             </div>
+            <div className="bg-gray-50 p-2 rounded-lg">
+              <CloudRain className="w-5 h-5 mx-auto text-gray-500 mb-1" />
+              <p className="text-[10px] text-gray-500">ปริมาณฝน</p>
+              <p className="font-bold text-gray-700 notranslate">{current?.rain ?? 0} มม.</p>
+            </div>
+            <div className="bg-yellow-50 p-2 rounded-lg">
+              <Wind className="w-5 h-5 mx-auto text-yellow-600 mb-1" />
+              <p className="text-[10px] text-gray-500">สภาพอากาศ</p>
+              <p className="font-bold text-gray-700 text-xs truncate">
+                <span key={currentWeatherInfo.label}>{currentWeatherInfo.label}</span>
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* --- รายชั่วโมง --- */}
         <div className="mt-4 bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <h3 className="text-[#4A4A4A] text-lg font-bold mb-4">พยากรณ์รายชั่วโมง</h3>
-            <div className="flex overflow-x-auto gap-3 pb-4 scrollbar-hide">
-                {hourly.length > 0 ? hourly.map((h, i) => {
-                    const info = getWeatherInfo(h.weatherCode);
-                    return (
-                        <div key={i} className="flex flex-col items-center min-w-[85px] bg-gray-50 p-2 rounded-xl border border-gray-100">
-                            <span className="text-xs text-gray-500 mb-1">
-                                <span key={h.time}>{h.time}</span>
-                            </span>
-                            
-                            <div className="flex flex-col items-center justify-center h-14">
-                                {info.icon}
-                                <span className="text-[10px] text-gray-600 font-medium mt-1 text-center leading-none">
-                                    <span key={info.label}>{info.label}</span>
-                                </span>
-                            </div>
+          <h3 className="text-[#4A4A4A] text-lg font-bold mb-4">พยากรณ์รายชั่วโมง</h3>
+          <div className="flex overflow-x-auto gap-3 pb-4 scrollbar-hide">
+            {hourly.length > 0 ? hourly.map((h, i) => {
+              const info = getWeatherInfo(h.weatherCode);
+              return (
+                <div key={i} className="flex flex-col items-center min-w-[85px] bg-gray-50 p-2 rounded-xl border border-gray-100">
+                  <span className="text-xs text-gray-500 mb-1">
+                    <span key={h.time}>{h.time}</span>
+                  </span>
 
-                            <span className="text-lg font-bold text-gray-700 mt-1 notranslate">{Math.round(h.temp)}°</span>
-                            <span className="text-[10px] text-blue-500 flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-full mt-1">
-                                <Droplets className="w-3 h-3"/> ฝน <span className="notranslate">{h.rainProb}%</span>
-                            </span>
-                        </div>
-                    );
-                }) : (
-                    <p className="text-gray-400 text-sm w-full text-center">กำลังโหลดข้อมูล...</p>
-                )}
-            </div>
+                  <div className="flex flex-col items-center justify-center h-14">
+                    {info.icon}
+                    <span className="text-[10px] text-gray-600 font-medium mt-1 text-center leading-none">
+                      <span key={info.label}>{info.label}</span>
+                    </span>
+                  </div>
+
+                  <span className="text-lg font-bold text-gray-700 mt-1 notranslate">{Math.round(h.temp)}°</span>
+                  <span className="text-[10px] text-blue-500 flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-full mt-1">
+                    <Droplets className="w-3 h-3" /> ฝน <span className="notranslate">{h.rainProb}%</span>
+                  </span>
+                </div>
+              );
+            }) : (
+              <p className="text-gray-400 text-sm w-full text-center">กำลังโหลดข้อมูล...</p>
+            )}
+          </div>
         </div>
 
         {/* --- 7 วันล่วงหน้า --- */}
         <div className="mt-4 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-             <div className="p-4 pb-2 border-b border-gray-50 bg-gray-50/50">
-                <div className="flex justify-between items-center">
-                    <h3 className="text-[#4A4A4A] text-lg font-bold">7 วันล่วงหน้า</h3>
-                    <div className="flex gap-3 text-[10px] text-gray-500">
-                        <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-orange-500"></div>สูงสุด</span>
-                        <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-blue-500"></div>ต่ำสุด</span>
-                    </div>
-                </div>
-             </div>
-             
-             <div className="divide-y divide-gray-50">
-                {daily.length > 0 ? daily.map((item, index) => {
-                    const info = getWeatherInfo(item.weatherCode);
-                    return (
-                        <div key={index} className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
-                            <div className="w-24 text-sm font-medium text-gray-600">
-                                <span key={item.date}>{item.date}</span>
-                            </div>
-                            
-                            <div className="flex flex-col items-center w-24">
-                                 {info.icon}
-                                 <span className="text-[10px] text-gray-500 mt-1 text-center">
-                                    <span key={info.label}>{info.label}</span>
-                                 </span>
-                            </div>
+          <div className="p-4 pb-2 border-b border-gray-50 bg-gray-50/50">
+            <div className="flex justify-between items-center">
+              <h3 className="text-[#4A4A4A] text-lg font-bold">7 วันล่วงหน้า</h3>
+              <div className="flex gap-3 text-[10px] text-gray-500">
+                <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-orange-500"></div>สูงสุด</span>
+                <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-blue-500"></div>ต่ำสุด</span>
+              </div>
+            </div>
+          </div>
 
-                            <div className="flex flex-col items-end gap-1 w-20">
-                                 <span className="text-sm font-bold text-orange-500 flex items-center gap-1 notranslate">
-                                    <ArrowUp className="w-3 h-3"/> {Math.round(item.tempMax)}°
-                                 </span>
-                                 <span className="text-sm font-medium text-blue-500 flex items-center gap-1 notranslate">
-                                    <ArrowDown className="w-3 h-3"/> {Math.round(item.tempMin)}°
-                                 </span>
-                            </div>
-                        </div>
-                    );
-                }) : (
-                     <div className="p-4 text-center text-gray-400">กำลังโหลดข้อมูล...</div>
-                )}
-             </div>
+          <div className="divide-y divide-gray-50">
+            {daily.length > 0 ? daily.map((item, index) => {
+              const info = getWeatherInfo(item.weatherCode);
+              return (
+                <div key={index} className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
+                  <div className="w-24 text-sm font-medium text-gray-600">
+                    <span key={item.date}>{item.date}</span>
+                  </div>
+
+                  <div className="flex flex-col items-center w-24">
+                    {info.icon}
+                    <span className="text-[10px] text-gray-500 mt-1 text-center">
+                      <span key={info.label}>{info.label}</span>
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-1 w-20">
+                    <span className="text-sm font-bold text-orange-500 flex items-center gap-1 notranslate">
+                      <ArrowUp className="w-3 h-3" /> {Math.round(item.tempMax)}°
+                    </span>
+                    <span className="text-sm font-medium text-blue-500 flex items-center gap-1 notranslate">
+                      <ArrowDown className="w-3 h-3" /> {Math.round(item.tempMin)}°
+                    </span>
+                  </div>
+                </div>
+              );
+            }) : (
+              <div className="p-4 text-center text-gray-400">กำลังโหลดข้อมูล...</div>
+            )}
+          </div>
         </div>
 
         {/* --- Footer --- */}
         <div className="mt-6 mb-10 text-center">
-            <p className="text-[10px] text-gray-400">
-                ข้อมูลสภาพอากาศโดย <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">Open-Meteo.com</a>
-            </p>
-            <p className="text-[10px] text-gray-400">
-                ข้อมูลแผนที่ © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">OpenStreetMap</a> contributors
-            </p>
+          <p className="text-[10px] text-gray-400">
+            ข้อมูลสภาพอากาศโดย <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">Open-Meteo.com</a>
+          </p>
+          <p className="text-[10px] text-gray-400">
+            ข้อมูลแผนที่ © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-600">OpenStreetMap</a> contributors
+          </p>
         </div>
 
       </div>

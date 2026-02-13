@@ -14,7 +14,7 @@ export interface DashboardResponse {
   feedingPlan: unknown;
 }
 
-export const useDashboardData = <T = DashboardResponse>(group: DashboardGroup) => {
+export const useDashboardData = <T = DashboardResponse>(group: DashboardGroup, pondId?: string) => {
   const router = useRouter();
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,7 +33,12 @@ export const useDashboardData = <T = DashboardResponse>(group: DashboardGroup) =
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/dashboard/groups/${group}`, {
+      let url = `${API_BASE_URL}/dashboard/groups/${group}`;
+      if (pondId) {
+        url += `?pondId=${pondId}`;
+      }
+
+      const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -53,7 +58,7 @@ export const useDashboardData = <T = DashboardResponse>(group: DashboardGroup) =
     } finally {
       setLoading(false);
     }
-  }, [group, router]);
+  }, [group, pondId, router]);
 
   useEffect(() => {
     fetchDashboard();
