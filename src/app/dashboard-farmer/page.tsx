@@ -264,24 +264,24 @@ function DashboardContent() {
       {/* -------------------------------------------------------------------------
           (ส่วนหัวฟาร์ม - ห้ามแก้ตามต้นฉบับเดิม)
           ------------------------------------------------------------------------- */}
-      <div className="bg-[#093832] text-white px-4 pt-5 pb-4 rounded-b-3xl shadow-md relative z-50">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Image src="/dashboard/Group.svg" alt="Overview" width={24} height={24} />
-            <h1 className="text-2xl font-bold">ภาพรวมฟาร์ม</h1>
-          </div>
-          <ProfileDropdownMenu />
-        </div>
-      </div>
+      <div className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-30">
+              <div className="max-w-7xl mx-auto flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <Image src="/dashboard/Group.svg" alt="Overview" width={24} height={24} />
+                  <h1 className="text-2xl font-bold">ภาพรวมฟาร์ม</h1>
+                </div>
+                <ProfileDropdownMenu />
+              </div>
+            </div>
 
       {/* -------------------------------------------------------------------------
           1. NAVIGATION
           ------------------------------------------------------------------------- */}
-      <div className="sticky top-0 z-40 mx-0 pt-2 pb-2 bg-white transition-all duration-300">
+      <div className="sticky top-0 z-40 mx-0 pt-2 bg-white transition-all duration-300">
         <FarmNavigation />
       </div>
 
-      <div className="px-5 mt-6 max-w-7xl mx-auto space-y-6">
+      <div className="px-5 mt-4 max-w-7xl mx-auto space-y-6">
 
         {/* -------------------------------------------------------------------------
             2. DATE VIEW
@@ -331,16 +331,25 @@ function DashboardContent() {
         {/* -------------------------------------------------------------------------
             4. TEMPERATURE REPORT
             ------------------------------------------------------------------------- */}
-        <div className="rounded-[25px] p-6 shadow-sm border border-white/20 bg-white/60 backdrop-blur-md">
-          <p className="text-lg font-medium text-[#093832] leading-relaxed">
-            {loading ? "..." : (
-              <>
-                {tempAdvice}
-                {feedAdvice && <><br />{feedAdvice}</>}
-              </>
-            )}
-          </p>
-        </div>
+          <div className="bg-gradient-to-r from-[#BBE3FB] to-[#CFFFD5] rounded-[25px] p-6 shadow-sm border border-white/50">
+            <div className="flex items-center gap-3 mb-2 text-[#093832]">
+              <Image src="/dashboard/fluent_temperature.svg" alt="temp" width={22} height={22} />
+              <span className="text-base font-bold">รายงานอุณหภูมิ</span>
+            </div>
+            
+            <div className="text-xl font-black text-[#093832] text-center leading-relaxed">
+              {loading ? (
+                <p className="animate-pulse">กำลังโหลดข้อมูล...</p>
+              ) : (
+                <>
+                  <p>{tempAdvice || "ไม่มีข้อมูลอุณหภูมิ"}</p>
+                  {feedAdvice && (
+                    <p className="mt-1">{feedAdvice}</p>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
 
         {/* -------------------------------------------------------------------------
             5. FORECAST SECTION (iOS Style)
@@ -409,182 +418,214 @@ function DashboardContent() {
           </div>
         </div>
 
-        {/* -------------------------------------------------------------------------
-            6. POND SUMMARY 
-            ------------------------------------------------------------------------- */}
-        <div className="flex items-center gap-2 mt-8 ml-1">
-          <Image src="/dashboard/fluent_food-grains-w.svg" alt="summary" width={22} height={22} className="text-[#093832]" style={{ filter: 'invert(16%) sepia(34%) saturate(996%) hue-rotate(124deg) brightness(95%) contrast(93%)' }} />
-          {/* Note: Icon color adjustment or use a different colored icon if needed */}
-          <h3 className="text-base font-bold text-[#093832]">สรุปข้อมูล {pondName}</h3>
-        </div>
+          {/* -------------------------------------------------------------------------
+              6. POND SUMMARY 
+              ------------------------------------------------------------------------- */}
+          <div className="flex items-center gap-2 mt-8 ml-1">
+            <Image 
+              src="/dashboard/food.svg" 
+              alt="summary" 
+              width={22} 
+              height={22} 
+            />
+            <h3 className="text-base font-bold text-[#093832]">
+              สรุปข้อมูล {pondName}
+            </h3>
+          </div>
 
-        <div className="space-y-4">
-          {/* (ประเภทปลา และ น้ำหนักปลาเฉลี่ย */}
-          <div className="bg-gradient-to-r from-[#FFF6E2] via-[#FFF6E2] to-[#E6DAFF] rounded-2xl shadow-sm flex overflow-hidden h-28 border border-orange-50/20">
+          <div className="space-y-4">
+            <div className="bg-gradient-to-r from-[#FFF6E2] via-[#FFF6E2] to-[#E6DAFF] rounded-2xl shadow-sm flex overflow-hidden h-28 border border-orange-50/20">
 
-            {/* ฝั่งซ้าย: ประเภทปลา */}
-            <div className="flex-1 flex flex-col p-4 relative">
-              <div className="flex items-center gap-1.5 mb-1">
-                <Image src="/dashboard/famicons_fish-outline.svg" alt="type" width={18} height={18} />
-                <span className="text-sm font-bold text-gray-900">ประเภทปลา</span>
+              {/* ฝั่งซ้าย: ประเภทปลา */}
+              <div className="flex-1 flex flex-col p-4 relative">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Image src="/dashboard/ion_fish.svg" alt="type" width={18} height={18} />
+                  <span className="text-sm font-bold text-gray-900">ประเภทปลา</span>
+                </div>
+
+                <div className="flex-1 flex items-center justify-center">
+                  <p className="text-2xl font-black text-black">
+                    {loading ? "..." : fishType} 
+                  </p>
+                </div>
+                
+                {/* เส้นคั่นสีขาวแบบยาว */}
+                <div className="absolute right-0 top-3 bottom-3 w-px bg-white shadow-sm opacity-80"></div>
               </div>
 
-              <div className="flex-1 flex items-center justify-center">
-                <p className="text-2xl font-black text-black">{fishType}</p>
+              {/* ฝั่งขวา: น้ำหนักปลาเฉลี่ย */}
+              <div className="flex-1 flex flex-col p-4">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <Image src="/dashboard/line.svg" alt="avg" width={18} height={18} />
+                  <span className="text-sm font-bold text-gray-900">น้ำหนักปลาเฉลี่ย</span>
+                </div>
+
+                <div className="flex-1 flex items-center justify-center">
+                  <p className="text-2xl font-black text-black">
+                    {loading ? "..." : avgWeight} <span className="text-sm font-bold text-gray-900 ml-1">กรัม</span>
+                  </p>
+                </div>
               </div>
-              {/* เส้นคั่นสีขาว */}
-              <div className="absolute right-0 top-2 bottom-2 w-px bg-white shadow-sm"></div>
             </div>
 
-            {/* ฝั่งขวา: น้ำหนักปลาเฉลี่ย */}
-            <div className="flex-1 flex flex-col p-4">
-              <div className="flex items-center gap-1.5 mb-1">
-                {/* Use a weight icon if available, reusing temp or similar for now if specific weight icon missing from snippet */}
-                <Image src="/dashboard/famicons_fish-outline.svg" alt="avg" width={18} height={18} />
-                <span className="text-sm font-bold text-gray-900 ">น้ำหนักปลาเฉลี่ย</span>
+            {/* วันที่ปล่อยลงบ่อ */}
+            <div className="flex items-center justify-between px-2 pt-1 text-[#434343]">
+              <div className="flex items-center gap-2">
+                <Image src="/dashboard/solar_calendar-outline.svg" alt="date" width={20} height={20} />
+                <span className="text-sm font-bold">วันที่ปล่อยลงบ่อ</span>
               </div>
-
-              <div className="flex-1 flex items-center justify-center">
-                <p className="text-2xl font-black text-black">
-                  {avgWeight} <span className="text-sm font-bold text-gray-900">กรัม</span>
-                </p>
-              </div>
+              <span className="text-sm font-bold text-[#093832]">
+                {loading ? "..." : releaseDate} 
+              </span>
             </div>
           </div>
 
-          {/* (วันที่ปล่อยลงบ่อ) */}
-          <div className="flex items-center justify-between px-2 pt-1 text-[#434343]">
-            <div className="flex items-center gap-2">
-              <Image src="/dashboard/solar_calendar-outline.svg" alt="date" width={20} height={20} />
-              <span className="text-base font-bold">วันที่ปล่อยลงบ่อ</span>
-            </div>
-            <span className="text-base font-bold">{releaseDate}</span>
-          </div>
-
-          {/* 7. QUANTITY & REMAINING */}
+          {/* -------------------------------------------------------------------------
+              7. QUANTITY & REMAINING 
+              ------------------------------------------------------------------------- */}
           <div className="grid grid-cols-2 gap-4">
             {/* กล่องจำนวนที่ปล่อย */}
             <div className="bg-[#4A59FF] rounded-2xl p-4 relative overflow-hidden text-white shadow-md h-28 flex flex-col">
               <span className="text-base font-medium opacity-90">จำนวนที่ปล่อย</span>
-
+              
               <div className="flex-1 flex items-center justify-center">
-                <p className="text-3xl font-black leading-none">{releaseCount}</p>
+                <p className="text-3xl font-black leading-none">
+                  {loading ? "..." : releaseCount} 
+                </p>
               </div>
 
-              <Image
-                src="/dashboard/famicons_fish-w.svg"
-                alt="fish"
-                width={60}
-                height={50}
-                className="absolute bottom-0 right-0 opacity-90 translate-x-1 translate-y-1"
+              <Image 
+                src="/dashboard/ix_water-fish.svg" 
+                alt="fish" 
+                width={60} 
+                height={50} 
+                className="absolute bottom-0 right-0 opacity-90 translate-x-1 translate-y-1" 
               />
             </div>
 
             {/* กล่องคงเหลือ */}
             <div className="bg-[#E0A84D] rounded-2xl p-4 relative overflow-hidden text-white shadow-md h-28 flex flex-col">
               <span className="text-base font-medium opacity-90">คงเหลือ</span>
-
+              
               <div className="flex-1 flex items-center justify-center">
-                <p className="text-3xl font-black leading-none">{remainingCount}</p>
+                <p className="text-3xl font-black leading-none">
+                  {loading ? "..." : remainingCount}
+                </p>
               </div>
-              {/* Reusing fish icon mostly as placeholder if group icon missing */}
-              <Image
-                src="/dashboard/famicons_fish-w.svg"
-                alt="group"
-                width={60}
-                height={50}
-                className="absolute bottom-0 right-0 opacity-90 translate-x-1 translate-y-1"
+
+              <Image 
+                src="/dashboard/Group 1000003034.svg" 
+                alt="group" 
+                width={60} 
+                height={50} 
+                className="absolute bottom-0 right-0 opacity-90 translate-x-1 translate-y-1" 
               />
             </div>
           </div>
 
-          {/* อัตราการรอด */}
-          <div className={`p-4 rounded-[20px] shadow-sm backdrop-blur-sm border ${(survivalRate ?? 0) >= 80 ? 'bg-[#F0FFFA] border-[#E0F7FA]' :
-            (survivalRate ?? 0) >= 50 ? 'bg-[#FFFDE7] border-[#FFF9C4]' :
-              'bg-[#FFEBEE] border-[#FFCDD2]'
-            }`}>
-            <div className="flex items-center gap-2 mb-2 text-[#434343]">
-              <Image src="/dashboard/fluent_animal-turtle-16-regular.svg" alt="survival" width={20} height={20} />
-              <span className="text-base font-bold">อัตราการรอด</span>
-            </div>
-            <div className="flex items-end gap-2">
-              <span className={`text-4xl font-extrabold ${(survivalRate ?? 0) >= 80 ? 'text-[#00897B]' :
-                (survivalRate ?? 0) >= 50 ? 'text-[#FBC02D]' :
-                  'text-[#D32F2F]'
-                }`}>
-                {survivalRate !== null ? `${survivalRate}%` : "-"}
-              </span>
-              {survivalRate !== null && (
-                <span className={`text-sm font-bold mb-1 ${survivalRate >= 80 ? 'text-[#00897B]' :
-                  survivalRate >= 50 ? 'text-[#FBC02D]' :
-                    'text-[#D32F2F]'
-                  }`}>
-                  {survivalRate >= 80 ? '▲ (สูง)' : survivalRate >= 50 ? '● (ปานกลาง)' : '▼ (ต่ำ)'}
-                </span>
-              )}
-            </div>
-          </div>
-          {/* 9. MARKET SIZE */}
-          <div className="bg-[#F1DFFF] rounded-2xl p-4 flex flex-col shadow-sm border border-purple-100/30">
-            <div className="flex items-center gap-2 mb-2">
-              <Image src="/dashboard/healthicons_money-bag.svg" alt="weight" width={20} height={20} className="filter grayscale opacity-50" />
-              {/* Note: using money bag as weight icon proxy or need specific weight icon */}
-              <span className="text-base font-bold text-gray-700">ขนาดที่เหมาะสำหรับการขาย</span>
-            </div>
+          {/* -------------------------------------------------------------------------
+              8. SURVIVAL RATE 
+              ------------------------------------------------------------------------- */}
+          {(() => {
+            const status = getSurvivalStatusStyles(survivalRate);
+            
+            return (
+              <div className={`${status.bg} rounded-2xl p-4 flex flex-col shadow-sm border border-white/40 transition-colors duration-300`}>
+                
+                <div className="flex items-center gap-2 mb-2">
+                  <Image src="/dashboard/famicons_fish-bb.svg" alt="survival" width={22} height={22} />
+                  <span className="text-base font-bold text-gray-700">อัตราการรอด</span>
+                </div>
+                
+                <div className="flex flex-col items-center justify-center">
+                  <div className="flex items-baseline gap-1">
+                    <span className={`text-3xl font-black ${status.text}`}>
+                      {loading ? "..." : (survivalRate !== null ? `${survivalRate}%` : "-")}
+                    </span>
+                    <span className={`text-xs font-bold ${status.text}`}>
+                      {status.label}
+                    </span>
+                  </div>
+                </div>
 
-            <div className="flex justify-center items-baseline gap-1">
-              <p className="text-2xl font-black text-black">{marketSize}</p>
-              <span className="text-lg font-bold text-black">กรัม</span>
+              </div>
+            );
+          })()}
+
+          {/* -------------------------------------------------------------------------
+            9. MARKET SIZE 
+            ------------------------------------------------------------------------- */}
+            <div className="bg-[#F1DFFF] rounded-2xl p-4 flex flex-col shadow-sm border border-purple-100/30">
+              <div className="flex items-center gap-2 mb-2">
+                <Image src="/dashboard/weight.svg" alt="weight" width={20} height={20} />
+                <span className="text-base font-bold text-gray-700">ขนาดที่เหมาะสำหรับการขาย</span>
+              </div>
+              
+              <div className="flex justify-center items-baseline gap-1">
+                <p className="text-2xl font-black text-black">
+                  {loading ? "..." : marketSize}
+                </p>
+                <span className="text-lg font-bold text-black">กรัม</span>
+              </div>
+            </div>
+          </div> 
+
+          {/* -------------------------------------------------------------------------
+              ACTION BUTTONS 
+              ------------------------------------------------------------------------- */}
+          <div className="px-5 max-w-7xl mx-auto mt-4">
+            <div className="pt-2 space-y-3 md:space-y-0 md:grid md:grid-cols-3 md:gap-4">
+              
+              {/* 1. สภาพอากาศ */}
+              <Link href={getSubLink("weather")} className="block w-full">
+                <button className="w-full bg-[#0084FF] hover:bg-blue-700 text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer font-bold">
+                  <Image src="/dashboard/fluent_weather-hail-day-w.svg" alt="icon" width={24} height={24} />
+                  สภาพอากาศ
+                </button>
+              </Link>
+
+              {/* 2. ตรวจสอบราคาตลาด */}
+              <Link href={getSubLink("price")} className="block w-full">
+                <button className="w-full bg-[#FF4242] hover:bg-[#e03535] text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer font-bold">
+                  <Image src="/dashboard/healthicons_money-bag.svg" alt="icon" width={24} height={24} />
+                  ตรวจสอบราคาตลาด
+                </button>
+              </Link>
+
+              {/* 3. การให้อาหาร */}
+              <Link href={getSubLink("feeding")} className="block w-full">
+                <button className="w-full bg-[#EF6E11] hover:bg-orange-700 text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer font-bold">
+                  <Image src="/dashboard/fluent_food-grains-w.svg" alt="icon" width={24} height={24} />
+                  การให้อาหาร
+                </button>
+              </Link>
+
+              {/* 4. การรักษาโรค */}
+              <Link href={getSubLink("disease-info")} className="block w-full">
+                <button className="w-full bg-[#A530FF] hover:bg-[#8a2be2] text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer font-bold">
+                  <Image src="/dashboard/famicons_fish-w.svg" alt="icon" width={24} height={24} />
+                  การรักษาโรค
+                </button>
+              </Link>
+
+              {/* 5. บันทึกข้อมูล */}
+              <Link href={getSubLink("record")} className="block w-full">
+                <button className="w-full bg-[#72B544] hover:bg-green-700 text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer font-bold">
+                  <Image src="/dashboard/uil_plus.svg" alt="icon" width={24} height={24} />
+                  บันทึกข้อมูล
+                </button>
+              </Link>
+
             </div>
           </div>
         </div>
+      );
+    }
 
-        {/* Action Buttons */}
-        <div className="pt-2 space-y-3 md:space-y-0 md:grid md:grid-cols-3 md:gap-4 md:col-span-2 lg:col-span-4">
-          <Link href={getSubLink("weather")} className="block w-full">
-            <button className="w-full bg-[#0084FF] hover:bg-blue-700 text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
-              <Image src="/dashboard/fluent_weather-hail-day-w.svg" alt="icon" width={24} height={24} />
-              สภาพอากาศ
-            </button>
-          </Link>
-
-          <Link href={getSubLink("price")} className="block w-full">
-            <button className="w-full bg-[#FF4242] hover:bg-[#e03535] text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
-              <Image src="/dashboard/healthicons_money-bag.svg" alt="icon" width={24} height={24} />
-              ตรวจสอบราคาตลาด
-            </button>
-          </Link>
-
-          <Link href={getSubLink("feeding")} className="block w-full">
-            <button className="w-full bg-[#EF6E11] hover:bg-orange-700 text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
-              <Image src="/dashboard/fluent_food-grains-w.svg" alt="icon" width={24} height={24} />
-              การให้อาหาร
-            </button>
-          </Link>
-
-          <Link href={getSubLink("disease-info")} className="block w-full">
-            <button className="w-full bg-[#A530FF] hover:bg-[#8a2be2] text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
-              <Image src="/dashboard/famicons_fish-w.svg" alt="icon" width={24} height={24} />
-              การรักษาโรค
-            </button>
-          </Link>
-
-          <Link href={getSubLink("record")} className="block w-full">
-            <button className="w-full bg-[#72B544] hover:bg-green-700 text-white py-4 rounded-xl flex items-center justify-center gap-2 shadow-md transition-colors text-lg cursor-pointer">
-              <Image src="/dashboard/uil_plus.svg" alt="icon" width={24} height={24} />
-              บันทึกข้อมูล
-            </button>
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export default function DashboardFarmerPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen bg-white" />}>
-      <DashboardContent />
-    </Suspense>
-  );
-}
+    export default function DashboardFarmerPage() {
+      return (
+        <Suspense fallback={<div className="min-h-screen bg-white" />}>
+          <DashboardContent />
+        </Suspense>
+      );
+    }

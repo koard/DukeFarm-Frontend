@@ -130,27 +130,27 @@ export default function FarmNavigation() {
 
           return (
             <Link
-              key={item.pondId || `${item.type}-${idx}`}
-              href={item.path}
-              className={`
-                flex-shrink-0 flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm md:text-base font-semibold transition-all whitespace-nowrap
-                 ${isActive
-                  ? "bg-[#093832] text-white shadow-lg shadow-[#093832]/20 ring-2 ring-[#093832] ring-offset-2"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }
-               `}
-            >
-              <Image
-                src={isActive
-                  ? "/dashboard/famicons_fish-w.svg"
-                  : "/dashboard/famicons_fish-bb.svg"
-                }
-                alt="fish icon"
-                width={20}
-                height={20}
-              />
-              <span className="truncate">{item.label}</span>
-            </Link>
+            key={item.pondId || `${item.type}-${idx}`}
+            href={item.path}
+            className={`
+              flex-shrink-0 flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm md:text-base font-semibold transition-all whitespace-nowrap
+              ${isActive
+                ? "bg-[#093832] text-white" 
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }
+            `}
+          >
+            <Image
+              src={isActive
+                ? "/dashboard/famicons_fish-w.svg"
+                : "/dashboard/famicons_fish-bb.svg"
+              }
+              alt="fish icon"
+              width={20}
+              height={20}
+            />
+            <span className="truncate">{item.label}</span>
+          </Link>
           );
         })}
       </div>

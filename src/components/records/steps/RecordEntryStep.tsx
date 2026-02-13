@@ -334,24 +334,44 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
           <div className="px-4 pt-4 space-y-5">
 
 
-            {/* Pond info from real data */}
-            <div className="text-xs text-[#093832] font-bold leading-relaxed bg-[#CEF2D6]/40 p-4 rounded-2xl border border-[#CEF2D6]">
-              {selectedPond ? (
-                <>
-                  <p>{POND_TYPE_LABELS[selectedPond.pondType] || selectedPond.pondType} • {FARM_TYPE_LABELS[selectedPond.farmType] || selectedPond.farmType}</p>
-                  <p>กว้าง {selectedPond.widthM} x ยาว {selectedPond.lengthM} x ลึก {selectedPond.depthM}</p>
-                  <p>ปริมาตร = {selectedPond.volumeM3} ลูกบาศก์เมตร หรือ {formatVolumeLiters(selectedPond.volumeM3)} ลิตร</p>
-                </>
-              ) : (
-                <p className="text-gray-400">ไม่พบข้อมูลบ่อ</p>
-              )}
-            </div>
+          <div className="text-xs text-[#093832] font-bold leading-relaxed bg-[#CEF2D6]/40 p-4 rounded-2xl border border-[#CEF2D6]">
+            {selectedPond ? (
+              <>
+                <p className="text-sm mb-1.5 flex items-center gap-1">
+                  <span className="text-[#009D64] bg-white px-2 py-0.5 rounded-lg border border-[#CEF2D6] shadow-sm">
+                    {POND_TYPE_LABELS[selectedPond.pondType] || selectedPond.pondType}
+                  </span>
+                  <span className="text-gray-400 mx-1">•</span>
+                  <span className="text-[#093832]">
+                    {FARM_TYPE_LABELS[selectedPond.farmType] || selectedPond.farmType}
+                  </span>
+                </p>
 
-            <div className="grid grid-cols-12 gap-3">
-              <div className="col-span-5 space-y-1.5">
+                <p className="mt-1">
+                  ขนาด = กว้าง <span className="text-[#009D64] font-bold">{selectedPond.widthM}</span> เมตร x 
+                  ยาว <span className="text-[#009D64] font-bold">{selectedPond.lengthM}</span> เมตร x 
+                  ลึก <span className="text-[#009D64] font-bold">{selectedPond.depthM}</span> เมตร
+                </p>
+
+                <p className="mt-1">
+                  ปริมาตร = <span className="text-[#009D64]">{selectedPond.volumeM3}</span> ลูกบาศก์เมตร 
+                  หรือ <span className="text-[#009D64]">{formatVolumeLiters(selectedPond.volumeM3)}</span> ลิตร
+                </p>
+              </>
+            ) : (
+              <p className="text-gray-400 italic text-center">ไม่พบข้อมูลบ่อ</p>
+            )}
+          </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
                 <label className="text-sm font-bold text-black ml-1">ประเภทปลา</label>
                 <div className="relative">
-                  <select value={fishType} onChange={(e) => setFishType(e.target.value)} className={`w-full appearance-none bg-white border border-gray-200 rounded-xl pl-3 pr-9 py-3 text-xs font-bold focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 ${!fishType ? 'text-gray-400' : 'text-gray-700'}`}>
+                  <select 
+                    value={fishType} 
+                    onChange={(e) => setFishType(e.target.value)} 
+                    className={`w-full appearance-none bg-white border border-gray-200 rounded-xl pl-3 pr-9 py-3 text-sm font-bold focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 ${!fishType ? 'text-gray-400' : 'text-gray-700'}`}
+                  >
                     <option value="" disabled>เลือกประเภท</option>
                     <option value="SMALL">ปลาตุ้ม</option>
                     <option value="LARGE">ปลานิ้ว</option>
@@ -360,11 +380,18 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                 </div>
               </div>
-              <div className="col-span-7 space-y-1.5">
+
+              <div className="space-y-1.5">
                 <label className="text-sm font-bold text-black ml-1">น้ำหนักปลาต่อตัว</label>
                 <div className="relative">
-                  <input type="number" placeholder="0" value={fishSize} onChange={(e) => setFishSize(e.target.value)} className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-xs font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-300" />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">กรัม</span>
+                  <input 
+                    type="number" 
+                    placeholder="0" 
+                    value={fishSize} 
+                    onChange={(e) => setFishSize(e.target.value)} 
+                    className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-300" 
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400 pointer-events-none">กรัม</span>
                 </div>
               </div>
             </div>
@@ -385,14 +412,14 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
                 <label className="text-[13px] font-bold text-black ml-1">จำนวนปลาที่ปล่อย</label>
                 <div className="relative">
                   <input disabled={!!activeCycle} type="number" placeholder="ระบุจำนวน" value={fishReleased} onChange={(e) => setFishReleased(e.target.value)} className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 placeholder:text-gray-400" />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">ตัว</span>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400 pointer-events-none">ตัว</span>
                 </div>
               </div>
               <div className="space-y-1.5">
                 <label className="text-[13px] font-bold text-black ml-1">จำนวนปลาที่เหลือ</label>
                 <div className="relative">
                   <input type="number" placeholder="ระบุจำนวน" value={fishRemaining} onChange={(e) => setFishRemaining(e.target.value)} className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-400" />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">ตัว</span>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400 pointer-events-none">ตัว</span>
                 </div>
               </div>
             </div>
@@ -421,7 +448,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
               <label className="text-sm font-bold text-black ml-1">ปริมาณอาหาร</label>
               <div className="relative">
                 <input type="text" placeholder="ระบุจำนวน" value={foodAmount} onChange={(e) => setFoodAmount(e.target.value)} className="w-full border border-gray-200 rounded-xl pl-4 pr-16 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-400" />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">กิโลกรัม</span>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400 pointer-events-none">กิโลกรัม</span>
               </div>
             </div>
 
@@ -462,14 +489,14 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
                   <label className="text-sm font-bold text-black ml-1">ค่าอาหาร</label>
                   <div className="relative">
                     <input type="number" placeholder="ระบุข้อมูล" value={foodCost} onChange={(e) => setFoodCost(e.target.value)} className="w-full border border-gray-200 rounded-xl pl-4 pr-12 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-400" />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">บาท</span>
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400 pointer-events-none">บาท</span>
                   </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-sm font-bold text-black ml-1">ค่ายา</label>
                   <div className="relative">
                     <input type="number" placeholder="ระบุข้อมูล" value={medicineCost} onChange={(e) => setMedicineCost(e.target.value)} className="w-full border border-gray-200 rounded-xl pl-4 pr-12 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-400" />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">บาท</span>
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400 pointer-events-none">บาท</span>
                   </div>
                 </div>
               </div>
