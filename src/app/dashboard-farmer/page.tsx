@@ -327,7 +327,7 @@ function DashboardContent() {
         <div className="rounded-[25px] p-6 shadow-sm border border-white/20 bg-white/60 backdrop-blur-md">
           <div className="flex items-center gap-2 mb-3 text-[#093832]/80">
             <Image src="/dashboard/fluent_temperature.svg" alt="temp" width={20} height={20} className="opacity-70" />
-            <span className="text-sm font-bold uppercase tracking-wider">รายงานอุณหภูมิ</span>
+            <span className="text-base font-bold uppercase tracking-wider">รายงานอุณหภูมิ</span>
           </div>
           <p className="text-lg font-medium text-[#093832] leading-relaxed">
             {loading ? "..." : (
@@ -345,7 +345,7 @@ function DashboardContent() {
         <div className="space-y-4">
           <div className="flex items-center gap-2 ml-2 opacity-80">
             <Image src="/dashboard/solar_calendar-outline.svg" alt="forecast" width={18} height={18} />
-            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">พยากรณ์ล่วงหน้า 5 วัน</h3>
+            <h3 className="text-base font-bold text-black uppercase tracking-widest">พยากรณ์ล่วงหน้า 7 วัน</h3>
           </div>
 
           <div className="bg-white/40 backdrop-blur-xl rounded-[25px] p-5 shadow-sm border border-white/30">
