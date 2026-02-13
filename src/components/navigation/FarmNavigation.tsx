@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { FarmTypeOption, deriveFarmTypesFromProfile } from "@/utils/farmTypes";
 
@@ -22,6 +22,7 @@ const FARM_TYPE_LABELS: Record<FarmType, string> = {
 };
 
 export default function FarmNavigation() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const currentPondId = searchParams.get("pondId");
   const currentType = searchParams.get("type");
@@ -51,35 +52,34 @@ export default function FarmNavigation() {
         pondType: string;
       }> | undefined;
 
+      let items: NavItem[] = [];
+
       if (ponds && ponds.length > 0) {
         // Build nav items from ponds — one tab per pond
-        const pondItems: NavItem[] = ponds.map((pond, index) => ({
+        items = ponds.map((pond, index) => ({
           type: pond.farmType || "SMALL",
           label: `บ่อที่ ${index + 1} (${FARM_TYPE_LABELS[pond.farmType || "SMALL"]})`,
           path: `/dashboard-farmer?type=${pond.farmType}&pondId=${pond.id}`,
           pondId: pond.id,
         }));
-        setDisplayItems(pondItems);
       } else {
         // Fallback to farm types from profile
         const allowed = deriveFarmTypesFromProfile(profile);
         if (allowed.length === 0) {
-          setDisplayItems(
-            Object.keys(FARM_TYPE_LABELS).map((type) => ({
-              type: type as FarmType,
-              label: FARM_TYPE_LABELS[type as FarmType],
-              path: `/dashboard-farmer?type=${type}`,
-            }))
-          );
+          items = Object.keys(FARM_TYPE_LABELS).map((type) => ({
+            type: type as FarmType,
+            label: FARM_TYPE_LABELS[type as FarmType],
+            path: `/dashboard-farmer?type=${type}`,
+          }));
         } else {
-          const filtered = allowed.map((type) => ({
+          items = allowed.map((type) => ({
             type,
             label: FARM_TYPE_LABELS[type],
             path: `/dashboard-farmer?type=${type}`,
           }));
-          setDisplayItems(filtered);
         }
       }
+      setDisplayItems(items);
     } catch (e) {
       console.error("Parse error", e);
       // Fallback on error
@@ -93,29 +93,47 @@ export default function FarmNavigation() {
     }
   }, []);
 
-  return (
-    <div className="py-4 mt-4 w-full mt-8">
-      <div className={`grid gap-2 md:gap-3 w-full`} style={{ gridTemplateColumns: `repeat(${Math.min(displayItems.length, 4)}, minmax(0, 1fr))` }}>
-        {displayItems.map((item, idx) => {
-          // customized isActive logic
-          let isActive = false;
+  // Auto-select first item if no pondId/type selected or invalid
+  useEffect(() => {
+    if (displayItems.length > 0) {
+      const hasActive = displayItems.some(item => {
+        if (currentPondId && item.pondId) return currentPondId === item.pondId;
+        if (currentType && !item.pondId) return currentType === item.type;
+        return false;
+      });
 
+      // If no active item found in current URL params, redirect to the first item
+      if (!hasActive && !currentPondId) {
+        router.replace(displayItems[0].path);
+      }
+    }
+  }, [displayItems, currentPondId, currentType, router]);
+
+
+  return (
+    <div className="w-full mt-8">
+      <div className="flex overflow-x-auto gap-3 pb-2 w-full no-scrollbar px-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <style jsx>{`
+          div::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        {displayItems.map((item, idx) => {
+          let isActive = false;
           if (currentPondId && item.pondId) {
             isActive = currentPondId === item.pondId;
           } else if (currentType && !currentPondId && !item.pondId) {
             isActive = currentType === item.type;
           } else if (!currentType && !currentPondId && idx === 0) {
-            // Default to first item if no params
             isActive = true;
           }
-
 
           return (
             <Link
               key={item.pondId || `${item.type}-${idx}`}
               href={item.path}
               className={`
-                flex items-center justify-center gap-2 px-3 py-2 rounded-full text-xs sm:text-sm md:text-base font-semibold transition-all border whitespace-nowrap
+                flex-shrink-0 flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm md:text-base font-semibold transition-all border whitespace-nowrap
                  ${isActive
                   ? "bg-[#009D64] border-[#009D64] text-white shadow-md"
                   : "bg-white border-gray-300 text-black hover:bg-gray-50"
