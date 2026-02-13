@@ -456,14 +456,20 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-black ml-1">ค่าอาหาร (บาท)</label>
-                  <input type="number" placeholder="ระบุข้อมูล" value={foodCost} onChange={(e) => setFoodCost(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-bold text-gray-700 focus:text-black outline-none placeholder:text-gray-400" />
+                  <label className="text-sm font-bold text-black ml-1">ค่าอาหาร</label>
+                  <div className="relative">
+                    <input type="number" placeholder="ระบุข้อมูล" value={foodCost} onChange={(e) => setFoodCost(e.target.value)} className="w-full border border-gray-200 rounded-xl pl-4 pr-12 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-400" />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">บาท</span>
+                  </div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-black ml-1">ค่ายา (บาท)</label>
-                  <input type="number" placeholder="ระบุข้อมูล" value={medicineCost} onChange={(e) => setMedicineCost(e.target.value)} className="w-full border border-gray-200 rounded-xl px-4 py-3.5 text-sm font-bold text-gray-700 focus:text-black outline-none placeholder:text-gray-400" />
+                  <label className="text-sm font-bold text-black ml-1">ค่ายา</label>
+                  <div className="relative">
+                    <input type="number" placeholder="ระบุข้อมูล" value={medicineCost} onChange={(e) => setMedicineCost(e.target.value)} className="w-full border border-gray-200 rounded-xl pl-4 pr-12 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-400" />
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">บาท</span>
+                  </div>
                 </div>
               </div>
             </div>
