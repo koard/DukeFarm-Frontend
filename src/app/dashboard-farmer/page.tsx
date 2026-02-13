@@ -371,7 +371,7 @@ function DashboardContent() {
               {loading ? "--" : Math.round(currentTemp)}°
             </span>
 
-            <span className="text-xl font-medium opacity-90 tracking-wide mb-1">
+            <span className="text-xl font-medium opacity-90 tracking-wide mb-2">
               {loading ? "..." : getThaiWeatherCondition(currentCondition)}
             </span>
 
