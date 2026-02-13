@@ -53,6 +53,9 @@ interface DashboardSummary {
   latestFishAgeDays?: number;
   latestFishStageName?: string;
   averageFishWeight?: number;
+  totalReleased?: number;
+  currentCount?: number;
+  releaseDate?: string;
   pelletFoodCost: number;
   freshFoodCost: number;
   survivalRatePct: number;
@@ -194,14 +197,39 @@ function DashboardContent() {
     return `ลดอาหาร ${Math.abs(pct)}%`;
   })();
 
+  const [pondName, setPondName] = useState<string>("");
+
+  useEffect(() => {
+    const fetchPondInfo = async () => {
+      try {
+        // Simple client-side fetch to get pond index
+        const res = await fetch('/api/farmers/me/profile');
+        if (res.ok) {
+          const data = await res.json();
+          const ponds = data.ponds || [];
+          if (pondId) {
+            const idx = ponds.findIndex((p: any) => p.id === pondId);
+            setPondName(idx !== -1 ? `บ่อที่ ${idx + 1}` : "บ่อที่ 1");
+          } else {
+            setPondName(ponds.length > 0 ? "บ่อที่ 1" : "ยังไม่มีบ่อ");
+          }
+        }
+      } catch (e) {
+        console.error("Failed to fetch profile for pond index", e);
+        setPondName("บ่อที่ 1");
+      }
+    };
+    fetchPondInfo();
+  }, [pondId]);
+
   // Pond Summary Data
-  const currentPondIdx = pondId ? parseInt(pondId.replace(/\D/g, '')) || 1 : 1; // Fallback aesthetics
-  const fishType = dashboardData?.summary?.latestFishStageName || "ไม่ระบุ"; // e.g. "ปลานิ้ว"
-  const avgWeight = dashboardData?.summary?.averageFishWeight ? dashboardData.summary.averageFishWeight.toFixed(1) : "-";
-  const releaseDate = formatThaiDate(dashboardData?.summary?.asOf); // Using asOf as proxy for last record/release for now if explicit releaseDate missing
-  const releaseCount = "-"; // Backend doesn't send total released yet in summary, might need enhancement
-  const remainingCount = "-"; // Same
-  const survivalRate = dashboardData?.summary?.survivalRatePct ?? 100;
+  const summary = dashboardData?.summary;
+  const fishType = summary?.latestFishStageName || "ไม่ระบุ";
+  const avgWeight = summary?.averageFishWeight ? summary.averageFishWeight.toFixed(1) : "-";
+  const releaseDate = formatThaiDate(summary?.releaseDate);
+  const releaseCount = summary?.totalReleased ? summary.totalReleased.toLocaleString() : "-";
+  const remainingCount = summary?.currentCount ? summary.currentCount.toLocaleString() : "-";
+  const survivalRate = summary?.survivalRatePct ?? 100;
 
   // Market size mapping (Mock/Approximation based on type)
   const marketSizeMap: Record<string, string> = {
@@ -315,7 +343,7 @@ function DashboardContent() {
               {loading ? (
                 <div className="text-center text-gray-400 py-4">Loading...</div>
               ) : (
-                dashboardData?.feedingPlan?.slice(0, 5).map((item, index) => {
+                dashboardData?.feedingPlan?.slice(0, 7).map((item, index) => {
                   const dayName = new Date(item.date).toLocaleDateString("th-TH", { weekday: 'short' });
                   // Simple mock progress bar for temp range visualization
                   // Assuming range 20-40 for width calc
@@ -352,10 +380,10 @@ function DashboardContent() {
                       {/* Feed Advice */}
                       <div className="w-16 text-right">
                         <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${item.feedAdjustmentPct > 0
-                            ? "bg-green-100 text-green-700"
-                            : item.feedAdjustmentPct < 0
-                              ? "bg-red-100 text-red-700"
-                              : "bg-gray-100 text-gray-600"
+                          ? "bg-green-100 text-green-700"
+                          : item.feedAdjustmentPct < 0
+                            ? "bg-red-100 text-red-700"
+                            : "bg-gray-100 text-gray-600"
                           }`}>
                           {item.feedAdjustmentPct > 0 ? `+${item.feedAdjustmentPct}%` : item.feedAdjustmentPct < 0 ? `${item.feedAdjustmentPct}%` : "ปกติ"}
                         </span>
@@ -374,7 +402,7 @@ function DashboardContent() {
         <div className="flex items-center gap-2 mt-8 ml-1">
           <Image src="/dashboard/fluent_food-grains-w.svg" alt="summary" width={22} height={22} className="text-[#093832]" style={{ filter: 'invert(16%) sepia(34%) saturate(996%) hue-rotate(124deg) brightness(95%) contrast(93%)' }} />
           {/* Note: Icon color adjustment or use a different colored icon if needed */}
-          <h3 className="text-base font-bold text-[#093832]">สรุปข้อมูล {pondId ? `(Pond ID: ${pondId.slice(0, 4)}...)` : `บ่อที่ ${currentPondIdx}`}</h3>
+          <h3 className="text-base font-bold text-[#093832]">สรุปข้อมูล {pondName}</h3>
         </div>
 
         <div className="space-y-4">
