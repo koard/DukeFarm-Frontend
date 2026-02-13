@@ -99,9 +99,10 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
         setValidationError("ไม่ได้รับรหัสการวิเคราะห์จากระบบ กรุณาลองใหม่อีกครั้ง");
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
       console.error("Analysis failed:", error);
-      setValidationError(`เกิดข้อขัดข้องในการวิเคราะห์: ${error.message}`);
+      setValidationError(`เกิดข้อขัดข้องในการวิเคราะห์: ${message}`);
     } finally {
       setIsAnalyzing(false);
     }
@@ -139,7 +140,7 @@ export const DiseaseInfo = ({ backHref }: DiseaseInfoProps) => {
 
   return (
     <div className="min-h-screen bg-white pb-10 relative">
-      <header className="bg-[#093832] text-white px-4 pt-8 pb-10 rounded-b-[40px] shadow-md relative z-10 flex items-center justify-between">
+      <header className="bg-[#093832] text-white px-4 pt-5 pb-4 rounded-b-3xl shadow-md relative z-30 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button onClick={handleBack} className="p-1 rounded-full transition-all hover:bg-white/10 active:scale-95">
             <ChevronLeft className="w-8 h-8" />
