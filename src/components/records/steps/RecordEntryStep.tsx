@@ -238,7 +238,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
         cycleStartDate: (!activeCycle && releaseDate) ? new Date(releaseDate).toISOString() : undefined,
         fishAgeLabel: fishType === 'SMALL' ? 'ปลาตุ้ม' : fishType === 'LARGE' ? 'ปลานิ้ว' : fishType === 'MARKET' ? 'ปลาตลาด' : 'ไม่ระบุ',
         pondId: selectedPondId || undefined,
-        fishCount: fishReleased ? parseInt(fishReleased, 10) : undefined,
+        fishCount: fishRemaining ? parseInt(fishRemaining, 10) : (fishReleased ? parseInt(fishReleased, 10) : undefined),
         fishCountText: undefined,
         fishRemaining: fishRemaining ? parseInt(fishRemaining, 10) : undefined,
         averageFishWeightGr: fishSize ? (fishSizeUnit === 'KG' ? parseFloat(fishSize) * 1000 : parseFloat(fishSize)) : undefined,
