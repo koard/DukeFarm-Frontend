@@ -428,7 +428,7 @@ export default function RegisterFarmerPage() {
       {showMap && (
         <div className="fixed inset-0 z-50 flex justify-center bg-gray-50">
           <div className="w-full max-w-md md:max-w-full lg:max-w-full bg-white flex flex-col h-full relative shadow-xl">
-            <div className="bg-[#0F3B35] text-white px-4 pt-6 pb-4 rounded-b-3xl shadow-md relative z-20 flex items-center gap-3">
+            <div className="bg-[#0F3B35] text-white px-4 pt-5 pb-4 rounded-b-3xl shadow-md relative z-20 flex items-center gap-3">
               <button onClick={() => setShowMap(false)} className="p-1 hover:bg-white/10 rounded-full transition-colors">
                 <ChevronLeft className="w-8 h-8" />
               </button>
@@ -456,7 +456,7 @@ export default function RegisterFarmerPage() {
       <div className=" w-full max-w-md md:max-w-full lg:max-w-full bg-white min-h-screen shadow-xl relative pb-10">
 
         {/* Header */}
-        <div className="bg-[#093832] text-white px-4 pt-6 pb-4 rounded-b-3xl shadow-md relative z-10">
+        <div className="bg-[#093832] text-white px-4 pt-5 pb-4 rounded-b-3xl shadow-md relative z-10">
           <div className="flex items-center gap-2 mb-2">
             <Link href="/login" className="p-1 hover:bg-white/10 rounded-full transition-colors">
               <ChevronLeft className="w-7 h-7" />

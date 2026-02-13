@@ -48,7 +48,7 @@ export default function RegisterPage() {
   const handleConfirmRegistration = useCallback(async () => {
     try {
       const token = localStorage.getItem("authToken");
-      
+
       if (!token) {
         alert("ไม่พบ Token กรุณาเข้าสู่ระบบใหม่");
         router.push("/login");
@@ -89,25 +89,25 @@ export default function RegisterPage() {
       // ตาม API spec response: { data: { profile: {...}, user: {...} } }
       if (result.data) {
         const { user, profile } = result.data;
-        
+
         const currentUserStr = localStorage.getItem("user");
         const currentUser = currentUserStr ? JSON.parse(currentUserStr) : {};
-        
+
         const updatedUser = {
           ...currentUser,
           role: user.role,
           registrationStatus: user.registrationStatus,
           researcherProfile: profile // เก็บ profile เต็มจาก backend
         };
-        
+
         localStorage.setItem("user", JSON.stringify(updatedUser));
-        
+
         console.log("✅ User data updated in localStorage:", updatedUser);
       }
-      
+
       setShowModal(false);
       router.push("/dashboard");
-      
+
     } catch (error) {
       console.error("❌ Registration error:", error);
       setShowModal(false);
@@ -121,19 +121,19 @@ export default function RegisterPage() {
       const timer = setTimeout(() => {
         setCountdown(countdown - 1);
       }, 1000);
-      
+
       return () => clearTimeout(timer);
     } else if (showModal && countdown === 0) {
       handleConfirmRegistration();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showModal, countdown]);
 
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-emerald-800 text-white px-6 py-4 pt-10 rounded-b-3xl flex items-center">
-        <button 
+      <div className="bg-[#065f46] text-white px-6 pt-5 pb-4 rounded-b-3xl flex items-center">
+        <button
           onClick={() => router.back()}
           className="mr-4 p-2 hover:bg-emerald-600 rounded-lg"
         >
@@ -190,7 +190,7 @@ export default function RegisterPage() {
               required
             />
           </div>
-      
+
           {/* เบอร์โทรศัพท์ */}
           <div>
             <label className="block text-gray-700 font-medium mb-2">เบอร์โทรศัพท์</label>

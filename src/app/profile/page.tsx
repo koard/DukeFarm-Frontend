@@ -499,7 +499,7 @@ export default function ProfilePage() {
       {/* Main Form */}
       <div className="w-full max-w-md md:max-w-full lg:max-w-full bg-white min-h-screen shadow-xl relative pb-10">
 
-        <div className="bg-[#093832] text-white px-4 pt-6 pb-4 rounded-b-3xl shadow-md relative z-20">
+        <div className="bg-[#093832] text-white px-4 pt-5 pb-4 rounded-b-3xl shadow-md relative z-20">
           <div className="flex items-center gap-2 mb-2">
             <button onClick={() => router.back()} className="p-1 hover:bg-white/10 rounded-full transition-colors">
               <ChevronLeft className="w-7 h-7" />

@@ -257,7 +257,7 @@ function DashboardContent() {
       {/* -------------------------------------------------------------------------
           (ส่วนหัวฟาร์ม - ห้ามแก้ตามต้นฉบับเดิม)
           ------------------------------------------------------------------------- */}
-      <div className="bg-[#093832] text-white px-4 pt-6 pb-4 rounded-b-3xl shadow-md relative z-50">
+      <div className="bg-[#093832] text-white px-4 pt-5 pb-4 rounded-b-3xl shadow-md relative z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Image src="/dashboard/Group.svg" alt="Overview" width={24} height={24} />
@@ -270,7 +270,7 @@ function DashboardContent() {
       {/* -------------------------------------------------------------------------
           1. NAVIGATION
           ------------------------------------------------------------------------- */}
-      <div className="sticky top-0 z-40 -mt-6 mx-0 pt-4 pb-2 bg-white shadow-sm transition-all duration-300">
+      <div className="sticky top-0 z-40 mx-0 pt-2 pb-2 bg-white shadow-sm transition-all duration-300">
         <FarmNavigation />
       </div>
 
