@@ -354,10 +354,10 @@ function DashboardContent() {
           <div className="absolute -top-10 -right-10 w-64 h-64 bg-white/20 rounded-full blur-[90px]" />
           <div className="absolute top-1/2 -left-10 w-40 h-40 bg-white/10 rounded-full blur-[60px]" />
 
-          <div className="relative z-10 flex flex-col items-center justify-center text-center p-8 pb-6">
+          <div className="relative z-10 flex flex-col items-center justify-center text-center px-8 py-6">
 
             <span className="text-2xl font-semibold tracking-wide drop-shadow-sm mb-2">
-              {currentTime ? currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) : (loading ? "กำลังโหลด..." : "--:--")}
+              {currentTime ? currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.' : (loading ? "กำลังโหลด..." : "--:--")}
             </span>
 
             <span className="text-[90px] font-semibold leading-none tracking-tighter drop-shadow-lg mb-3">
