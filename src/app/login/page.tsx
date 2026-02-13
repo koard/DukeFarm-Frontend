@@ -148,7 +148,7 @@ export default function LoginPage() {
                 onClick={() => handleLineLogin("farmer")}
                 className="w-full bg-[#009D64] hover:bg-[#008a57] text-white py-3 px-4 rounded-xl font-medium text-lg transition-colors shadow-lg"
               >
-                สมัครสมาชิกเกษตรกร
+                ลงทะเบียนเกษตรกร
               </button>
               
               {/* <button
