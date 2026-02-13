@@ -106,7 +106,7 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
     }
   };
 
-  // Fetch cycle info
+  // Fetch cycle info and auto-start first cycle if none exists
   const fetchCycleInfo = useCallback(async () => {
     if (!pondId) return;
     try {
@@ -122,21 +122,41 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
         }),
       ]);
 
+      let cycle = null;
       if (cycleRes.ok) {
         const { data } = await cycleRes.json();
-        setActiveCycle(data);
-      } else {
-        setActiveCycle(null);
+        cycle = data;
       }
 
+      let count = 0;
       if (countRes.ok) {
         const { data } = await countRes.json();
-        setCycleNumber(data?.count || 0);
+        count = data?.count || 0;
       }
+
+      // Auto-start first cycle if no active cycle and no cycles ever existed
+      if (!cycle && count === 0) {
+        const startRes = await fetch(`${API_BASE_URL}/ponds/${pondId}/start-cycle`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ farmType }),
+        });
+        if (startRes.ok) {
+          const { data } = await startRes.json();
+          cycle = data;
+          count = 1;
+        }
+      }
+
+      setActiveCycle(cycle);
+      setCycleNumber(count);
     } catch (err) {
       console.error("Failed to fetch cycle info", err);
     }
-  }, [pondId]);
+  }, [pondId, farmType]);
 
   useEffect(() => {
     fetchCycleInfo();
@@ -243,16 +263,18 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
                 )}
               </div>
             ) : (
-              <p className="text-white/60 text-sm">ยังไม่มีรอบการเลี้ยงที่กำลังดำเนินการ</p>
+              <p className="text-white/60 text-sm">กำลังเตรียมรอบการเลี้ยง...</p>
             )}
 
-            <button
-              onClick={() => setIsConfirmNewCycleOpen(true)}
-              className="mt-4 w-full bg-[#EF6E11] text-white text-sm font-bold py-3 rounded-xl shadow-md hover:bg-[#d65d0a] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-            >
-              <RefreshCw className="w-4 h-4" />
-              {activeCycle ? 'เริ่มรอบการเลี้ยงใหม่' : 'เริ่มรอบการเลี้ยง'}
-            </button>
+            {activeCycle && activeCycle.status !== 'PLANNING' && (
+              <button
+                onClick={() => setIsConfirmNewCycleOpen(true)}
+                className="mt-4 w-full bg-[#EF6E11] text-white text-sm font-bold py-3 rounded-xl shadow-md hover:bg-[#d65d0a] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                เริ่มรอบการเลี้ยงใหม่
+              </button>
+            )}
           </div>
         )}
 
