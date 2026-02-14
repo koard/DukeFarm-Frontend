@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, Calendar, RefreshCw, ChevronDown } from 'lucide-react';
+import { ChevronLeft, Calendar, RefreshCw, ChevronDown, Droplets, Ruler, Waves } from 'lucide-react';
 import { ProfileDropdownMenu } from '@/components/common/ProfileDropdownMenu';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dukefarm-backend.onrender.com/api";
@@ -309,54 +309,72 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
         <ProfileDropdownMenu showGreeting={false} />
       </div>
 
-      <div className="px-5 mt-6 space-y-6">
-        {/* Pond selector if multiple ponds */}
-        {ponds.length > 1 && (
-          <div className="space-y-1.5">
-            <label className="text-sm font-bold text-black ml-1">เลือกบ่อ</label>
-            <div className="relative">
+      <div className="px-5 mt-6 space-y-5">
+        {/* Pond selector card */}
+        <div className="bg-gradient-to-br from-[#093832] to-[#0c4d44] rounded-3xl p-4 shadow-lg">
+          {/* Pond dropdown (if multiple) */}
+          {ponds.length > 1 && (
+            <div className="relative mb-3">
               <select
                 value={selectedPondId}
                 onChange={(e) => setSelectedPondId(e.target.value)}
-                className="w-full appearance-none border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none"
+                className="w-full appearance-none bg-white/15 backdrop-blur-sm border border-white/20 rounded-2xl pl-4 pr-10 py-3 text-sm font-bold text-white focus:bg-white/20 focus:border-white/40 outline-none"
               >
                 {ponds.map((pond, idx) => (
-                  <option key={pond.id} value={pond.id}>บ่อที่ {idx + 1} — {POND_TYPE_LABELS[pond.pondType] || pond.pondType}</option>
+                  <option key={pond.id} value={pond.id} className="text-gray-800">บ่อที่ {idx + 1} — {POND_TYPE_LABELS[pond.pondType] || pond.pondType}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60 pointer-events-none" />
             </div>
-          </div>
-        )}
+          )}
+
+          {selectedPond ? (
+            <>
+              {/* Pond type + name row */}
+              <div className="flex items-center gap-2 mb-3">
+                <div className="bg-[#009D64] p-1.5 rounded-xl">
+                  <Waves className="w-4 h-4 text-white" />
+                </div>
+                <span className="text-white font-extrabold text-base">
+                  {POND_TYPE_LABELS[selectedPond.pondType] || selectedPond.pondType}
+                </span>
+                {ponds.length <= 1 && (
+                  <span className="text-white/50 text-xs font-medium">บ่อเดียว</span>
+                )}
+              </div>
+
+              {/* Metrics grid */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-3 text-center">
+                  <Ruler className="w-4 h-4 text-emerald-300 mx-auto mb-1" />
+                  <p className="text-[10px] text-white/50 font-medium">ขนาด (ม.)</p>
+                  <p className="text-white font-extrabold text-sm mt-0.5">
+                    {selectedPond.widthM}x{selectedPond.lengthM}x{selectedPond.depthM}
+                  </p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-3 text-center">
+                  <Droplets className="w-4 h-4 text-emerald-300 mx-auto mb-1" />
+                  <p className="text-[10px] text-white/50 font-medium">ปริมาตร</p>
+                  <p className="text-white font-extrabold text-sm mt-0.5">
+                    {selectedPond.volumeM3} m³
+                  </p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-3 text-center">
+                  <Droplets className="w-4 h-4 text-blue-300 mx-auto mb-1" />
+                  <p className="text-[10px] text-white/50 font-medium">ลิตร</p>
+                  <p className="text-white font-extrabold text-sm mt-0.5">
+                    {formatVolumeLiters(selectedPond.volumeM3)}
+                  </p>
+                </div>
+              </div>
+            </>
+          ) : (
+            <p className="text-white/40 italic text-center py-4 text-sm">ไม่พบข้อมูลบ่อ</p>
+          )}
+        </div>
 
         <div className="border border-gray-100 rounded-3xl shadow-lg overflow-hidden pb-6 bg-white">
           <div className="px-4 pt-5 space-y-5">
-
-
-          <div className="text-xs text-[#093832] font-bold leading-relaxed bg-[#CEF2D6]/40 p-4 rounded-2xl border border-[#CEF2D6]">
-            {selectedPond ? (
-              <>
-                <p className="text-sm mb-1.5 flex items-center gap-1">
-                  <span className="text-[#009D64] bg-white px-2 py-0.5 rounded-lg border border-[#CEF2D6] shadow-sm">
-                    {POND_TYPE_LABELS[selectedPond.pondType] || selectedPond.pondType}
-                  </span>
-                </p>
-
-                <p className="mt-1">
-                  ขนาด = กว้าง <span className="text-[#009D64] font-bold">{selectedPond.widthM}</span> เมตร x 
-                  ยาว <span className="text-[#009D64] font-bold">{selectedPond.lengthM}</span> เมตร x 
-                  ลึก <span className="text-[#009D64] font-bold">{selectedPond.depthM}</span> เมตร
-                </p>
-
-                <p className="mt-1">
-                  ปริมาตร = <span className="text-[#009D64]">{selectedPond.volumeM3}</span> ลูกบาศก์เมตร 
-                  หรือ <span className="text-[#009D64]">{formatVolumeLiters(selectedPond.volumeM3)}</span> ลิตร
-                </p>
-              </>
-            ) : (
-              <p className="text-gray-400 italic text-center">ไม่พบข้อมูลบ่อ</p>
-            )}
-          </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
