@@ -318,13 +318,13 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
               <select
                 value={selectedPondId}
                 onChange={(e) => setSelectedPondId(e.target.value)}
-                className="w-full appearance-none bg-white/60 backdrop-blur-sm border border-white/80 rounded-2xl pl-4 pr-10 py-3 text-sm font-bold text-gray-800 focus:bg-white/80 focus:border-white outline-none"
+                className="w-full appearance-none bg-white/90 backdrop-blur-sm border-2 border-white/90 rounded-2xl pl-4 pr-11 py-3.5 text-sm font-bold text-gray-800 hover:bg-white hover:border-white focus:bg-white focus:border-teal-400 focus:ring-2 focus:ring-teal-200/50 outline-none transition-all duration-200 shadow-md cursor-pointer"
               >
                 {ponds.map((pond, idx) => (
-                  <option key={pond.id} value={pond.id} className="text-gray-800">บ่อที่ {idx + 1}</option>
+                  <option key={pond.id} value={pond.id} className="text-gray-800 bg-white">บ่อที่ {idx + 1}</option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 pointer-events-none" />
+              <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 pointer-events-none transition-transform duration-200" />
             </div>
           )}
 
@@ -371,14 +371,14 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
                     disabled={!!activeCycle && activeCycle.status !== 'PLANNING'} 
                     value={fishType} 
                     onChange={(e) => setFishType(e.target.value)} 
-                    className={`w-full appearance-none bg-white border border-gray-200 rounded-xl pl-3 pr-9 py-3 text-sm font-bold focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 ${!fishType ? 'text-gray-400' : 'text-gray-700'}`}
+                    className={`w-full appearance-none bg-white border-2 rounded-2xl pl-4 pr-11 py-3.5 text-sm font-bold outline-none transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer disabled:bg-gray-50 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed disabled:shadow-none ${!fishType ? 'text-gray-400 border-gray-200' : 'text-gray-800 border-gray-300'} focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100`}
                   >
                     <option value="" disabled>เลือกประเภท</option>
                     <option value="SMALL">ปลาตุ้ม</option>
                     <option value="LARGE">ปลานิ้ว</option>
                     <option value="MARKET">ปลาตลาด</option>
                   </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none transition-transform duration-200" />
                 </div>
               </div>
 
@@ -436,7 +436,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-black ml-1">สูตรอาหาร</label>
               <div className="relative">
-                <select value={feedFormulaId} onChange={(e) => setFeedFormulaId(e.target.value)} className={`w-full appearance-none border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold focus:text-black focus:border-[#093832] outline-none ${!feedFormulaId ? 'text-gray-400' : 'text-gray-700'}`}>
+                <select value={feedFormulaId} onChange={(e) => setFeedFormulaId(e.target.value)} className={`w-full appearance-none bg-white border-2 rounded-2xl pl-4 pr-11 py-3.5 text-sm font-bold outline-none transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer ${!feedFormulaId ? 'text-gray-400 border-gray-200' : 'text-gray-800 border-gray-300'} focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100`}>
                   <option value="" disabled>เลือกสูตรอาหาร</option>
                   {foodFormulas.length > 0 ? (
                     foodFormulas.map(f => (
@@ -449,7 +449,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
                     </>
                   )}
                 </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none transition-transform duration-200" />
               </div>
             </div>
 
@@ -465,7 +465,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
               <div className="space-y-1.5">
                 <label className="text-sm font-bold text-black ml-1">อาหารเสริม</label>
                 <div className="relative">
-                  <select value={supplementId} onChange={(e) => setSupplementId(e.target.value)} className={`w-full appearance-none border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold focus:text-black focus:border-[#093832] outline-none ${!supplementId ? 'text-gray-400' : 'text-gray-700'}`}>
+                  <select value={supplementId} onChange={(e) => setSupplementId(e.target.value)} className={`w-full appearance-none bg-white border-2 rounded-2xl pl-4 pr-11 py-3.5 text-sm font-bold outline-none transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer ${!supplementId ? 'text-gray-400 border-gray-200' : 'text-gray-800 border-gray-300'} focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100`}>
                     <option value="" disabled>เลือกอาหารเสริม</option>
                     {supplementFormulas.length > 0 ? (
                       supplementFormulas.map(f => (
@@ -478,18 +478,18 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
                       </>
                     )}
                   </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none transition-transform duration-200" />
                 </div>
               </div>
               <div className="space-y-1.5">
                 <label className="text-sm font-bold text-black ml-1">การให้ยา</label>
                 <div className="relative">
-                  <select value={medicineType} onChange={(e) => setMedicineType(e.target.value)} className={`w-full appearance-none border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold focus:text-black focus:border-[#093832] outline-none ${!medicineType ? 'text-gray-400' : 'text-gray-700'}`}>
+                  <select value={medicineType} onChange={(e) => setMedicineType(e.target.value)} className={`w-full appearance-none bg-white border-2 rounded-2xl pl-4 pr-11 py-3.5 text-sm font-bold outline-none transition-all duration-200 shadow-sm hover:shadow-md cursor-pointer ${!medicineType ? 'text-gray-400 border-gray-200' : 'text-gray-800 border-gray-300'} focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100`}>
                     <option value="" disabled>ระบุข้อมูลยา</option>
                     <option value="ANTIBIOTIC">ยาปฏิชีวนะละลายน้ำ</option>
                     <option value="FUNGAL">ยารักษาเชื้อรา</option>
                   </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none transition-transform duration-200" />
                 </div>
               </div>
 
