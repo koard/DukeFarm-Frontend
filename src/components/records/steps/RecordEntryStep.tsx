@@ -321,7 +321,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
                 className="w-full appearance-none bg-white/15 backdrop-blur-sm border border-white/20 rounded-2xl pl-4 pr-10 py-3 text-sm font-bold text-white focus:bg-white/20 focus:border-white/40 outline-none"
               >
                 {ponds.map((pond, idx) => (
-                  <option key={pond.id} value={pond.id} className="text-gray-800">บ่อที่ {idx + 1} — {POND_TYPE_LABELS[pond.pondType] || pond.pondType}</option>
+                  <option key={pond.id} value={pond.id} className="text-gray-800">บ่อที่ {idx + 1}</option>
                 ))}
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/60 pointer-events-none" />
@@ -330,38 +330,25 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
 
           {selectedPond ? (
             <>
-              {/* Pond type + name row */}
-              <div className="flex items-center gap-2 mb-3">
-                <div className="bg-[#009D64] p-1.5 rounded-xl">
-                  <Waves className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-white font-extrabold text-base">
-                  {POND_TYPE_LABELS[selectedPond.pondType] || selectedPond.pondType}
-                </span>
-                {ponds.length <= 1 && (
-                  <span className="text-white/50 text-xs font-medium">บ่อเดียว</span>
-                )}
-              </div>
-
               {/* Metrics grid */}
               <div className="grid grid-cols-3 gap-2">
                 <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-3 text-center">
+                  <Waves className="w-4 h-4 text-emerald-300 mx-auto mb-1" />
+                  <p className="text-[10px] text-white/50 font-medium">ประเภทบ่อ</p>
+                  <p className="text-white font-extrabold text-sm mt-0.5">
+                    {POND_TYPE_LABELS[selectedPond.pondType] || selectedPond.pondType}
+                  </p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-3 text-center">
                   <Ruler className="w-4 h-4 text-emerald-300 mx-auto mb-1" />
-                  <p className="text-[10px] text-white/50 font-medium">ขนาด (ม.)</p>
+                  <p className="text-[10px] text-white/50 font-medium">ขนาด (เมตร)</p>
                   <p className="text-white font-extrabold text-sm mt-0.5">
                     {selectedPond.widthM}x{selectedPond.lengthM}x{selectedPond.depthM}
                   </p>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-3 text-center">
-                  <Droplets className="w-4 h-4 text-emerald-300 mx-auto mb-1" />
-                  <p className="text-[10px] text-white/50 font-medium">ปริมาตร</p>
-                  <p className="text-white font-extrabold text-sm mt-0.5">
-                    {selectedPond.volumeM3} m³
-                  </p>
-                </div>
-                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-3 text-center">
                   <Droplets className="w-4 h-4 text-blue-300 mx-auto mb-1" />
-                  <p className="text-[10px] text-white/50 font-medium">ลิตร</p>
+                  <p className="text-[10px] text-white/50 font-medium">ปริมาตร (ลิตร)</p>
                   <p className="text-white font-extrabold text-sm mt-0.5">
                     {formatVolumeLiters(selectedPond.volumeM3)}
                   </p>
