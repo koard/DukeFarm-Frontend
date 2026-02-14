@@ -85,6 +85,34 @@ function CallbackContent() {
           }
         }
 
+        // Fetch fresh user data from /auth/me to ensure localStorage has complete data (ponds, farmTypes, etc.)
+        const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dukefarm-backend.onrender.com/api";
+        try {
+          const meRes = await fetch(`${API_BASE}/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (meRes.ok) {
+            const meData = await meRes.json();
+            const freshUser = meData.data;
+            if (freshUser) {
+              const currentRaw = localStorage.getItem("user");
+              const current = currentRaw ? JSON.parse(currentRaw) : {};
+              const merged = {
+                ...current,
+                ...freshUser,
+                farmerProfile: {
+                  ...(current.farmerProfile ?? {}),
+                  ...(freshUser.farmerProfile ?? {}),
+                },
+              };
+              localStorage.setItem("user", JSON.stringify(merged));
+              console.log("✓ User data refreshed from /auth/me:", merged);
+            }
+          }
+        } catch (meErr) {
+          console.warn("Could not refresh user data from /auth/me", meErr);
+        }
+
         // Redirect ไปหน้า root ให้ logic ที่นั่นจัดการ redirect ต่อ
         console.log("→ Redirecting to root for routing logic");
         router.push("/");

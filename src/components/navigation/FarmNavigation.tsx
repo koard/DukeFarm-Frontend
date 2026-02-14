@@ -30,22 +30,7 @@ export default function FarmNavigation() {
   const [displayItems, setDisplayItems] = useState<NavItem[]>([]);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (!storedUser) {
-      // Fallback: show all farm types pointing to dashboard-farmer
-      setDisplayItems(
-        Object.keys(FARM_TYPE_LABELS).map((type) => ({
-          type: type as FarmType,
-          label: FARM_TYPE_LABELS[type as FarmType],
-          path: `/dashboard-farmer?type=${type}`,
-        }))
-      );
-      return;
-    }
-
-    try {
-      const user = JSON.parse(storedUser);
-      const profile = user.farmerProfile || {};
+    const buildNavFromProfile = (profile: Record<string, unknown>) => {
       const ponds = profile.ponds as Array<{
         id: string;
         farmType: FarmType;
@@ -55,7 +40,6 @@ export default function FarmNavigation() {
       let items: NavItem[] = [];
 
       if (ponds && ponds.length > 0) {
-        // Build nav items from ponds — one tab per pond
         items = ponds.map((pond, index) => ({
           type: pond.farmType || "SMALL",
           label: `บ่อที่ ${index + 1} (${FARM_TYPE_LABELS[pond.farmType || "SMALL"]})`,
@@ -63,8 +47,7 @@ export default function FarmNavigation() {
           pondId: pond.id,
         }));
       } else {
-        // Fallback to farm types from profile
-        const allowed = deriveFarmTypesFromProfile(profile);
+        const allowed = deriveFarmTypesFromProfile(profile as Parameters<typeof deriveFarmTypesFromProfile>[0]);
         if (allowed.length === 0) {
           items = Object.keys(FARM_TYPE_LABELS).map((type) => ({
             type: type as FarmType,
@@ -79,18 +62,57 @@ export default function FarmNavigation() {
           }));
         }
       }
-      setDisplayItems(items);
-    } catch (e) {
-      console.error("Parse error", e);
-      // Fallback on error
-      setDisplayItems(
-        Object.keys(FARM_TYPE_LABELS).map((type) => ({
-          type: type as FarmType,
-          label: FARM_TYPE_LABELS[type as FarmType],
-          path: `/dashboard-farmer?type=${type}`,
-        }))
-      );
+      return items;
+    };
+
+    const fallbackItems = Object.keys(FARM_TYPE_LABELS).map((type) => ({
+      type: type as FarmType,
+      label: FARM_TYPE_LABELS[type as FarmType],
+      path: `/dashboard-farmer?type=${type}`,
+    }));
+
+    // Try localStorage first
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        const profile = user.farmerProfile || {};
+        setDisplayItems(buildNavFromProfile(profile));
+      } catch {
+        setDisplayItems(fallbackItems);
+      }
+    } else {
+      setDisplayItems(fallbackItems);
     }
+
+    // Refresh from API to ensure up-to-date data
+    const refreshFromApi = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) return;
+        const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dukefarm-backend.onrender.com/api";
+        const res = await fetch(`${API_BASE}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const { data } = await res.json();
+          if (data?.farmerProfile) {
+            const items = buildNavFromProfile(data.farmerProfile);
+            if (items.length > 0) {
+              setDisplayItems(items);
+            }
+            // Update localStorage with fresh ponds data
+            const currentRaw = localStorage.getItem("user");
+            const current = currentRaw ? JSON.parse(currentRaw) : {};
+            const merged = { ...current, ...data, farmerProfile: { ...(current.farmerProfile ?? {}), ...data.farmerProfile } };
+            localStorage.setItem("user", JSON.stringify(merged));
+          }
+        }
+      } catch (err) {
+        console.warn("Could not refresh nav from API", err);
+      }
+    };
+    refreshFromApi();
   }, []);
 
   // Auto-select first item if no pondId/type selected or invalid

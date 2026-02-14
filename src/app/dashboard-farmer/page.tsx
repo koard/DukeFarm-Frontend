@@ -512,26 +512,22 @@ function DashboardContent() {
   const [pondName, setPondName] = useState<string>("");
 
   useEffect(() => {
-    const fetchPondInfo = async () => {
-      try {
-        // Simple client-side fetch to get pond index
-        const res = await fetch('/api/farmers/me/profile');
-        if (res.ok) {
-          const data = await res.json();
-          const ponds = data.ponds || [];
-          if (pondId) {
-            const idx = ponds.findIndex((p: { id: string }) => p.id === pondId);
-            setPondName(idx !== -1 ? `บ่อที่ ${idx + 1}` : "บ่อที่ 1");
-          } else {
-            setPondName(ponds.length > 0 ? "บ่อที่ 1" : "ยังไม่มีบ่อ");
-          }
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        const ponds = user?.farmerProfile?.ponds || [];
+        if (pondId) {
+          const idx = ponds.findIndex((p: { id: string }) => p.id === pondId);
+          setPondName(idx !== -1 ? `บ่อที่ ${idx + 1}` : "บ่อที่ 1");
+        } else {
+          setPondName(ponds.length > 0 ? "บ่อที่ 1" : "ยังไม่มีบ่อ");
         }
-      } catch (e) {
-        console.error("Failed to fetch profile for pond index", e);
-        setPondName("บ่อที่ 1");
       }
-    };
-    fetchPondInfo();
+    } catch (e) {
+      console.error("Failed to get pond index", e);
+      setPondName("บ่อที่ 1");
+    }
   }, [pondId]);
 
   // Pond Summary Data

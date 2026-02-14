@@ -63,43 +63,70 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
   const [foodFormulas, setFoodFormulas] = useState<FormulaOption[]>([]);
   const [supplementFormulas, setSupplementFormulas] = useState<FormulaOption[]>([]);
 
-  // Load ponds from user profile in localStorage
+  // Load ponds from user profile — localStorage first, then refresh from API
   useEffect(() => {
+    const loadPondsFromProfile = (profilePonds: PondInfo[]) => {
+      if (Array.isArray(profilePonds) && profilePonds.length > 0) {
+        setPonds(profilePonds.map((p: PondInfo) => ({
+          id: p.id,
+          pondType: p.pondType || 'EARTHEN',
+          farmType: p.farmType || 'SMALL',
+          widthM: Number(p.widthM) || 0,
+          lengthM: Number(p.lengthM) || 0,
+          depthM: Number(p.depthM) || 0,
+          volumeM3: Number(p.volumeM3) || 0,
+        })));
+
+        if (initialPondId) {
+          const exists = profilePonds.find((p: PondInfo) => p.id === initialPondId);
+          if (exists) {
+            setSelectedPondId(initialPondId);
+          } else {
+            setSelectedPondId(profilePonds[0].id);
+          }
+        } else if (!selectedPondId) {
+          setSelectedPondId(profilePonds[0].id);
+        }
+      }
+    };
+
+    // Try localStorage first
     try {
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
         const user = JSON.parse(storedUser);
         const profilePonds = user?.farmerProfile?.ponds;
-        if (Array.isArray(profilePonds) && profilePonds.length > 0) {
-          setPonds(profilePonds.map((p: PondInfo) => ({
-            id: p.id,
-            pondType: p.pondType || 'EARTHEN',
-            farmType: p.farmType || 'SMALL',
-            widthM: Number(p.widthM) || 0,
-            lengthM: Number(p.lengthM) || 0,
-            depthM: Number(p.depthM) || 0,
-            volumeM3: Number(p.volumeM3) || 0,
-          })));
-
-          // Select initial pond if valid, otherwise first pond
-          if (initialPondId) {
-            const exists = profilePonds.find((p: PondInfo) => p.id === initialPondId);
-            if (exists) {
-              setSelectedPondId(initialPondId);
-            } else {
-              setSelectedPondId(profilePonds[0].id);
-            }
-          } else {
-            // Only if not already selected (e.g. from state init)
-            if (!selectedPondId) {
-              setSelectedPondId(profilePonds[0].id);
-            }
-          }
-        }
+        loadPondsFromProfile(profilePonds);
       }
     } catch (err) {
-      console.error('Failed to load ponds from profile', err);
+      console.error('Failed to load ponds from localStorage', err);
     }
+
+    // Refresh from API
+    const refreshPonds = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+        const res = await fetch(`${API_BASE_URL}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const { data } = await res.json();
+          const apiPonds = data?.farmerProfile?.ponds;
+          if (Array.isArray(apiPonds) && apiPonds.length > 0) {
+            loadPondsFromProfile(apiPonds);
+            // Update localStorage
+            const currentRaw = localStorage.getItem('user');
+            const current = currentRaw ? JSON.parse(currentRaw) : {};
+            const merged = { ...current, ...data, farmerProfile: { ...(current.farmerProfile ?? {}), ...data.farmerProfile } };
+            localStorage.setItem('user', JSON.stringify(merged));
+          }
+        }
+      } catch (err) {
+        console.warn('Could not refresh ponds from API', err);
+      }
+    };
+    refreshPonds();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialPondId]);
 

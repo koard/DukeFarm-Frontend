@@ -204,19 +204,46 @@ export default function ProfilePage() {
     hasValidLocation;
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        populateFormFromProfile(userData?.farmerProfile);
-      } catch (err) {
-        console.error("Error loading profile:", err);
-      } finally {
-        setLoading(false);
+    const loadProfile = async () => {
+      // First try localStorage
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          const userData = JSON.parse(storedUser);
+          populateFormFromProfile(userData?.farmerProfile);
+        } catch (err) {
+          console.error("Error loading profile from localStorage:", err);
+        }
       }
-    } else {
+
+      // Also fetch from API to ensure data is up-to-date
+      try {
+        const token = localStorage.getItem("authToken");
+        if (token) {
+          const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dukefarm-backend.onrender.com/api";
+          const res = await fetch(`${API_BASE}/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.ok) {
+            const { data } = await res.json();
+            if (data?.farmerProfile) {
+              populateFormFromProfile(data.farmerProfile);
+              // Update localStorage with fresh data
+              const currentRaw = localStorage.getItem("user");
+              const current = currentRaw ? JSON.parse(currentRaw) : {};
+              const merged = { ...current, ...data, farmerProfile: { ...(current.farmerProfile ?? {}), ...data.farmerProfile } };
+              localStorage.setItem("user", JSON.stringify(merged));
+            }
+          }
+        }
+      } catch (apiErr) {
+        console.warn("Could not fetch profile from API, using localStorage", apiErr);
+      }
+
       setLoading(false);
-    }
+    };
+
+    loadProfile();
   }, [populateFormFromProfile]);
 
   useEffect(() => {
