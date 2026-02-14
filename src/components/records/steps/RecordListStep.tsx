@@ -402,14 +402,19 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
                 <RefreshCw className="w-10 h-10 text-[#093832]" />
               </div>
             </div>
-            <h3 className="text-[#093832] text-xl font-bold mb-2">
+            <h3 className="text-[#093832] text-xl font-bold mb-4">
               ยืนยันการเริ่มรอบการเลี้ยงใหม่?
             </h3>
-            <p className="text-gray-700 text-base mb-2 px-2 font-semibold leading-relaxed">
-              รอบการเลี้ยงที่ {cycleNumber} จะสิ้นสุดลง และเริ่มรอบการเลี้ยงที่ {cycleNumber + 1}
-            </p>
-            <p className="text-gray-500 text-sm mb-8 leading-relaxed">
-              โดยข้อมูลรอบเดิมจะถูกเก็บไว้ในระบบ และสามารถเรียกดูย้อนหลังได้
+            <div className="mb-6">
+              <p className="text-gray-700 text-base font-medium mb-1">
+                รอบการเลี้ยงที่ {cycleNumber} จะสิ้นสุดลง
+              </p>
+              <p className="text-gray-700 text-base font-medium">
+                และเริ่มรอบการเลี้ยงที่ {cycleNumber + 1}
+              </p>
+            </div>
+            <p className="text-gray-500 text-sm mb-8">
+              ข้อมูลรอบเก่าจะถูกเก็บไว้ในระบบ<br/>สำหรับการดูย้อนหลัง
             </p>
             <div className="flex flex-col gap-3">
               <button onClick={() => setIsConfirmNewCycleOpen(false)} className="w-full bg-gray-100 text-[#093832] font-bold py-4 rounded-2xl">ยกเลิก</button>
