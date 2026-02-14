@@ -342,14 +342,14 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
                 <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-3 text-center shadow-sm">
                   <Ruler className="w-4 h-4 text-teal-600 mx-auto mb-1.5" />
                   <p className="text-xs text-gray-700 font-semibold">ขนาด (เมตร)</p>
-                  <p className="text-gray-900 font-extrabold text-sm mt-1">
+                  <p className="text-gray-900 font-bold text-sm mt-1">
                     {selectedPond.widthM} x {selectedPond.lengthM} x {selectedPond.depthM}
                   </p>
                 </div>
                 <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-3 text-center shadow-sm">
                   <Droplets className="w-4 h-4 text-blue-600 mx-auto mb-1.5" />
                   <p className="text-xs text-gray-700 font-semibold">ปริมาตร (ลิตร)</p>
-                  <p className="text-gray-900 font-extrabold text-sm mt-1">
+                  <p className="text-gray-900 font-bold text-sm mt-1">
                     {formatVolumeLiters(selectedPond.volumeM3)}
                   </p>
                 </div>
