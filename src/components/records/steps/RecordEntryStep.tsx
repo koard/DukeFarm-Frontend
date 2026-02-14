@@ -311,7 +311,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
 
       <div className="px-5 mt-6 space-y-5">
         {/* Pond selector card */}
-        <div className="bg-gradient-to-br from-[#093832] to-[#0c4d44] rounded-3xl p-4 shadow-lg">
+        <div className="bg-gradient-to-br from-[#16a085] to-[#2ecc71] rounded-3xl p-4 shadow-lg">
           {/* Pond dropdown (if multiple) */}
           {ponds.length > 1 && (
             <div className="relative mb-3">
