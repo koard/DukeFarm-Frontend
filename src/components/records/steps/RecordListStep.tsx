@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, RefreshCw, Search, Trash2, Calendar, ChevronDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw, Search, Trash2, ChevronDown } from 'lucide-react';
 import { ProfileDropdownMenu } from '@/components/common/ProfileDropdownMenu';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dukefarm-backend.onrender.com/api";
@@ -258,38 +258,86 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
         {/* --- Cycle Card --- */}
         {pondId && (
           <div className="bg-gradient-to-r from-[#093832] to-[#0f5e4e] rounded-2xl p-5 mb-6 shadow-lg text-white">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold">รอบการเลี้ยงที่ {cycleNumber || '-'}</h2>
-              </div>
+            {/* Header — cycle title with inline dropdown */}
+            <div className="mb-3">
+              {allCycles.length > 1 ? (
+                <div className="relative inline-block">
+                  <select
+                    value={selectedCycleId || activeCycle?.id || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSelectedCycleId(val === activeCycle?.id ? null : val);
+                      setCurrentPage(1);
+                    }}
+                    className="appearance-none bg-white/10 text-white text-base font-bold pl-3 pr-8 py-1.5 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/30 transition-all"
+                  >
+                    {[...allCycles].reverse().map((cycle, idx) => (
+                      <option key={cycle.id} value={cycle.id} className="text-[#093832] bg-white">
+                        รอบการเลี้ยงที่ {idx + 1}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-white/70 pointer-events-none" />
+                </div>
+              ) : (
+                <h2 className="text-base font-bold">รอบการเลี้ยงที่ {viewingCycleIndex || cycleNumber || '-'}</h2>
+              )}
             </div>
 
-            {activeCycle ? (
+            {/* Cycle details */}
+            {viewingCycle ? (
               <div className="space-y-2">
+                {/* Status */}
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-white/70">สถานะ</span>
-                  {activeCycle.status === 'PLANNING' ? (
-                    <span className="bg-yellow-400/20 text-yellow-200 px-2.5 py-0.5 rounded-full text-xs font-bold">
-                      รอการบันทึกข้อมูล
-                    </span>
+                  {isViewingActiveCycle ? (
+                    activeCycle?.status === 'PLANNING' ? (
+                      <span className="bg-yellow-400/20 text-yellow-200 px-2.5 py-0.5 rounded-full text-xs font-bold">
+                        รอการบันทึกข้อมูล
+                      </span>
+                    ) : (
+                      <span className="bg-emerald-400/20 text-emerald-200 px-2.5 py-0.5 rounded-full text-xs font-bold">
+                        กำลังดำเนินการ
+                      </span>
+                    )
                   ) : (
-                    <span className="bg-emerald-400/20 text-emerald-200 px-2.5 py-0.5 rounded-full text-xs font-bold">
-                      กำลังดำเนินการ
+                    <span className="bg-white/10 text-white/80 px-2.5 py-0.5 rounded-full text-xs font-bold">
+                      สิ้นสุดแล้ว
                     </span>
                   )}
                 </div>
-                {activeCycle.status !== 'PLANNING' && (
+
+                {/* Date & Duration — hide when active PLANNING */}
+                {((!isViewingActiveCycle) || (isViewingActiveCycle && activeCycle?.status !== 'PLANNING')) && (
                   <>
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-white/70">วันที่เริ่มปล่อยปลา</span>
                       <span className="font-semibold">
-                        {new Date(activeCycle.startDate).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                        {new Date(viewingCycle.startDate).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                       </span>
                     </div>
+
+                    {/* End date — only for old (non-active) cycles */}
+                    {!isViewingActiveCycle && (viewingCycle as CycleItem).endDate && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-white/70">วันที่สิ้นสุด</span>
+                        <span className="font-semibold">
+                          {new Date((viewingCycle as CycleItem).endDate!).toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Duration */}
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-white/70">ระยะเวลา</span>
                       <span className="font-semibold">
-                        {Math.max(1, Math.ceil((Date.now() - new Date(activeCycle.startDate).getTime()) / (1000 * 60 * 60 * 24)))} วัน
+                        {(() => {
+                          const start = new Date(viewingCycle.startDate).getTime();
+                          const end = !isViewingActiveCycle && (viewingCycle as CycleItem).endDate
+                            ? new Date((viewingCycle as CycleItem).endDate!).getTime()
+                            : Date.now();
+                          return Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
+                        })()} วัน
                       </span>
                     </div>
                   </>
@@ -299,7 +347,8 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
               <p className="text-white/60 text-sm">กำลังเตรียมรอบการเลี้ยง...</p>
             )}
 
-            {activeCycle && activeCycle.status !== 'PLANNING' && (
+            {/* Start new cycle — only for active cycle that's not PLANNING */}
+            {isViewingActiveCycle && activeCycle && activeCycle.status !== 'PLANNING' && (
               <button
                 onClick={() => setIsConfirmNewCycleOpen(true)}
                 className="mt-4 w-full border-2 border-dashed border-white/30 text-white/70 text-sm font-bold py-3 rounded-xl hover:bg-white/10 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
@@ -308,53 +357,16 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
                 เริ่มรอบการเลี้ยงใหม่
               </button>
             )}
-          </div>
-        )}
 
-        {/* --- Cycle Selector --- */}
-        {pondId && allCycles.length > 1 && (
-          <div className="mb-4">
-            <div className="relative">
-              <select
-                value={selectedCycleId || activeCycle?.id || ''}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setSelectedCycleId(val === activeCycle?.id ? null : val);
-                  setCurrentPage(1);
-                }}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm font-semibold text-[#093832] appearance-none focus:outline-none focus:ring-2 focus:ring-[#093832]/20 focus:border-[#093832]/40 transition-all"
+            {/* Back to current cycle — when viewing old cycle */}
+            {!isViewingActiveCycle && (
+              <button
+                onClick={() => { setSelectedCycleId(null); setCurrentPage(1); }}
+                className="mt-4 w-full bg-white/10 text-white text-sm font-bold py-3 rounded-xl hover:bg-white/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
               >
-                {[...allCycles].reverse().map((cycle, idx) => {
-                  const isActive = cycle.id === activeCycle?.id;
-                  const dateLabel = new Date(cycle.startDate).toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
-                  const statusLabel = isActive ? '● ปัจจุบัน' : cycle.status === 'HARVESTED' ? 'สิ้นสุดแล้ว' : '';
-                  return (
-                    <option key={cycle.id} value={cycle.id}>
-                      รอบที่ {idx + 1} — {dateLabel} {statusLabel ? `(${statusLabel})` : ''}
-                    </option>
-                  );
-                })}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-            </div>
-          </div>
-        )}
-
-        {/* Viewing old cycle banner */}
-        {!isViewingActiveCycle && viewingCycle && (
-          <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-amber-600" />
-              <span className="text-sm text-amber-800 font-medium">
-                กำลังดูรอบที่ {viewingCycleIndex} (ย้อนหลัง)
-              </span>
-            </div>
-            <button 
-              onClick={() => { setSelectedCycleId(null); setCurrentPage(1); }}
-              className="text-xs text-amber-700 font-bold underline"
-            >
-              กลับรอบปัจจุบัน
-            </button>
+                กลับรอบปัจจุบัน
+              </button>
+            )}
           </div>
         )}
 

@@ -331,7 +331,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
           <button onClick={onBack} className="p-1 hover:bg-white/10 rounded-full transition-colors">
             <ChevronLeft className="w-8 h-8" />
           </button>
-          <h1 className="text-2xl font-bold">กรอกข้อมูล</h1>
+          <h1 className="text-2xl font-bold">บันทึกข้อมูล</h1>
         </div>
         <ProfileDropdownMenu showGreeting={false} />
       </div>
