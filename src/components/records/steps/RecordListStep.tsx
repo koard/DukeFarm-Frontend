@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw, Search, Trash2, Calendar, ChevronDown } from 'lucide-react';
 import { ProfileDropdownMenu } from '@/components/common/ProfileDropdownMenu';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dukefarm-backend.onrender.com/api";
@@ -43,6 +43,26 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
   const [isStartingCycle, setIsStartingCycle] = useState(false);
   const [isConfirmNewCycleOpen, setIsConfirmNewCycleOpen] = useState(false);
 
+  // All cycles for selector
+  type CycleItem = { id: string; startDate: string; endDate: string | null; status: string; farmType: string | null; createdAt: string };
+  const [allCycles, setAllCycles] = useState<CycleItem[]>([]);
+  const [selectedCycleId, setSelectedCycleId] = useState<string | null>(null);
+
+  // The cycle currently being viewed (either selected or active)
+  const viewingCycle = useMemo(() => {
+    if (selectedCycleId) return allCycles.find(c => c.id === selectedCycleId) || null;
+    return activeCycle;
+  }, [selectedCycleId, allCycles, activeCycle]);
+
+  const isViewingActiveCycle = !selectedCycleId || selectedCycleId === activeCycle?.id;
+
+  const viewingCycleIndex = useMemo(() => {
+    if (!viewingCycle) return 0;
+    // allCycles is sorted newest first, so reverse for numbering
+    const reversedIdx = [...allCycles].reverse().findIndex(c => c.id === viewingCycle.id);
+    return reversedIdx >= 0 ? reversedIdx + 1 : 0;
+  }, [viewingCycle, allCycles]);
+
   const fetchRecords = useCallback(async () => {
     try {
       setLoading(true);
@@ -58,9 +78,10 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
         url.searchParams.append('pondId', pondId);
       }
 
-      // Filter by active production cycle
-      if (activeCycle?.id) {
-        url.searchParams.append('productionCycleId', activeCycle.id);
+      // Filter by selected/active production cycle
+      const cycleId = selectedCycleId || activeCycle?.id;
+      if (cycleId) {
+        url.searchParams.append('productionCycleId', cycleId);
       }
 
       const res = await fetch(url.toString(), {
@@ -76,7 +97,7 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
     } finally {
       setLoading(false);
     }
-  }, [farmType, pondId, activeCycle]);
+  }, [farmType, pondId, activeCycle, selectedCycleId]);
 
   useEffect(() => {
     fetchRecords();
@@ -113,11 +134,14 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
       const token = localStorage.getItem("authToken");
       if (!token) return;
 
-      const [cycleRes, countRes] = await Promise.all([
+      const [cycleRes, countRes, cyclesListRes] = await Promise.all([
         fetch(`${API_BASE_URL}/ponds/${pondId}/active-cycle`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
         fetch(`${API_BASE_URL}/ponds/${pondId}/cycle-count`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${API_BASE_URL}/ponds/${pondId}/cycles`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -134,6 +158,12 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
         count = data?.count || 0;
       }
 
+      let cyclesList: CycleItem[] = [];
+      if (cyclesListRes.ok) {
+        const { data } = await cyclesListRes.json();
+        cyclesList = data || [];
+      }
+
       // Auto-start first cycle if no active cycle and no cycles ever existed
       if (!cycle && count === 0) {
         const startRes = await fetch(`${API_BASE_URL}/ponds/${pondId}/start-cycle`, {
@@ -148,11 +178,13 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
           const { data } = await startRes.json();
           cycle = data;
           count = 1;
+          cyclesList = [data];
         }
       }
 
       setActiveCycle(cycle);
       setCycleNumber(count);
+      setAllCycles(cyclesList);
     } catch (err) {
       console.error("Failed to fetch cycle info", err);
     }
@@ -179,6 +211,7 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
       });
 
       if (res.ok) {
+        setSelectedCycleId(null);
         await fetchCycleInfo();
         setIsConfirmNewCycleOpen(false);
         // Navigate to data entry form
@@ -278,61 +311,110 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
           </div>
         )}
 
+        {/* --- Cycle Selector --- */}
+        {pondId && allCycles.length > 1 && (
+          <div className="mb-4">
+            <div className="relative">
+              <select
+                value={selectedCycleId || activeCycle?.id || ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedCycleId(val === activeCycle?.id ? null : val);
+                  setCurrentPage(1);
+                }}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm font-semibold text-[#093832] appearance-none focus:outline-none focus:ring-2 focus:ring-[#093832]/20 focus:border-[#093832]/40 transition-all"
+              >
+                {[...allCycles].reverse().map((cycle, idx) => {
+                  const isActive = cycle.id === activeCycle?.id;
+                  const dateLabel = new Date(cycle.startDate).toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
+                  const statusLabel = isActive ? '● ปัจจุบัน' : cycle.status === 'HARVESTED' ? 'สิ้นสุดแล้ว' : '';
+                  return (
+                    <option key={cycle.id} value={cycle.id}>
+                      รอบที่ {idx + 1} — {dateLabel} {statusLabel ? `(${statusLabel})` : ''}
+                    </option>
+                  );
+                })}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+        )}
+
+        {/* Viewing old cycle banner */}
+        {!isViewingActiveCycle && viewingCycle && (
+          <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-amber-600" />
+              <span className="text-sm text-amber-800 font-medium">
+                กำลังดูรอบที่ {viewingCycleIndex} (ย้อนหลัง)
+              </span>
+            </div>
+            <button 
+              onClick={() => { setSelectedCycleId(null); setCurrentPage(1); }}
+              className="text-xs text-amber-700 font-bold underline"
+            >
+              กลับรอบปัจจุบัน
+            </button>
+          </div>
+        )}
+
         {/* Table & Footer */}
-        <div className="overflow-hidden rounded-2xl border border-gray-100 shadow-sm bg-white">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[#093832] text-white text-xs">
-                <th className="py-4 px-3 text-center w-12 border-r border-white/10 font-bold text-white">No.</th>
-                <th className="py-4 px-4 border-r border-white/10 font-bold text-white">วันที่เก็บข้อมูล</th>
-                <th className="py-4 px-3 text-center font-bold text-white">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {loading ? (
-                <tr>
-                  <td colSpan={3} className="py-20 text-center">
-                    <div className="flex justify-center">
-                      <div className="w-8 h-8 border-4 border-emerald-100 border-t-[#0F3B35] rounded-full animate-spin"></div>
-                    </div>
-                  </td>
-                </tr>
-              ) : paginatedRecords.length > 0 ? paginatedRecords.map((record, index) => {
-                const { date, time } = formatDate(record.recordedAt);
-                return (
-                  <tr key={record.id} className="text-sm">
-                    <td className="py-4 px-3 text-center text-gray-500 font-medium">
-                      {(currentPage - 1) * pageSize + index + 1}
-                    </td>
-                    <td className="py-4 px-4 text-[#093832] font-bold">
-                      {date} - {time}
-                    </td>
-                    <td className="py-4 px-3 flex items-center justify-center gap-4">
-                      <button onClick={() => onViewDetails(record.id)} className="hover:scale-110 transition-transform">
-                        <Image src="/records/prime_search.svg" alt="v" width={22} height={22} />
+        <div className="overflow-hidden rounded-2xl shadow-sm bg-white border border-gray-100">
+          {/* Table Header */}
+          <div className="bg-[#093832] px-4 py-3.5 flex items-center">
+            <span className="text-white text-xs font-bold w-12 text-center">No.</span>
+            <span className="text-white text-xs font-bold flex-1 pl-3">วันที่เก็บข้อมูล</span>
+            <span className="text-white text-xs font-bold w-20 text-center">จัดการ</span>
+          </div>
+
+          {/* Table Body */}
+          <div className="divide-y divide-gray-50">
+            {loading ? (
+              <div className="py-20 flex justify-center">
+                <div className="w-8 h-8 border-4 border-emerald-100 border-t-[#0F3B35] rounded-full animate-spin"></div>
+              </div>
+            ) : paginatedRecords.length > 0 ? paginatedRecords.map((record, index) => {
+              const { date, time } = formatDate(record.recordedAt);
+              return (
+                <div key={record.id} className="flex items-center px-4 py-4 hover:bg-gray-50/50 transition-colors">
+                  <span className="text-gray-400 text-sm font-medium w-12 text-center">
+                    {(currentPage - 1) * pageSize + index + 1}
+                  </span>
+                  <div className="flex-1 pl-3">
+                    <span className="text-[#093832] text-sm font-bold">{date}</span>
+                    <span className="text-gray-400 text-sm font-medium ml-2">{time}</span>
+                  </div>
+                  <div className="flex items-center gap-3 w-20 justify-center">
+                    <button 
+                      onClick={() => onViewDetails(record.id)} 
+                      className="p-1.5 rounded-lg hover:bg-emerald-50 transition-colors"
+                    >
+                      <Search className="w-[18px] h-[18px] text-[#093832]" />
+                    </button>
+                    {isViewingActiveCycle && (
+                      <button 
+                        onClick={() => { setSelectedRecord(record); setIsDeleteModalOpen(true); }} 
+                        className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                      >
+                        <Trash2 className="w-[18px] h-[18px] text-red-400" />
                       </button>
-                      <button onClick={() => { setSelectedRecord(record); setIsDeleteModalOpen(true); }} className="hover:scale-110 transition-transform">
-                        <Image src="/records/proicons_delete.svg" alt="d" width={22} height={22} />
-                      </button>
-                    </td>
-                  </tr>
-                )
-              }) : (
-                <tr>
-                  <td colSpan={3} className="py-20 text-center text-gray-400 font-medium font-bold">ไม่พบข้อมูล</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                    )}
+                  </div>
+                </div>
+              );
+            }) : (
+              <div className="py-20 text-center text-gray-400 font-medium">ไม่พบข้อมูล</div>
+            )}
+          </div>
 
           {/* Footer Pagination */}
-          <div className="bg-gray-50 px-4 py-3 border-t border-gray-100 flex items-center justify-between">
+          <div className="bg-gray-50/80 px-4 py-3 border-t border-gray-100 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500 font-medium font-bold">แสดง</span>
+              <span className="text-xs text-gray-500 font-bold">แสดง</span>
               <select
                 value={pageSize}
                 onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }}
-                className="bg-white border border-gray-300 rounded-md px-1.5 py-1 text-xs font-bold text-[#093832] focus:outline-none"
+                className="bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs font-bold text-[#093832] focus:outline-none"
               >
                 <option value={10}>10</option>
                 <option value={20}>20</option>
@@ -349,7 +431,7 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
                 <ChevronLeft className="w-5 h-5 stroke-[3px]" />
               </button>
 
-              <span className="text-xs font-extrabold text-[#093832] min-w-[40px] text-center font-bold">
+              <span className="text-xs font-extrabold text-[#093832] min-w-[40px] text-center">
                 {currentPage} / {totalPages || 1}
               </span>
 
