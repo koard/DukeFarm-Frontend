@@ -403,25 +403,23 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
               </div>
             </div>
             <h3 className="text-[#093832] text-xl font-bold mb-2">
-              {activeCycle ? 'เริ่มรอบการเลี้ยงใหม่?' : 'เริ่มรอบการเลี้ยง?'}
+              ยืนยันการเริ่มรอบการเลี้ยงใหม่?
             </h3>
-            {activeCycle && (
-              <p className="text-gray-500 text-sm mb-2 px-2 font-bold">
-                รอบที่ {cycleNumber} จะถูกปิด และเริ่มรอบที่ {cycleNumber + 1}
-              </p>
-            )}
-            <p className="text-[#093832]/60 text-sm mb-8">
-              {activeCycle ? 'ข้อมูลรอบเก่าจะยังคงอยู่ในระบบ' : `จะเริ่มรอบที่ ${cycleNumber + 1}`}
+            <p className="text-gray-700 text-base mb-2 px-2 font-semibold leading-relaxed">
+              รอบการเลี้ยงที่ {cycleNumber} จะสิ้นสุดลง และเริ่มรอบการเลี้ยงที่ {cycleNumber + 1}
+            </p>
+            <p className="text-gray-500 text-sm mb-8 leading-relaxed">
+              โดยข้อมูลรอบเดิมจะถูกเก็บไว้ในระบบ และสามารถเรียกดูย้อนหลังได้
             </p>
             <div className="flex flex-col gap-3">
+              <button onClick={() => setIsConfirmNewCycleOpen(false)} className="w-full bg-gray-100 text-[#093832] font-bold py-4 rounded-2xl">ยกเลิก</button>
               <button
                 onClick={handleStartNewCycle}
                 disabled={isStartingCycle}
-                className="w-full bg-[#093832] text-white font-bold py-4 rounded-2xl shadow-lg disabled:opacity-50"
+                className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-2xl shadow-lg disabled:opacity-50 transition-colors"
               >
                 {isStartingCycle ? 'กำลังดำเนินการ...' : 'ยืนยัน'}
               </button>
-              <button onClick={() => setIsConfirmNewCycleOpen(false)} className="w-full bg-gray-100 text-[#093832] font-bold py-4 rounded-2xl">ยกเลิก</button>
             </div>
           </div>
         </div>
