@@ -405,8 +405,10 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
             <h3 className="text-[#093832] text-xl font-bold mb-4 mt-2">
               ยืนยันการเริ่มรอบการเลี้ยงใหม่?
             </h3>
-            <p className="text-gray-600 text-md mb-8">
-              ข้อมูลรอบเก่าจะถูกเก็บไว้ในระบบ<br/>สำหรับการดูย้อนหลัง
+            <p className="text-gray-600 text-md mb-8 leading-normal">
+              ข้อมูลรอบเก่าจะถูกเก็บไว้ในระบบ<br/>
+              และสามารถเรียกดูย้อนหลังได้<br/>
+              แต่จะไม่สามารถเพิ่มข้อมูลใหม่ในรอบเก่าได้อีก
             </p>
             <div className="flex flex-col gap-3">
               <button onClick={() => setIsConfirmNewCycleOpen(false)} className="w-full bg-gray-100 text-[#093832] font-bold py-4 rounded-2xl">ยกเลิก</button>
