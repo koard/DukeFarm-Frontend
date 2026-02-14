@@ -557,7 +557,7 @@ function DashboardContent() {
       {/* -------------------------------------------------------------------------
           (ส่วนหัวฟาร์ม - ห้ามแก้ตามต้นฉบับเดิม)
           ------------------------------------------------------------------------- */}
-      <div className="bg-[#093832] text-white px-4 pt-5 pb-4 rounded-b-3xl shadow-md relative z-30 flex items-center justify-between">
+      <div className="bg-[#093832] text-white px-4 pt-5 pb-4 rounded-b-3xl shadow-md relative z-50 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Image src="/dashboard/Group.svg" alt="Overview" width={24} height={24} />
           <h1 className="text-2xl font-bold">ภาพรวมฟาร์ม</h1>

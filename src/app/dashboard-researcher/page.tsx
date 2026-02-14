@@ -12,15 +12,13 @@ import {
   FiCloudRain,
   FiSun,
   FiCloud,
-  FiPieChart,
-  FiChevronDown,
-  FiLogOut
+  FiPieChart
 } from "react-icons/fi";
+import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
 
 export default function Dashboard() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<string | null>(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   type FeedingRecord = {
     date: string;
@@ -67,14 +65,6 @@ export default function Dashboard() {
     setCurrentUser(null);
   }, [router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
-    localStorage.removeItem("registrationStatus");
-    router.push("/login");
-  };
-
   const getWeatherIcon = (type: string) => {
     switch(type) {
       case "rain":
@@ -91,50 +81,9 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-emerald-800 text-white px-4 base:px-6 py-4 base:py-5 rounded-b-3xl relative">
+      <header className="bg-emerald-800 text-white px-4 base:px-6 py-4 base:py-5 rounded-b-3xl relative z-50">
         <div className="flex items-center justify-end">
-          {/* User Info - Right Aligned */}
-          <div className="flex items-center space-x-2 base:space-x-4">
-            <div className="text-right">
-              <p className="text-base base:text-base opacity-90">ยินดีต้อนรับ</p>
-              <p className="font-semibold text-base base:text-lg">{currentUser || "-"}</p>
-            </div>
-            
-            {/* User Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center space-x-1 base:space-x-2 p-1 rounded-full hover:bg-emerald-900 transition-colors"
-              >
-                <div className="w-10 h-10 base:w-14 base:h-14 bg-white rounded-full flex items-center justify-center overflow-hidden border-2 border-green-800 relative">
-                  <Image
-                    src="https://placehold.co/400x400.png?text=Profile"
-                    alt="Profile"
-                    fill
-                    sizes="56px"
-                    className="object-cover"
-                    unoptimized
-                  />
-                </div>
-                <FiChevronDown className={`transition-transform text-base base:text-base ${dropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-              
-              {/* Dropdown Menu */}
-              {dropdownOpen && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                  <div className="py-2">
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center space-x-2 w-full px-4 py-2 text-gray-900 hover:bg-gray-100 transition-colors"
-                    >
-                      <FiLogOut className="text-base" />
-                      <span className="text-base">ออกจากระบบ</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          <ProfileDropdownMenu showGreeting={true} />
         </div>
       </header>
 
@@ -288,14 +237,6 @@ export default function Dashboard() {
           </button>
         </div>
       </div>
-      
-      {/* Click outside to close dropdown */}
-      {dropdownOpen && (
-        <div 
-          className="fixed inset-0 z-40" 
-          onClick={() => setDropdownOpen(false)}
-        />
-      )}
     </div>
   );
 }

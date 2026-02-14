@@ -13,6 +13,7 @@ import {
   FiActivity
 } from "react-icons/fi";
 import { GiFishEggs, GiWeight } from "react-icons/gi";
+import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
 
 export default function FeedingResultPage() {
   const router = useRouter();
@@ -60,24 +61,17 @@ export default function FeedingResultPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-teal-50 to-gray-100">
       {/* Header */}
-      <header className="bg-[#093832] text-white px-4 pt-5 pb-4 rounded-b-3xl shadow-lg">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={() => router.back()}
-            className="p-2 hover:bg-teal-600 rounded-lg transition-colors"
-          >
-            <FiArrowLeft className="text-xl" />
-          </button>
+      <header className="bg-[#093832] text-white px-4 pt-5 pb-4 rounded-b-3xl shadow-lg relative z-50 flex items-center justify-between">
+        <button
+          onClick={() => router.back()}
+          className="p-2 hover:bg-teal-600 rounded-lg transition-colors"
+        >
+          <FiArrowLeft className="text-xl" />
+        </button>
 
-          <h1 className="text-xl font-bold">ผลวิเคราะห์</h1>
+        <h1 className="text-xl font-bold">ผลวิเคราะห์</h1>
 
-          <div className="flex items-center space-x-2">
-            <span className="text-sm">ยินดีต้อนรับ</span>
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-              <span className="text-teal-800 text-xs font-bold">นกร</span>
-            </div>
-          </div>
-        </div>
+        <ProfileDropdownMenu showGreeting={false} />
       </header>
 
       <div className="p-4 pb-24">

@@ -9,6 +9,7 @@ import {
   FiCloud,
   FiCloudRain
 } from "react-icons/fi";
+import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
 
 // Dynamic import for WeatherMap to avoid SSR issues
 const WeatherMap = dynamic(() => import('./WeatherMap'), {
@@ -72,7 +73,7 @@ export default function WeatherPage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-white p-4 shadow-sm">
+      <header className="bg-white p-4 shadow-sm relative z-50">
         <div className="flex items-center justify-between mb-3">
           <button
             onClick={() => router.back()}
@@ -80,6 +81,7 @@ export default function WeatherPage() {
           >
             <FiArrowLeft className="text-xl text-gray-700" />
           </button>
+          <ProfileDropdownMenu showGreeting={false} />
         </div>
         
         {/* Time Display */}
