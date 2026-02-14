@@ -165,6 +165,16 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
     };
   }, [isResetModalOpen]);
 
+  const handleDateClick = () => {
+    if (dateInputRef.current) {
+      try {
+        (dateInputRef.current as HTMLInputElement & { showPicker: () => void }).showPicker();
+      } catch {
+        dateInputRef.current.focus();
+      }
+    }
+  };
+
   // Fetch active cycle when pond changes
   useEffect(() => {
     if (!selectedPondId) return;
@@ -390,7 +400,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
 
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-black ml-1">วันที่เริ่มปล่อยลงบ่อ</label>
-              <div className={`relative w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 flex items-center justify-between ${!releaseDate ? 'text-gray-400' : 'text-gray-700'}`}>
+              <div onClick={handleDateClick} className={`relative w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 flex items-center justify-between cursor-pointer ${!releaseDate ? 'text-gray-400' : 'text-gray-700'}`}>
                 <span className={`text-sm font-bold ${!releaseDate ? 'text-gray-400' : 'text-black'} pointer-events-none`}>
                   {releaseDate ? new Date(releaseDate).toLocaleDateString('th-TH') : 'เลือกวันที่'}
                 </span>
