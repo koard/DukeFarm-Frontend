@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, Calendar, RefreshCw, ChevronDown, Check } from 'lucide-react';
+import { ChevronLeft, Calendar, RefreshCw, ChevronDown } from 'lucide-react';
 import { ProfileDropdownMenu } from '@/components/common/ProfileDropdownMenu';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dukefarm-backend.onrender.com/api";
@@ -19,7 +19,6 @@ type PondInfo = {
 };
 
 const POND_TYPE_LABELS: Record<string, string> = { EARTHEN: 'บ่อดิน', CONCRETE: 'บ่อปูน' };
-const FARM_TYPE_LABELS: Record<string, string> = { SMALL: 'ปลาตุ้ม', LARGE: 'ปลานิ้ว', MARKET: 'ปลาตลาด' };
 
 interface RecordEntryStepProps {
   onAnalyze: (recordId?: string) => void;
@@ -53,7 +52,12 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
   const [medicineType, setMedicineType] = useState('');
   const [foodCost, setFoodCost] = useState('');
   const [medicineCost, setMedicineCost] = useState('');
-  const [activeCycle, setActiveCycle] = useState<any>(null);
+  const [activeCycle, setActiveCycle] = useState<{
+    status: string;
+    farmType?: string;
+    startDate?: string;
+    initialStockCount?: number;
+  } | null>(null);
 
   // Dynamic dropdown options
   const [foodFormulas, setFoodFormulas] = useState<FormulaOption[]>([]);
@@ -67,7 +71,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
         const user = JSON.parse(storedUser);
         const profilePonds = user?.farmerProfile?.ponds;
         if (Array.isArray(profilePonds) && profilePonds.length > 0) {
-          setPonds(profilePonds.map((p: any) => ({
+          setPonds(profilePonds.map((p: PondInfo) => ({
             id: p.id,
             pondType: p.pondType || 'EARTHEN',
             farmType: p.farmType || 'SMALL',
@@ -79,7 +83,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
 
           // Select initial pond if valid, otherwise first pond
           if (initialPondId) {
-            const exists = profilePonds.find((p: any) => p.id === initialPondId);
+            const exists = profilePonds.find((p: PondInfo) => p.id === initialPondId);
             if (exists) {
               setSelectedPondId(initialPondId);
             } else {
@@ -96,19 +100,22 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
     } catch (err) {
       console.error('Failed to load ponds from profile', err);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialPondId]);
 
-  // Fetch feed formulas and supplements from API
+  // Fetch feed formulas and supplements from API (filtered by fishType/farmType)
   useEffect(() => {
     const fetchFormulas = async () => {
       try {
         const token = localStorage.getItem('authToken');
         const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
 
+        const farmTypeParam = fishType ? `&farmType=${fishType}` : '';
+
         const [freshRes, pelletRes, suppRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/feed-formulas?foodType=FRESH&limit=50`, { headers }),
-          fetch(`${API_BASE_URL}/feed-formulas?foodType=PELLET&limit=50`, { headers }),
-          fetch(`${API_BASE_URL}/feed-formulas?foodType=SUPPLEMENT&limit=50`, { headers }),
+          fetch(`${API_BASE_URL}/feed-formulas?foodType=FRESH&limit=50${farmTypeParam}`, { headers }),
+          fetch(`${API_BASE_URL}/feed-formulas?foodType=PELLET&limit=50${farmTypeParam}`, { headers }),
+          fetch(`${API_BASE_URL}/feed-formulas?foodType=SUPPLEMENT&limit=50${farmTypeParam}`, { headers }),
         ]);
 
         const foods: FormulaOption[] = [];
@@ -117,28 +124,32 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
         if (freshRes.ok) {
           const r = await freshRes.json();
           const items = r.data?.data || [];
-          items.forEach((f: any) => foods.push({ id: f.id, name: f.name, foodType: 'FRESH' }));
+          items.forEach((f: FormulaOption) => foods.push({ id: f.id, name: f.name, foodType: 'FRESH' }));
         }
         if (pelletRes.ok) {
           const r = await pelletRes.json();
           const items = r.data?.data || [];
-          items.forEach((f: any) => foods.push({ id: f.id, name: f.name, foodType: 'PELLET' }));
+          items.forEach((f: FormulaOption) => foods.push({ id: f.id, name: f.name, foodType: 'PELLET' }));
         }
         if (suppRes.ok) {
           const r = await suppRes.json();
           const items = r.data?.data || [];
-          items.forEach((f: any) => supps.push({ id: f.id, name: f.name, foodType: 'SUPPLEMENT' }));
+          items.forEach((f: FormulaOption) => supps.push({ id: f.id, name: f.name, foodType: 'SUPPLEMENT' }));
         }
 
         setFoodFormulas(foods);
         setSupplementFormulas(supps);
+
+        // Reset selections if previously selected formula is no longer in the filtered list
+        setFeedFormulaId((prev) => (foods.some((f) => f.id === prev) ? prev : ''));
+        setSupplementId((prev) => (supps.some((f) => f.id === prev) ? prev : ''));
       } catch (err) {
         console.error('Failed to fetch feed formulas', err);
       }
     };
 
     fetchFormulas();
-  }, []);
+  }, [fishType]);
 
   useEffect(() => {
     if (isResetModalOpen) {
@@ -157,7 +168,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
   const handleOpenPicker = () => {
     if (dateInputRef.current) {
       try {
-        (dateInputRef.current as any).showPicker();
+        (dateInputRef.current as HTMLInputElement & { showPicker: () => void }).showPicker();
       } catch {
         dateInputRef.current.click();
       }
@@ -231,7 +242,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
       const selectedFeed = foodFormulas.find(f => f.id === feedFormulaId);
       const selectedSupplement = supplementFormulas.find(f => f.id === supplementId);
 
-      const body: Record<string, any> = {
+      const body: Record<string, string | number | undefined> = {
         farmType: fishType || undefined,
         recordedAt: new Date().toISOString(),
         cycleStartDate: ((!activeCycle || activeCycle.status === 'PLANNING') && releaseDate) ? new Date(releaseDate).toISOString() : undefined,
@@ -319,13 +330,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
         )}
 
         <div className="border border-gray-100 rounded-3xl shadow-lg overflow-hidden pb-6 bg-white">
-          <div className="bg-[#093832] px-5 py-4 text-white">
-            <span className="font-extrabold text-lg tracking-wide">
-              − {selectedPond ? `บ่อที่ ${ponds.indexOf(selectedPond) + 1}` : 'บ่อที่ 1'}
-            </span>
-          </div>
-
-          <div className="px-4 pt-4 space-y-5">
+          <div className="px-4 pt-5 space-y-5">
 
 
           <div className="text-xs text-[#093832] font-bold leading-relaxed bg-[#CEF2D6]/40 p-4 rounded-2xl border border-[#CEF2D6]">
@@ -410,7 +415,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
                   onChange={(e) => setFishReleased(e.target.value)} 
                   className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 placeholder:text-gray-400" 
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 pointer-events-none">ตัว</span>
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400 pointer-events-none">ตัว</span>
               </div>
             </div>
               <div className="space-y-1.5">
