@@ -378,33 +378,6 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-bold text-black ml-1">น้ำหนักปลาต่อตัว</label>
-                <div className="relative">
-                  <input 
-                    type="number" 
-                    placeholder="0" 
-                    value={fishSize} 
-                    onChange={(e) => setFishSize(e.target.value)} 
-                    className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-300" 
-                  />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400 pointer-events-none">กรัม</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold text-black ml-1">วันที่เริ่มปล่อยลงบ่อ</label>
-              <div onClick={handleOpenPicker} className={`relative w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all ${!releaseDate ? 'text-gray-400' : 'text-gray-700'}`}>
-                <span className={`text-sm font-bold ${!releaseDate ? 'text-gray-400' : 'text-black'}`}>
-                  {releaseDate ? new Date(releaseDate).toLocaleDateString('th-TH') : 'เลือกวันที่'}
-                </span>
-                <Calendar className="w-5 h-5 text-gray-400" />
-                <input disabled={!!activeCycle && activeCycle.status !== 'PLANNING'} ref={dateInputRef} type="date" value={releaseDate} onChange={(e) => setReleaseDate(e.target.value)} className="absolute inset-0 opacity-0 pointer-events-none disabled:pointer-events-none" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
               <label className="text-[13px] font-bold text-black ml-1">จำนวนปลาที่ปล่อย</label>
               <div className="relative">
                 <input 
@@ -418,6 +391,34 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400 pointer-events-none">ตัว</span>
               </div>
             </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-black ml-1">วันที่เริ่มปล่อยลงบ่อ</label>
+              <div onClick={handleOpenPicker} className={`relative w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-all ${!releaseDate ? 'text-gray-400' : 'text-gray-700'}`}>
+                <span className={`text-sm font-bold ${!releaseDate ? 'text-gray-400' : 'text-black'}`}>
+                  {releaseDate ? new Date(releaseDate).toLocaleDateString('th-TH') : 'เลือกวันที่'}
+                </span>
+                <Calendar className="w-5 h-5 text-gray-400" />
+                <input disabled={!!activeCycle && activeCycle.status !== 'PLANNING'} ref={dateInputRef} type="date" value={releaseDate} onChange={(e) => setReleaseDate(e.target.value)} className="absolute inset-0 opacity-0 pointer-events-none disabled:pointer-events-none" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-black ml-1">น้ำหนักปลาต่อตัว</label>
+                <div className="relative">
+                  <input 
+                    type="number" 
+                    placeholder="0" 
+                    value={fishSize} 
+                    onChange={(e) => setFishSize(e.target.value)} 
+                    className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-300" 
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400 pointer-events-none">กรัม</span>
+                </div>
+              </div>
+
               <div className="space-y-1.5">
                 <label className="text-[13px] font-bold text-black ml-1">จำนวนปลาที่เหลือ</label>
                 <div className="relative">
