@@ -101,8 +101,8 @@ export const RecordEntryForm = ({ farmType, backHref, pondId }: RecordEntryFormP
       {/* หน้าที่ 3: ผลวิเคราะห์ */}
       {currentStep === 3 && (
         <RecordAnalysisStep
-          onClose={handleBackToList}
-          onBack={handleBackToList}
+          onClose={handleBackToDashboard}
+          onBack={handleBackToDashboard}
           recordId={selectedRecordId || undefined}
         />
       )}

@@ -32,12 +32,12 @@ interface RecordData {
 }
 
 interface RecordAnalysisStepProps {
-  onClose: () => void;
+  onClose?: () => void;
   onBack: () => void;
   recordId?: string;
 }
 
-export const RecordAnalysisStep: React.FC<RecordAnalysisStepProps> = ({ onClose, onBack, recordId }) => {
+export const RecordAnalysisStep: React.FC<RecordAnalysisStepProps> = ({ onBack, recordId }) => {
   const [data, setData] = React.useState<RecordData | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [pondIndex, setPondIndex] = React.useState<number>(-1);
@@ -118,17 +118,12 @@ export const RecordAnalysisStep: React.FC<RecordAnalysisStepProps> = ({ onClose,
           <button onClick={onBack} className="p-1 hover:bg-white/10 rounded-full transition-colors">
             <ChevronLeft className="w-8 h-8" />
           </button>
-          <h1 className="text-2xl font-bold">ผลวิเคราะห์</h1>
+          <h1 className="text-2xl font-bold">ผลการวิเคราะห์</h1>
         </div>
         <ProfileDropdownMenu showGreeting={false} />
       </div>
 
       <div className="px-5 mt-6 space-y-4">
-
-        <div className="flex items-center gap-2 text-[#093832]">
-          <Image src="/records/famicons_fish.svg" alt="fish-icon" width={24} height={24} />
-          <h2 className="text-lg font-bold">ผลวิเคราะห์การเจริญเติบโต ({data.fishAgeLabel})</h2>
-        </div>
 
         <div className="rounded-[30px] overflow-hidden shadow-lg border border-gray-100 bg-white pb-6 space-y-4">
           {/* ส่วนหัวบ่อ */}
@@ -232,16 +227,6 @@ export const RecordAnalysisStep: React.FC<RecordAnalysisStepProps> = ({ onClose,
             </div>
           </div>
         </div>
-      </div>
-
-      {/* --- ปุ่มปิด --- */}
-      <div className="fixed bottom-8 left-0 right-0 px-6 z-20 flex justify-center">
-        <button
-          onClick={onClose}
-          className="w-full max-w-md bg-white border border-[#EF6E11] text-[#EF6E11] text-xl font-bold py-4 rounded-[15px] active:scale-95 transition-all"
-        >
-          ปิด
-        </button>
       </div>
     </div>
   );
