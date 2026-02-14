@@ -427,20 +427,36 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
 
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-black ml-1">วันที่เริ่มปล่อยลงบ่อ</label>
-              <div onClick={handleDateClick} className={`relative w-full bg-white border border-gray-200 rounded-xl px-4 py-3.5 flex items-center justify-between cursor-pointer ${!releaseDate ? 'text-gray-400' : 'text-gray-700'}`}>
-                <span className={`text-sm font-bold ${!releaseDate ? 'text-gray-400' : 'text-black'} pointer-events-none`}>
-                  {releaseDate ? new Date(releaseDate).toLocaleDateString('th-TH') : 'เลือกวันที่'}
-                </span>
-                <Calendar className="w-5 h-5 text-gray-400 pointer-events-none" />
-                <input
-                  disabled={!!activeCycle && activeCycle.status !== 'PLANNING'}
-                  ref={dateInputRef}
-                  type="date"
-                  value={releaseDate}
-                  onChange={(e) => setReleaseDate(e.target.value)}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:pointer-events-none"
-                />
-              </div>
+              {(() => {
+                const isDateDisabled = !!activeCycle && activeCycle.status !== 'PLANNING';
+                return (
+                  <div 
+                    onClick={isDateDisabled ? undefined : handleDateClick} 
+                    className={`relative w-full border border-gray-200 rounded-xl px-4 py-3.5 flex items-center justify-between ${
+                      isDateDisabled 
+                        ? 'bg-gray-100 cursor-not-allowed' 
+                        : 'bg-white cursor-pointer'
+                    }`}
+                  >
+                    <span className={`text-sm font-bold pointer-events-none ${
+                      isDateDisabled 
+                        ? 'text-gray-400' 
+                        : !releaseDate ? 'text-gray-400' : 'text-black'
+                    }`}>
+                      {releaseDate ? new Date(releaseDate).toLocaleDateString('th-TH') : 'เลือกวันที่'}
+                    </span>
+                    <Calendar className={`w-5 h-5 pointer-events-none ${isDateDisabled ? 'text-gray-300' : 'text-gray-400'}`} />
+                    <input
+                      disabled={isDateDisabled}
+                      ref={dateInputRef}
+                      type="date"
+                      value={releaseDate}
+                      onChange={(e) => setReleaseDate(e.target.value)}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:pointer-events-none"
+                    />
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="grid grid-cols-2 gap-3">

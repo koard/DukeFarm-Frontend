@@ -301,7 +301,7 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
                       </span>
                     )
                   ) : (
-                    <span className="bg-white/10 text-white/80 px-2.5 py-0.5 rounded-full text-xs font-bold">
+                    <span className="bg-red-500/20 text-red-200 px-2.5 py-0.5 rounded-full text-xs font-bold">
                       สิ้นสุดแล้ว
                     </span>
                   )}
