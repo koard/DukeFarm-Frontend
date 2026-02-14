@@ -36,7 +36,7 @@ export function ProfileDropdownMenu({ className = "", showGreeting = true }: Pro
   }, [router]);
 
   return (
-    <div className={`flex items-center gap-3 ${className}`} ref={containerRef}>
+    <div className={`flex items-center gap-3 relative ${className}`} ref={containerRef}>
       {showGreeting && (
         <div className="text-right">
           <p className="text-sm text-gray-300 leading-tight">ยินดีต้อนรับ</p>
@@ -56,7 +56,7 @@ export function ProfileDropdownMenu({ className = "", showGreeting = true }: Pro
         </button>
 
         {isOpen && (
-          <div className="absolute right-0 top-full mt-2 w-48 overflow-hidden bg-white rounded-lg shadow-xl border border-gray-200 z-[120]">
+          <div className="absolute right-0 top-full mt-2 w-48 overflow-hidden bg-white rounded-lg shadow-xl border border-gray-200 z-[9999]">
             <Link
               href="/profile"
               className="block w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
