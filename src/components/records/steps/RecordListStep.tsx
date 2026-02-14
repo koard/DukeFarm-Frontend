@@ -269,7 +269,7 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
             {activeCycle && activeCycle.status !== 'PLANNING' && (
               <button
                 onClick={() => setIsConfirmNewCycleOpen(true)}
-                className="mt-4 w-full bg-[#EF6E11] text-white text-sm font-bold py-3 rounded-xl shadow-md hover:bg-[#d65d0a] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                className="mt-4 w-full border-2 border-dashed border-white/30 text-white/70 text-sm font-bold py-3 rounded-xl hover:bg-white/10 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
               >
                 <RefreshCw className="w-4 h-4" />
                 เริ่มรอบการเลี้ยงใหม่
