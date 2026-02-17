@@ -6,7 +6,7 @@ import { RecordListStep } from './steps/RecordListStep';
 import { RecordEntryStep } from './steps/RecordEntryStep';
 import { RecordAnalysisStep } from './steps/RecordAnalysisStep';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dukefarm-backend.onrender.com/api";
+import { API_BASE_URL } from '@/config/api';
 
 type FarmType = 'SMALL' | 'LARGE' | 'MARKET';
 

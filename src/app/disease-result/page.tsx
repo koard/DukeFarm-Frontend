@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight, Loader2, AlertCircle, ImageIcon, Activity, T
 import Image from "next/image";
 import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
 import { diseaseAnalyzerService, AnalyzeResult } from "@/services/diseaseAnalyzerService";
+import { API_BASE_URL } from "@/config/api";
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   'แบคทีเรีย': { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200' },
@@ -96,7 +97,7 @@ function DiseaseResultContent() {
   const getImageUrl = (path: string | null | undefined) => {
     if (!path) return '';
     if (path.startsWith('http')) return path;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://dukefarm-backend.onrender.com/api';
+    const apiUrl = API_BASE_URL;
     const baseUrl = apiUrl.endsWith('/api') ? apiUrl.replace('/api', '') : apiUrl;
     return `${baseUrl}${path}`;
   };

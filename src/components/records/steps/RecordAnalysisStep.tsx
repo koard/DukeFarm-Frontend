@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { ChevronLeft } from 'lucide-react';
 import { ProfileDropdownMenu } from '@/components/common/ProfileDropdownMenu';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dukefarm-backend.onrender.com/api";
+import { API_BASE_URL } from '@/config/api';
 
 interface PondData {
   id: string;

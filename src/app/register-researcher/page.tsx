@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-
+import { API_BASE_URL } from "@/config/api";
 interface FormData {
   firstName: string;
   lastName: string;
@@ -68,7 +68,7 @@ export default function RegisterPage() {
 
       console.log("Sending researcher registration:", requestBody);
 
-      const response = await fetch("https://dukefarm-backend.onrender.com/api/register/researcher", {
+      const response = await fetch(`${API_BASE_URL}/register/researcher`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

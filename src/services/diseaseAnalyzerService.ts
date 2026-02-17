@@ -1,3 +1,5 @@
+import { API_BASE_URL } from '@/config/api';
+
 export interface AnalyzeResult {
   requestId: string;
   photoPath?: string | null;
@@ -18,7 +20,7 @@ export interface AnalyzeResult {
   }[];
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dukefarm-backend.onrender.com/api';
+
 
 export const diseaseAnalyzerService = {
   // 1. ดึงรายการ Symptom Chips

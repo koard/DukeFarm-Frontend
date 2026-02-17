@@ -1,3 +1,5 @@
+import { API_BASE_URL } from '@/config/api';
+
 export interface DiseaseTag {
   id: string;
   label: string;
@@ -7,7 +9,7 @@ export interface Disease {
   id: string;
   name: string;
   category: string;
-  icon: string; 
+  icon: string;
   symptoms: string;
   causes: string;
   treatment: string;
@@ -30,7 +32,7 @@ export interface DiseaseResponse {
   };
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dukefarm-backend.onrender.com/api'; 
+
 
 export const fetchDiseases = async (params: {
   symptoms?: string;
@@ -40,7 +42,7 @@ export const fetchDiseases = async (params: {
 }): Promise<DiseaseResponse> => {
   try {
     const url = new URL(`${API_BASE_URL}/diseases`);
-    
+
     if (params.symptoms) url.searchParams.append('symptoms', params.symptoms);
     if (params.category && params.category !== 'ทั้งหมด') url.searchParams.append('category', params.category);
     if (params.page) url.searchParams.append('page', params.page.toString());

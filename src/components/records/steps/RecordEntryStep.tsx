@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ChevronLeft, Calendar, RefreshCw, ChevronDown, Droplets, Ruler, Waves } from 'lucide-react';
 import { ProfileDropdownMenu } from '@/components/common/ProfileDropdownMenu';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dukefarm-backend.onrender.com/api";
+import { API_BASE_URL } from '@/config/api';
 
 type FormulaOption = { id: string; name: string; foodType: string };
 
@@ -127,7 +127,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
       }
     };
     refreshPonds();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialPondId]);
 
   // Fetch feed formulas and supplements from API (filtered by fishType/farmType)
@@ -394,10 +394,10 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
               <div className="space-y-1.5">
                 <label className="text-sm font-bold text-black ml-1">ประเภทปลา</label>
                 <div className="relative">
-                  <select 
-                    disabled={!!activeCycle && activeCycle.status !== 'PLANNING'} 
-                    value={fishType} 
-                    onChange={(e) => setFishType(e.target.value)} 
+                  <select
+                    disabled={!!activeCycle && activeCycle.status !== 'PLANNING'}
+                    value={fishType}
+                    onChange={(e) => setFishType(e.target.value)}
                     className={`w-full appearance-none bg-white border border-gray-200 rounded-xl pl-3 pr-9 py-3 text-sm font-bold focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 ${!fishType ? 'text-gray-400' : 'text-gray-700'}`}
                   >
                     <option value="" disabled>เลือกประเภท</option>
@@ -410,19 +410,19 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
               </div>
 
               <div className="space-y-1.5">
-              <label className="text-[13px] font-bold text-black ml-1">จำนวนปลาที่ปล่อย</label>
-              <div className="relative">
-                <input 
-                  disabled={!!activeCycle && activeCycle.status !== 'PLANNING'} 
-                  type="number" 
-                  placeholder="ระบุจำนวน" 
-                  value={fishReleased} 
-                  onChange={(e) => setFishReleased(e.target.value)} 
-                  className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 placeholder:text-gray-400" 
-                />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400 pointer-events-none">ตัว</span>
+                <label className="text-[13px] font-bold text-black ml-1">จำนวนปลาที่ปล่อย</label>
+                <div className="relative">
+                  <input
+                    disabled={!!activeCycle && activeCycle.status !== 'PLANNING'}
+                    type="number"
+                    placeholder="ระบุจำนวน"
+                    value={fishReleased}
+                    onChange={(e) => setFishReleased(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl pl-4 pr-10 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 placeholder:text-gray-400"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400 pointer-events-none">ตัว</span>
+                </div>
               </div>
-            </div>
             </div>
 
             <div className="space-y-1.5">
@@ -430,19 +430,17 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
               {(() => {
                 const isDateDisabled = !!activeCycle && activeCycle.status !== 'PLANNING';
                 return (
-                  <div 
-                    onClick={isDateDisabled ? undefined : handleDateClick} 
-                    className={`relative w-full border border-gray-200 rounded-xl px-4 py-3.5 flex items-center justify-between ${
-                      isDateDisabled 
-                        ? 'bg-gray-100 cursor-not-allowed' 
+                  <div
+                    onClick={isDateDisabled ? undefined : handleDateClick}
+                    className={`relative w-full border border-gray-200 rounded-xl px-4 py-3.5 flex items-center justify-between ${isDateDisabled
+                        ? 'bg-gray-100 cursor-not-allowed'
                         : 'bg-white cursor-pointer'
-                    }`}
+                      }`}
                   >
-                    <span className={`text-sm font-bold pointer-events-none ${
-                      isDateDisabled 
-                        ? 'text-gray-400' 
+                    <span className={`text-sm font-bold pointer-events-none ${isDateDisabled
+                        ? 'text-gray-400'
                         : !releaseDate ? 'text-gray-400' : 'text-black'
-                    }`}>
+                      }`}>
                       {releaseDate ? new Date(releaseDate).toLocaleDateString('th-TH') : 'เลือกวันที่'}
                     </span>
                     <Calendar className={`w-5 h-5 pointer-events-none ${isDateDisabled ? 'text-gray-300' : 'text-gray-400'}`} />
@@ -463,12 +461,12 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
               <div className="space-y-1.5">
                 <label className="text-sm font-bold text-black ml-1">น้ำหนักปลาต่อตัว</label>
                 <div className="relative">
-                  <input 
-                    type="number" 
-                    placeholder="0" 
-                    value={fishSize} 
-                    onChange={(e) => setFishSize(e.target.value)} 
-                    className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-300" 
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={fishSize}
+                    onChange={(e) => setFishSize(e.target.value)}
+                    className="w-full bg-white border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-300"
                   />
                   <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400 pointer-events-none">กรัม</span>
                 </div>

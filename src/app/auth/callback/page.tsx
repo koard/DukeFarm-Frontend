@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { API_BASE_URL } from "@/config/api";
 
 function CallbackContent() {
   const router = useRouter();
@@ -15,12 +16,12 @@ function CallbackContent() {
         const token = searchParams.get("token");
         const registrationStatus = searchParams.get("registrationStatus");
         const role = searchParams.get("role");
-        
+
         console.log("=== LINE Login Callback ===");
         console.log("Token:", token ? "✓ Received" : "✗ Missing");
         console.log("Registration Status:", registrationStatus);
         console.log("Role:", role);
-        
+
         // ตรวจสอบว่ามี token หรือไม่
         if (!token) {
           console.error("Token is missing!");
@@ -39,7 +40,7 @@ function CallbackContent() {
         } else {
           localStorage.removeItem("registrationStatus");
         }
-        
+
         // เก็บข้อมูล user เต็มจาก query parameter (backend ส่งมาครบแล้ว)
         const userParam = searchParams.get("user");
         if (userParam) {
@@ -86,9 +87,8 @@ function CallbackContent() {
         }
 
         // Fetch fresh user data from /auth/me to ensure localStorage has complete data (ponds, farmTypes, etc.)
-        const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dukefarm-backend.onrender.com/api";
         try {
-          const meRes = await fetch(`${API_BASE}/auth/me`, {
+          const meRes = await fetch(`${API_BASE_URL}/auth/me`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (meRes.ok) {
@@ -116,7 +116,7 @@ function CallbackContent() {
         // Redirect ไปหน้า root ให้ logic ที่นั่นจัดการ redirect ต่อ
         console.log("→ Redirecting to root for routing logic");
         router.push("/");
-        
+
       } catch (error) {
         console.error("✗ Callback error:", error);
         setError("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");

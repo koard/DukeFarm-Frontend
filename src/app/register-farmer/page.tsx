@@ -14,6 +14,7 @@ import {
   deriveFarmTypesFromProfile,
   mapFarmTypeToRoute,
 } from "@/utils/farmTypes";
+import { API_BASE_URL } from "@/config/api";
 
 const MapPicker = dynamic(() => import("./MapPicker"), {
   ssr: false,
@@ -327,7 +328,7 @@ export default function RegisterFarmerPage() {
         }))
       };
 
-      const response = await fetch("https://dukefarm-backend.onrender.com/api/register/farmer", {
+      const response = await fetch(`${API_BASE_URL}/register/farmer`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

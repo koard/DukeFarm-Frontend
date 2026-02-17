@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronDown, Calculator, Fish } from "lucide-react";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
+import { API_BASE_URL } from "@/config/api";
 
 type FarmType = "SMALL" | "LARGE" | "MARKET";
 type FoodType = "FRESH" | "PELLET" | "SUPPLEMENT";
@@ -125,7 +126,7 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                 const token = localStorage.getItem("authToken");
                 if (!token) return;
 
-                const response = await fetch("https://dukefarm-backend.onrender.com/api/feed-formulas?limit=100", {
+                const response = await fetch(`${API_BASE_URL}/feed-formulas?limit=100`, {
                     method: "GET",
                     headers: {
                         Authorization: `Bearer ${token}`,

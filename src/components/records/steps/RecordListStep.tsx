@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { ChevronLeft, ChevronRight, RefreshCw, Search, Trash2, ChevronDown } from 'lucide-react';
 import { ProfileDropdownMenu } from '@/components/common/ProfileDropdownMenu';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dukefarm-backend.onrender.com/api";
+import { API_BASE_URL } from '@/config/api';
 
 interface RecordListStepProps {
   onAddNew: () => void;
@@ -397,15 +397,15 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
                     <span className="text-gray-400 text-sm font-medium ml-2">{time}</span>
                   </div>
                   <div className="flex items-center gap-3 w-20 justify-center">
-                    <button 
-                      onClick={() => onViewDetails(record.id)} 
+                    <button
+                      onClick={() => onViewDetails(record.id)}
                       className="p-1.5 rounded-lg hover:bg-emerald-50 transition-colors"
                     >
                       <Search className="w-[18px] h-[18px] text-[#093832]" />
                     </button>
                     {isViewingActiveCycle && (
-                      <button 
-                        onClick={() => { setSelectedRecord(record); setIsDeleteModalOpen(true); }} 
+                      <button
+                        onClick={() => { setSelectedRecord(record); setIsDeleteModalOpen(true); }}
                         className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
                       >
                         <Trash2 className="w-[18px] h-[18px] text-red-400" />
@@ -500,7 +500,7 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
               ยืนยันการเริ่มรอบการเลี้ยงใหม่?
             </h3>
             <p className="text-gray-600 text-md mb-8 leading-normal">
-              ข้อมูลรอบเก่าจะถูกเก็บไว้ในระบบ<br/>
+              ข้อมูลรอบเก่าจะถูกเก็บไว้ในระบบ<br />
               และสามารถเรียกดูย้อนหลังได้
             </p>
             <div className="flex flex-col gap-3">

@@ -4,14 +4,15 @@ import { useState } from "react";
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import { useLanguage } from "@/app/contexts/LanguageContext";
+import { API_BASE_URL } from "@/config/api";
 
 export default function LoginPage() {
-  const { language, changeLanguage } = useLanguage(); 
-  
+  const { language, changeLanguage } = useLanguage();
+
   const [isLangOpen, setIsLangOpen] = useState(false);
 
   const toggleLanguage = (lang: 'th' | 'en') => {
-    changeLanguage(lang); 
+    changeLanguage(lang);
     setIsLangOpen(false);
   };
 
@@ -28,7 +29,7 @@ export default function LoginPage() {
 
   const handleLineLogin = async (role: string) => {
     try {
-      const response = await fetch(`https://dukefarm-backend.onrender.com/api/auth/line/login?role=${role.toLowerCase()}`);
+      const response = await fetch(`${API_BASE_URL}/auth/line/login?role=${role.toLowerCase()}`);
       const data = await response.json();
 
       if (data.url) {
@@ -42,21 +43,21 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden font-sans">
-      
+
       <div className="absolute top-6 right-6 z-50">
         <div className="relative">
-          
-          <button 
+
+          <button
             onClick={() => setIsLangOpen(!isLangOpen)}
             className="bg-white border-2 border-[#009D64] text-gray-700 px-3 py-1.5 rounded-full flex items-center gap-2 shadow-sm hover:bg-gray-50 transition-all duration-200"
           >
             <div className="relative w-5 h-5 rounded-full overflow-hidden border border-gray-100 shrink-0">
-                <Image 
-                    src={langConfig[language].flagSrc}
-                    alt={language}
-                    fill
-                    className="object-cover"
-                />
+              <Image
+                src={langConfig[language].flagSrc}
+                alt={language}
+                fill
+                className="object-cover"
+              />
             </div>
             <span className="text-sm font-medium leading-none pt-0.5 min-w-[24px] text-center">
               {langConfig[language].label}
@@ -66,23 +67,23 @@ export default function LoginPage() {
 
           {isLangOpen && (
             <div className="absolute right-0 mt-2 w-full min-w-[120px] bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 py-1">
-              
-              <button 
+
+              <button
                 onClick={() => toggleLanguage('th')}
                 className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 hover:bg-[#009D64]/10 transition-colors ${language === 'th' ? 'bg-[#009D64]/10 text-[#009D64] font-medium' : 'text-gray-600'}`}
               >
-                 <div className="relative w-5 h-5 rounded-full overflow-hidden border border-gray-100 shrink-0">
-                    <Image src={langConfig.th.flagSrc} alt="TH" fill className="object-cover" />
+                <div className="relative w-5 h-5 rounded-full overflow-hidden border border-gray-100 shrink-0">
+                  <Image src={langConfig.th.flagSrc} alt="TH" fill className="object-cover" />
                 </div>
                 ไทย
               </button>
 
-              <button 
+              <button
                 onClick={() => toggleLanguage('en')}
                 className={`w-full px-4 py-2.5 text-left text-sm flex items-center gap-3 hover:bg-[#009D64]/10 transition-colors ${language === 'en' ? 'bg-[#009D64]/10 text-[#009D64] font-medium' : 'text-gray-600'}`}
               >
                 <div className="relative w-5 h-5 rounded-full overflow-hidden border border-gray-100 shrink-0">
-                    <Image src={langConfig.en.flagSrc} alt="EN" fill className="object-cover" />
+                  <Image src={langConfig.en.flagSrc} alt="EN" fill className="object-cover" />
                 </div>
                 EN
               </button>
@@ -150,7 +151,7 @@ export default function LoginPage() {
               >
                 ลงทะเบียนเกษตรกร
               </button>
-              
+
               {/* <button
                 onClick={() => handleLineLogin("researcher")}
                 className="text-xs text-gray-400 hover:text-gray-600 underline underline-offset-2 transition-colors opacity-80"
@@ -159,8 +160,8 @@ export default function LoginPage() {
               </button> */}
             </div>
           </div>
-           {/* Partner Logos */}
-           <div className="mt-12 flex justify-center items-center space-x-6">
+          {/* Partner Logos */}
+          <div className="mt-12 flex justify-center items-center space-x-6">
             <div className="relative h-11 w-auto">
               <Image
                 src="/login/partnerKU.png"

@@ -13,6 +13,7 @@ import {
   deriveFarmTypesFromProfile,
   mapFarmTypeToRoute,
 } from "@/utils/farmTypes";
+import { API_BASE_URL } from "@/config/api";
 
 type PondData = {
   id: number;
@@ -220,8 +221,7 @@ export default function ProfilePage() {
       try {
         const token = localStorage.getItem("authToken");
         if (token) {
-          const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dukefarm-backend.onrender.com/api";
-          const res = await fetch(`${API_BASE}/auth/me`, {
+          const res = await fetch(`${API_BASE_URL}/auth/me`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (res.ok) {
@@ -388,7 +388,7 @@ export default function ProfilePage() {
         }))
       };
 
-      const response = await fetch("https://dukefarm-backend.onrender.com/api/register/farmer", {
+      const response = await fetch(`${API_BASE_URL}/register/farmer`, {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${token}`,

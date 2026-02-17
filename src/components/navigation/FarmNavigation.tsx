@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { FarmTypeOption, deriveFarmTypesFromProfile } from "@/utils/farmTypes";
+import { API_BASE_URL } from "@/config/api";
 
 type FarmType = FarmTypeOption;
 
@@ -90,8 +91,7 @@ export default function FarmNavigation() {
       try {
         const token = localStorage.getItem("authToken");
         if (!token) return;
-        const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dukefarm-backend.onrender.com/api";
-        const res = await fetch(`${API_BASE}/auth/me`, {
+        const res = await fetch(`${API_BASE_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
@@ -152,27 +152,27 @@ export default function FarmNavigation() {
 
           return (
             <Link
-            key={item.pondId || `${item.type}-${idx}`}
-            href={item.path}
-            className={`
+              key={item.pondId || `${item.type}-${idx}`}
+              href={item.path}
+              className={`
               flex-shrink-0 flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm md:text-base font-semibold transition-all whitespace-nowrap
               ${isActive
-                ? "bg-[#093832] text-white" 
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-              }
+                  ? "bg-[#093832] text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }
             `}
-          >
-            <Image
-              src={isActive
-                ? "/dashboard/famicons_fish-w.svg"
-                : "/dashboard/famicons_fish-bb.svg"
-              }
-              alt="fish icon"
-              width={20}
-              height={20}
-            />
-            <span className="truncate">{item.label}</span>
-          </Link>
+            >
+              <Image
+                src={isActive
+                  ? "/dashboard/famicons_fish-w.svg"
+                  : "/dashboard/famicons_fish-bb.svg"
+                }
+                alt="fish icon"
+                width={20}
+                height={20}
+              />
+              <span className="truncate">{item.label}</span>
+            </Link>
           );
         })}
       </div>
