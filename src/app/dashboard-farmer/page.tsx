@@ -9,6 +9,7 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
 import FarmNavigation from "@/components/navigation/FarmNavigation";
 import { FarmTypeOption } from "@/utils/farmTypes";
+import { ChevronLeft, ChevronRight, RefreshCw, Search, Trash2, ChevronDown, Smile, Frown, Meh, Calendar } from 'lucide-react';
 
 // ----------------------------------------------------------------------
 // Types & Interfaces
@@ -63,6 +64,53 @@ interface DashboardData {
   summary: DashboardSummary;
   feedingPlan: ForecastData[];
 }
+
+// การ์ดสรุปผล
+  const MOCK_STATUS: 'good' | 'poor' | 'fair' = 'poor'; 
+
+  const getCycleStatusConfig = (status: 'good' | 'poor' | 'fair') => {
+    switch (status) {
+      case 'good':
+        return {
+          bgColor: 'bg-[#E3F6E5]', 
+          icon: <Smile className="w-14 h-14 text-[#038734] drop-shadow-sm" strokeWidth={2.5} />,
+          title: 'เลี้ยงดี',
+          titleColor: 'text-[#038734]',
+          descText: 'การเลี้ยงในรอบนี้ค่อนข้างดี น้ำหนักอยู่ในเกณฑ์มาตรฐาน อัตรารอดตายสูง',
+          rateColor: 'text-[#038734]',
+          rateIcon: '▲',
+          survivalRate: '98%',
+          survivalBg: 'bg-[#10B981]'
+        };
+      case 'poor':
+        return {
+          bgColor: 'bg-[#FFE6E8]', 
+          icon: <Frown className="w-14 h-14 text-[#DE1616] drop-shadow-sm" strokeWidth={2.5} />,
+          title: 'เลี้ยงต้องปรับปรุง',
+          titleColor: 'text-[#DE1616]',
+          descText: 'การเลี้ยงในรอบนี้ต้องปรับปรุง เนื่องจากปริมาณอาหารที่ให้ในแต่ละวันค่อนข้างน้อย ควรเพิ่มจากเดิมเพื่อให้น้ำหนักอยู่ในเกณฑ์มาตรฐาน และอัตรารอดตายสูงขึ้น',
+          rateColor: 'text-[#DE1616]',
+          rateIcon: '▼',
+          survivalRate: '46%',
+          survivalBg: 'bg-[#EF4444]' 
+        };
+      case 'fair':
+        return {
+          bgColor: 'bg-[#FFF8DF]', 
+          icon: <Meh className="w-14 h-14 text-[#B59114] drop-shadow-sm" strokeWidth={2.5} />,
+          title: 'เลี้ยงปานกลาง',
+          titleColor: 'text-[#B59114]',
+          descText: 'การเลี้ยงในรอบนี้อยู่ระดับปานกลาง ควรเพิ่มจากเดิม เพื่อให้น้ำหนักอยู่ในเกณฑ์มาตรฐาน และอัตรารอดตายสูงขึ้น',
+          rateColor: 'text-[#B59114]',
+          rateIcon: '■',
+          survivalRate: '74%',
+          survivalBg: 'bg-[#F59E0B]' 
+        };
+    }
+  };
+
+  const cycleStatusConfig = getCycleStatusConfig(MOCK_STATUS);
+  // จบ
 
 // ----------------------------------------------------------------------
 // Constants & Helpers
@@ -723,6 +771,95 @@ function DashboardContent() {
               สรุปข้อมูล {pondName}
             </h3>
           </div>
+
+          {/* การ์ดผลการวิเคราะห์การเลี้ยง */}
+                  <div className={`${cycleStatusConfig.bgColor} rounded-[28px] p-5 mb-6 shadow-sm border border-black/5 relative overflow-hidden`}>
+                    
+                    {/* ส่วนหัว (Dropdown) */}
+                    <div className="flex items-center justify-between border-b border-black/10 pb-3 mb-5 relative z-10">
+                      <div className="flex items-center gap-2">
+                        <div className="relative inline-block">
+                          <select
+                            className="appearance-none bg-[#093832] text-white text-[13px] font-bold pl-3 pr-8 py-1.5 rounded-[10px] cursor-pointer focus:outline-none shadow-sm"
+                            defaultValue="1"
+                          >
+                            <option value="1" className="bg-white text-gray-900">รอบการเลี้ยงที่ 1</option>
+                            <option value="2" className="bg-white text-gray-900">รอบการเลี้ยงที่ 2</option>
+                            <option value="3" className="bg-white text-gray-900">รอบการเลี้ยงที่ 3</option>
+                          </select>
+                          <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white pointer-events-none" strokeWidth={3} />
+                        </div>
+                      </div>
+                      <span className="text-[12px] font-bold text-gray-700 bg-white/40 px-2 py-1 rounded-md">
+                        01/11/2025 - 01/01/2026
+                      </span>
+                    </div>
+          
+                    <div className="flex flex-col items-center justify-center mb-6 gap-1 relative z-10">
+                      {cycleStatusConfig.icon}
+                      <h2 className={`text-2xl font-black mt-1 ${cycleStatusConfig.titleColor}`}>
+                        {cycleStatusConfig.title}
+                      </h2>
+                    </div>
+          
+                    <div className="bg-white/60 backdrop-blur-sm rounded-[18px] p-3 flex items-center justify-between mb-5 shadow-sm border border-white/60 relative z-10">
+                      
+                      {/* 1. ประเภทปลา */}
+                      <div className="flex flex-col items-center justify-center flex-1 border-r border-black/10">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <div className="bg-[#D59F61] p-1 rounded-md flex items-center justify-center">
+                            <Image src="/dashboard/ion_fish.svg" alt="type" width={12} height={12} />
+                          </div>
+                          <span className="text-[11px] font-bold text-gray-500">ประเภทปลา</span>
+                        </div>
+                        <span className="text-[14px] font-black text-gray-900">ปลานิ้ว</span>
+                      </div>
+                      
+                      {/* 2. น้ำหนัก */}
+                      <div className="flex flex-col items-center justify-center flex-1 border-r border-black/10 px-2">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <div className="bg-[#8774FF] p-1 rounded-md flex items-center justify-center">
+                            <Image src="/dashboard/line.svg" alt="avg" width={12} height={12} />
+                          </div>
+                          <span className="text-[11px] font-bold text-gray-500">น้ำหนักเฉลี่ย</span>
+                        </div>
+                        <span className="text-[14px] font-black text-gray-900">5.7 กรัม</span>
+                      </div>
+                      
+                      {/* 3. อัตรารอด */}
+                      <div className="flex flex-col items-center justify-center flex-1 pl-2">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <div className={`${cycleStatusConfig.survivalBg} p-1 rounded-md flex items-center justify-center`}>
+                            <Image src="/dashboard/famicons_fish-bb.svg" alt="survival" width={12} height={12} className="brightness-0 invert" />
+                          </div>
+                          <span className="text-[11px] font-bold text-gray-500">อัตรารอด</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={`text-[15px] font-black leading-none ${cycleStatusConfig.rateColor}`}>
+                            {cycleStatusConfig.survivalRate}
+                          </span>
+                          {cycleStatusConfig.rateIcon && (
+                            <span className={`text-[10px] font-black leading-none pb-0.5 ${cycleStatusConfig.rateColor}`}>
+                              {cycleStatusConfig.rateIcon}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+          
+                    </div>
+          
+                    {/* คำแนะนำ */}
+                    <div className="bg-white rounded-[16px] p-4 pt-5 shadow-sm relative z-10">
+                      <div className="absolute -top-3 left-4 bg-[#093832] text-white px-3 py-0.5 rounded-full text-[11px] font-bold shadow-sm">
+                        💡 คำแนะนำ
+                      </div>
+                      <p className="text-[13px] text-gray-700 leading-relaxed font-medium">
+                        {cycleStatusConfig.descText}
+                      </p>
+                    </div>
+          
+                  </div>
+                  {/* สิ้นสุดการ์ดวิเคราะห์การเลี้ยง */}
 
           <div className="space-y-4">
             <div className="bg-gradient-to-r from-[#FFF6E2] via-[#FFF6E2] to-[#E6DAFF] rounded-2xl shadow-sm flex overflow-hidden h-28 border border-orange-50/20">
