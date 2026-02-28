@@ -77,7 +77,7 @@ export default function QualitySummaryCards({ assessment }: Props) {
         </div>
 
         {/* Description */}
-        <p className="relative text-xs text-white/70 leading-relaxed mb-4">
+        <p className="relative text-sm text-white/70 leading-relaxed mb-4">
           {overall.description}
         </p>
 
@@ -138,13 +138,13 @@ export default function QualitySummaryCards({ assessment }: Props) {
 
         {/* FCR */}
         <IndexCard
-          title="แปลงอาหารเป็นเนื้อ"
+          title="อัตราการเปลี่ยนอาหารเป็นเนื้อปลา"
           abbr="FCR"
           value={fcr != null ? fcr.toFixed(2) : null}
           ratingLabel={fcrRating?.label ?? "-"}
           ratingColor={fcrRating?.color ?? "#9ca3af"}
           bgColor={fcrRating?.bgColor ?? "#f9fafb"}
-          subtitle={fcr != null ? "ยิ่งต่ำยิ่งดี" : undefined}
+          subtitle={fcr != null ? "อาหารที่ต้องใช้ต่อเนื้อปลา 1 กก." : undefined}
         />
       </div>
     </div>
