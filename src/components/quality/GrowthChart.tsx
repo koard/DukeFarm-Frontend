@@ -101,7 +101,6 @@ export default function GrowthChart({ data }: Props) {
       <div className="flex items-center gap-2.5 mb-2">
         <h3 className="text-base font-bold text-[#093832]">กราฟเปรียบเทียบน้ำหนักปลา</h3>
       </div>
-      <p className="text-xs text-gray-400 mb-4 ml-8">เปรียบเทียบน้ำหนักที่เกษตรกรบันทึก กับค่ามาตรฐานที่ปลาควรโตได้</p>
 
       {/* Legend */}
       <div className="flex flex-wrap items-center gap-4 mb-4 text-xs font-semibold text-gray-500">
