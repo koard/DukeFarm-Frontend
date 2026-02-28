@@ -82,9 +82,9 @@ export default function StatisticsPage() {
   const router = useRouter();
 
   const growthData: GrowthData[] = [];
-  const totalStats: TotalStats | null = null;
-  const feedingStats: FeedingStats | null = null;
-  const waterQualityStats: WaterQualityStats | null = null;
+  const totalStats = null as TotalStats | null;
+  const feedingStats = null as FeedingStats | null;
+  const waterQualityStats = null as WaterQualityStats | null;
   const recommendations: string[] = [];
 
   useEffect(() => {

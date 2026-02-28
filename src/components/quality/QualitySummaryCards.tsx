@@ -24,7 +24,6 @@ export default function QualitySummaryCards({ assessment }: Props) {
     srRating,
     fcr,
     fcrRating,
-    totalCost,
     initialWeightGr,
     latestWeightGr,
     standardWeightGr,

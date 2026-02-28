@@ -57,12 +57,6 @@ const formatThaiDate = (isoDate?: string | null): string => {
   });
 };
 
-const FARM_TYPE_LABELS: Record<string, string> = {
-  SMALL: "ปลาตุ้ม",
-  LARGE: "ปลานิ้ว",
-  MARKET: "ปลาตลาด",
-};
-
 // ---------------------------------------------------------------------------
 // Page Component
 // ---------------------------------------------------------------------------

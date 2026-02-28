@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,7 +9,6 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
 import FarmNavigation from "@/components/navigation/FarmNavigation";
 import { FarmTypeOption } from "@/utils/farmTypes";
-import { ChevronLeft, ChevronRight, RefreshCw, Search, Trash2, ChevronDown, Smile, Frown, Meh, Calendar } from 'lucide-react';
 
 // ----------------------------------------------------------------------
 // Types & Interfaces
@@ -65,53 +63,6 @@ interface DashboardData {
   summary: DashboardSummary;
   feedingPlan: ForecastData[];
 }
-
-// การ์ดสรุปผล
-  const MOCK_STATUS: 'good' | 'poor' | 'fair' = 'poor'; 
-
-  const getCycleStatusConfig = (status: 'good' | 'poor' | 'fair') => {
-    switch (status) {
-      case 'good':
-        return {
-          bgColor: 'bg-[#E3F6E5]', 
-          icon: <Smile className="w-14 h-14 text-[#038734] drop-shadow-sm" strokeWidth={2.5} />,
-          title: 'เลี้ยงดี',
-          titleColor: 'text-[#038734]',
-          descText: 'การเลี้ยงในรอบนี้ค่อนข้างดี น้ำหนักอยู่ในเกณฑ์มาตรฐาน อัตรารอดตายสูง',
-          rateColor: 'text-[#038734]',
-          rateIcon: '▲',
-          survivalRate: '98%',
-          survivalBg: 'bg-[#10B981]'
-        };
-      case 'poor':
-        return {
-          bgColor: 'bg-[#FFE6E8]', 
-          icon: <Frown className="w-14 h-14 text-[#DE1616] drop-shadow-sm" strokeWidth={2.5} />,
-          title: 'เลี้ยงต้องปรับปรุง',
-          titleColor: 'text-[#DE1616]',
-          descText: 'การเลี้ยงในรอบนี้ต้องปรับปรุง เนื่องจากปริมาณอาหารที่ให้ในแต่ละวันค่อนข้างน้อย ควรเพิ่มจากเดิมเพื่อให้น้ำหนักอยู่ในเกณฑ์มาตรฐาน และอัตรารอดตายสูงขึ้น',
-          rateColor: 'text-[#DE1616]',
-          rateIcon: '▼',
-          survivalRate: '46%',
-          survivalBg: 'bg-[#EF4444]' 
-        };
-      case 'fair':
-        return {
-          bgColor: 'bg-[#FFF8DF]', 
-          icon: <Meh className="w-14 h-14 text-[#B59114] drop-shadow-sm" strokeWidth={2.5} />,
-          title: 'เลี้ยงปานกลาง',
-          titleColor: 'text-[#B59114]',
-          descText: 'การเลี้ยงในรอบนี้อยู่ระดับปานกลาง ควรเพิ่มจากเดิม เพื่อให้น้ำหนักอยู่ในเกณฑ์มาตรฐาน และอัตรารอดตายสูงขึ้น',
-          rateColor: 'text-[#B59114]',
-          rateIcon: '■',
-          survivalRate: '74%',
-          survivalBg: 'bg-[#F59E0B]' 
-        };
-    }
-  };
-
-  const cycleStatusConfig = getCycleStatusConfig(MOCK_STATUS);
-  // จบ
 
 // ----------------------------------------------------------------------
 // Constants & Helpers
@@ -596,15 +547,15 @@ function DashboardContent() {
   };
   const marketSize = marketSizeMap[farmType] || "-";
 
-  const stars = useMemo(
-  () =>
-    Array.from({ length: 25 }).map(() => ({
-      top: `${Math.random() * 80}%`,
-      left: `${Math.random() * 90}%`,
-      duration: 2 + Math.random() * 2,
-    })),
-  []
-);
+  // const stars = useMemo(
+  //   () =>
+  //     Array.from({ length: 25 }).map(() => ({
+  //       top: `${Math.random() * 80}%`,
+  //       left: `${Math.random() * 90}%`,
+  //       duration: 2 + Math.random() * 2,
+  //     })),
+  //   []
+  // );
 
   return (
     <div className="min-h-screen bg-white pb-10 font-sans">
