@@ -459,7 +459,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-sm font-bold text-black ml-1">น้ำหนักปลาต่อตัว</label>
+                <label className="text-sm font-bold text-black ml-1">น้ำหนักปลาปัจจุบัน</label>
                 <div className="relative">
                   <input
                     type="number"

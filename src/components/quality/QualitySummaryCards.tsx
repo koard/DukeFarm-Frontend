@@ -16,7 +16,7 @@ interface Props {
 
 export default function QualitySummaryCards({ assessment }: Props) {
   const {
-    totalDays,
+    daysSinceRelease,
     gpi,
     gpiRating,
     actualADG,
@@ -74,7 +74,7 @@ export default function QualitySummaryCards({ assessment }: Props) {
         <div className="grid grid-cols-3 gap-2.5 text-center">
           <div className="bg-gray-50 rounded-xl p-3">
             <p className="text-xs font-semibold text-gray-500 mb-1">เลี้ยงมาแล้ว</p>
-            <p className="text-xl font-black text-[#093832]">{totalDays}</p>
+            <p className="text-xl font-black text-[#093832]">{daysSinceRelease}</p>
             <p className="text-xs font-bold text-gray-400">วัน</p>
           </div>
           <div className="bg-gray-50 rounded-xl p-3">
@@ -177,9 +177,6 @@ export default function QualitySummaryCards({ assessment }: Props) {
           ) : (
             <p className="text-xl font-black text-gray-300 mt-2">ไม่มีข้อมูล</p>
           )}
-          <p className="text-xs text-gray-400 mt-1.5">
-            อาหารรวม {assessment.totalFoodKg.toFixed(1)} กก.
-          </p>
         </div>
       </div>
     </div>

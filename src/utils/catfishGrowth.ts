@@ -376,8 +376,12 @@ function getStarLabel(stars: number): { label: string; description: string } {
 // ---------------------------------------------------------------------------
 
 export interface QualityAssessment {
-  /** จำนวนวันที่เลี้ยง */
+  /** จำนวนวันสำหรับคำนวณ (first record → latest record) */
   totalDays: number;
+  /** จำนวนวันที่เลี้ยงนับจากวันปล่อย (สำหรับแสดงผล) */
+  daysSinceRelease: number;
+  /** วันที่บันทึกครั้งแรก (สำหรับจับคู่กราฟ) */
+  firstRecordDate: string;
   /** น้ำหนักเริ่มต้น (กรัม) */
   initialWeightGr: number;
   /** น้ำหนักล่าสุด (กรัม) */
@@ -457,10 +461,18 @@ export function computeQualityAssessment(
 
   if (effectiveInitialWeight <= 0) return null;
 
-  // คำนวณจำนวนวัน
-  const startDate = new Date(cycleStartDate);
+  // วันที่บันทึกครั้งแรก (ใช้เป็น day 0 ในการคำนวณ เพราะน้ำหนักแรกบันทึก ณ วันนี้)
+  const firstRecordDate = sorted[0].recordedAt;
+  const firstDate = new Date(firstRecordDate);
   const latestDate = new Date(latestWithWeight.recordedAt);
-  const totalDays = Math.max(1, Math.floor((latestDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)));
+
+  // จำนวนวันสำหรับคำนวณ: first record → latest record
+  const totalDays = Math.max(1, Math.floor((latestDate.getTime() - firstDate.getTime()) / (24 * 60 * 60 * 1000)));
+
+  // จำนวนวันสำหรับแสดงผล: release date → วันนี้
+  const releaseDate = new Date(cycleStartDate);
+  const now = new Date();
+  const daysSinceRelease = Math.max(1, Math.floor((now.getTime() - releaseDate.getTime()) / (24 * 60 * 60 * 1000)));
 
   // คำนวณดัชนีต่างๆ
   const standardWeightGr = getStandardWeight(effectiveInitialWeight, totalDays);
@@ -509,6 +521,8 @@ export function computeQualityAssessment(
 
   return {
     totalDays,
+    daysSinceRelease,
+    firstRecordDate,
     initialWeightGr: effectiveInitialWeight,
     latestWeightGr,
     standardWeightGr,

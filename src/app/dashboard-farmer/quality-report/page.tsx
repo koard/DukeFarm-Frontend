@@ -190,13 +190,14 @@ function QualityReportContent() {
       const standardCurve = generateStandardCurve(result.initialWeightGr, result.totalDays);
 
       // สร้าง map จริงจาก records (วัน → น้ำหนักจริง)
-      const startDate = new Date(cycle.startDate);
+      // ใช้ firstRecordDate เป็น day 0 (ตรงกับการคำนวณ)
+      const calcStartDate = new Date(result.firstRecordDate);
       const actualMap = new Map<number, number>();
 
       records.forEach((r) => {
         if (r.averageFishWeightGr != null) {
           const d = Math.floor(
-            (new Date(r.recordedAt).getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000),
+            (new Date(r.recordedAt).getTime() - calcStartDate.getTime()) / (24 * 60 * 60 * 1000),
           );
           if (d >= 0) {
             actualMap.set(d, r.averageFishWeightGr);
@@ -238,7 +239,7 @@ function QualityReportContent() {
           <ChevronLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-xl font-bold">สรุปคุณภาพการเลี้ยง</h1>
+          <h1 className="text-xl font-bold">คุณภาพการเลี้ยง</h1>
         </div>
       </div>
 
