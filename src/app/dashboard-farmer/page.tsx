@@ -922,18 +922,6 @@ function DashboardContent() {
           {/* -------------------------------------------------------------------------
               6. POND SUMMARY 
               ------------------------------------------------------------------------- */}
-          <div className="flex items-center gap-2 mt-8 ml-1">
-            <Image 
-              src="/dashboard/food.svg" 
-              alt="summary" 
-              width={22} 
-              height={22} 
-            />
-            <h3 className="text-base font-bold text-[#093832]">
-              สรุปข้อมูล {pondName}
-            </h3>
-          </div>
-
           <div className="space-y-4">
             <div className="bg-gradient-to-r from-[#FFF6E2] via-[#FFF6E2] to-[#E6DAFF] rounded-2xl shadow-sm flex overflow-hidden h-28 border border-orange-50/20">
 

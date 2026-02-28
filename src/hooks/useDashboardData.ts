@@ -64,5 +64,23 @@ export const useDashboardData = <T = DashboardResponse>(group: DashboardGroup, p
     fetchDashboard();
   }, [fetchDashboard]);
 
+  // Refetch when the page becomes visible again (e.g. navigating back from record entry)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchDashboard();
+      }
+    };
+    const handleFocus = () => {
+      fetchDashboard();
+    };
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [fetchDashboard]);
+
   return { data, loading, error, refresh: fetchDashboard } as const;
 };
