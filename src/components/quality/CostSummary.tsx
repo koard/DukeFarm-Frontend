@@ -56,37 +56,42 @@ export default function CostSummary({ assessment }: Props) {
 
   return (
     <div className="space-y-3">
-      {/* ─── ส่วน 1: ต้นทุนรวม (banner) ─── */}
-      <div className="bg-gradient-to-br from-[#093832] to-[#0A8865] rounded-2xl p-5 text-white shadow-sm">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-lg">💰</span>
-          <span className="text-sm font-bold text-white/80">ต้นทุนรวมทั้งรอบ</span>
+      {/* ─── ส่วน 1: ต้นทุนรวม ─── */}
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-5">
+        <div className="flex items-center gap-2.5 mb-4">
+          <span className="text-xl">💰</span>
+          <h3 className="text-base font-bold text-[#093832]">สรุปต้นทุนรอบการเลี้ยง</h3>
         </div>
-        <p className="text-4xl font-black tracking-tight">
-          {fmt(totalCost)} <span className="text-xl font-bold">บาท</span>
-        </p>
+
+        {/* ต้นทุนรวม เด่น */}
+        <div className="bg-gray-50 rounded-xl p-4 mb-4 text-center">
+          <p className="text-xs font-semibold text-gray-400 mb-1">ต้นทุนรวมทั้งรอบ</p>
+          <p className="text-3xl font-black text-[#093832]">
+            {fmt(totalCost)} <span className="text-base font-bold">บาท</span>
+          </p>
+        </div>
 
         <CostBar food={totalFoodCost} medicine={totalMedicineCost} />
 
         {/* ค่าอาหาร / ค่ายา แยก */}
         <div className="grid grid-cols-2 gap-3 mt-4">
-          <div className="bg-white/10 rounded-xl px-3.5 py-2.5">
-            <p className="text-xs text-white/60 mb-0.5">ค่าอาหาร</p>
-            <p className="text-lg font-black">{fmt(totalFoodCost)} ฿</p>
+          <div className="bg-[#f0fdf4] rounded-xl px-3.5 py-3">
+            <p className="text-xs font-semibold text-gray-500 mb-0.5">🍚 ค่าอาหาร</p>
+            <p className="text-lg font-black text-[#093832]">{fmt(totalFoodCost)} ฿</p>
           </div>
-          <div className="bg-white/10 rounded-xl px-3.5 py-2.5">
-            <p className="text-xs text-white/60 mb-0.5">ค่ายา</p>
-            <p className="text-lg font-black">{fmt(totalMedicineCost)} ฿</p>
+          <div className="bg-amber-50 rounded-xl px-3.5 py-3">
+            <p className="text-xs font-semibold text-gray-500 mb-0.5">💊 ค่ายา</p>
+            <p className="text-lg font-black text-[#093832]">{fmt(totalMedicineCost)} ฿</p>
           </div>
         </div>
 
         {/* ปริมาณอาหาร */}
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/15">
+        <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
           <div className="flex items-center gap-2">
             <span className="text-sm">📦</span>
-            <span className="text-xs font-semibold text-white/70">อาหารที่ใช้ทั้งหมด</span>
+            <span className="text-sm font-semibold text-gray-600">อาหารที่ใช้ทั้งหมด</span>
           </div>
-          <span className="text-base font-black">{fmt(totalFoodKg, 1)} กก.</span>
+          <span className="text-base font-black text-[#093832]">{fmt(totalFoodKg, 1)} กก.</span>
         </div>
       </div>
 
