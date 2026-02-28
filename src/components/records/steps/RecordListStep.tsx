@@ -71,11 +71,13 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
 
       const url = new URL(`${API_BASE_URL}/records`);
       url.searchParams.append('limit', '200');
-      // Always filter by farmType
-      url.searchParams.append('farmType', farmType);
 
       if (pondId) {
+        // Filter by pond (not farmType) — farmType can change, records belong to the pond
         url.searchParams.append('pondId', pondId);
+      } else {
+        // Fallback: filter by farmType when no specific pond
+        url.searchParams.append('farmType', farmType);
       }
 
       // Filter by selected/active production cycle

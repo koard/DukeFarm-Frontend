@@ -205,6 +205,15 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
     }
   };
 
+  // Set default fishType from the selected pond's farmType
+  useEffect(() => {
+    if (!selectedPondId) return;
+    const selectedPond = ponds.find(p => p.id === selectedPondId);
+    if (selectedPond?.farmType) {
+      setFishType(selectedPond.farmType);
+    }
+  }, [selectedPondId, ponds]);
+
   // Fetch active cycle when pond changes
   useEffect(() => {
     if (!selectedPondId) return;
@@ -398,10 +407,9 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
                 <label className="text-sm font-bold text-black ml-1">ประเภทปลา</label>
                 <div className="relative">
                   <select
-                    disabled={!!activeCycle && activeCycle.status !== 'PLANNING'}
                     value={fishType}
                     onChange={(e) => setFishType(e.target.value)}
-                    className={`w-full appearance-none bg-white border border-gray-200 rounded-xl pl-3 pr-9 py-3 text-sm font-bold focus:text-black focus:border-[#093832] outline-none disabled:bg-gray-100 disabled:text-gray-500 ${!fishType ? 'text-gray-400' : 'text-gray-700'}`}
+                    className={`w-full appearance-none bg-white border border-gray-200 rounded-xl pl-3 pr-9 py-3 text-sm font-bold focus:text-black focus:border-[#093832] outline-none ${!fishType ? 'text-gray-400' : 'text-gray-700'}`}
                   >
                     <option value="" disabled>เลือกประเภท</option>
                     <option value="SMALL">ปลาตุ้ม</option>
