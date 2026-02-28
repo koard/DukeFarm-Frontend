@@ -286,6 +286,92 @@ export function getFCRRating(fcr: number): Rating {
 }
 
 // ---------------------------------------------------------------------------
+// คะแนนคุณภาพโดยรวม (Overall Quality Stars — 1-5 ดาว)
+// ---------------------------------------------------------------------------
+
+/**
+ * คำนวณคะแนนดาวรวม (1-5) จากดัชนีทั้งหมด
+ *
+ * ถ่วงน้ำหนัก:
+ *   - GPI  (60%) — ตัวชี้วัดหลัก: ปลาโตได้ดีแค่ไหน
+ *   - SR   (25%) — ปลารอดเท่าไหร่
+ *   - FCR  (15%) — ใช้อาหารคุ้มแค่ไหน
+ *
+ * ถ้าไม่มี SR หรือ FCR จะถ่วงน้ำหนักใหม่ตามที่มี
+ *
+ * @returns { stars, label, description }
+ */
+export function calculateOverallStars(assessment: QualityAssessment): {
+  stars: number;
+  label: string;
+  description: string;
+} {
+  // แปลงแต่ละดัชนีเป็นคะแนน 0-5
+  const gpiScore = gpiToScore(assessment.gpi);
+
+  let totalWeight = 0;
+  let weightedSum = 0;
+
+  // GPI (weight 60)
+  weightedSum += gpiScore * 60;
+  totalWeight += 60;
+
+  // SR (weight 25) — ถ้ามี
+  if (assessment.survivalRate != null) {
+    const srScore = srToScore(assessment.survivalRate);
+    weightedSum += srScore * 25;
+    totalWeight += 25;
+  }
+
+  // FCR (weight 15) — ถ้ามี
+  if (assessment.fcr != null) {
+    const fcrScore = fcrToScore(assessment.fcr);
+    weightedSum += fcrScore * 15;
+    totalWeight += 15;
+  }
+
+  const raw = totalWeight > 0 ? weightedSum / totalWeight : 0;
+  // ปัดเป็น 0.5
+  const stars = Math.max(0.5, Math.min(5, Math.round(raw * 2) / 2));
+
+  const { label, description } = getStarLabel(stars);
+
+  return { stars, label, description };
+}
+
+function gpiToScore(gpi: number): number {
+  if (gpi >= 110) return 5;
+  if (gpi >= 95) return 4;
+  if (gpi >= 80) return 3;
+  if (gpi >= 65) return 2;
+  return 1;
+}
+
+function srToScore(sr: number): number {
+  if (sr >= 90) return 5;
+  if (sr >= 80) return 4;
+  if (sr >= 70) return 3;
+  if (sr >= 60) return 2;
+  return 1;
+}
+
+function fcrToScore(fcr: number): number {
+  if (fcr <= 1.3) return 5;
+  if (fcr <= 1.5) return 4;
+  if (fcr <= 2.0) return 3;
+  if (fcr <= 2.5) return 2;
+  return 1;
+}
+
+function getStarLabel(stars: number): { label: string; description: string } {
+  if (stars >= 4.5) return { label: 'ดีเยี่ยม', description: 'การเลี้ยงรอบนี้ได้ผลดีมาก ปลาเจริญเติบโตเกินมาตรฐาน' };
+  if (stars >= 3.5) return { label: 'ดี', description: 'การเลี้ยงรอบนี้อยู่ในเกณฑ์ดี ปลาเจริญเติบโตใกล้เคียงมาตรฐาน' };
+  if (stars >= 2.5) return { label: 'พอใช้', description: 'การเลี้ยงรอบนี้อยู่ในเกณฑ์พอใช้ ควรติดตามการเจริญเติบโตอย่างใกล้ชิด' };
+  if (stars >= 1.5) return { label: 'ต่ำกว่ามาตรฐาน', description: 'ปลาเจริญเติบโตต่ำกว่าที่ควร ควรตรวจสอบอาหารและสภาพบ่อ' };
+  return { label: 'ต้องปรับปรุง', description: 'การเลี้ยงรอบนี้มีปัญหา ควรปรึกษาผู้เชี่ยวชาญเพื่อหาสาเหตุ' };
+}
+
+// ---------------------------------------------------------------------------
 // สรุปภาพรวมรอบการเลี้ยง (Quality Assessment Summary)
 // ---------------------------------------------------------------------------
 

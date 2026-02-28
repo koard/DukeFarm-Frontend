@@ -8,6 +8,7 @@
 "use client";
 
 import type { QualityAssessment } from "@/utils/catfishGrowth";
+import { calculateOverallStars } from "@/utils/catfishGrowth";
 
 interface Props {
   assessment: QualityAssessment;
@@ -29,6 +30,8 @@ export default function QualitySummaryCards({ assessment }: Props) {
     standardWeightGr,
   } = assessment;
 
+  const overall = calculateOverallStars(assessment);
+
   return (
     <div className="space-y-4">
       {/* ส่วนหัว: ข้อมูลทั่วไปของรอบการเลี้ยง */}
@@ -36,6 +39,36 @@ export default function QualitySummaryCards({ assessment }: Props) {
         <div className="flex items-center gap-2.5 mb-4">
           <span className="text-xl">📊</span>
           <h3 className="text-base font-bold text-[#093832]">ภาพรวมรอบการเลี้ยง</h3>
+        </div>
+
+        {/* ⭐ คะแนนคุณภาพโดยรวม */}
+        <div className="text-center mb-4 pb-4 border-b border-gray-100">
+          <div className="flex items-center justify-center gap-1 mb-1.5">
+            {[1, 2, 3, 4, 5].map((i) => {
+              const fill =
+                i <= Math.floor(overall.stars)
+                  ? "text-yellow-400"
+                  : i - 0.5 <= overall.stars
+                    ? "text-yellow-400 opacity-50"
+                    : "text-gray-200";
+              return (
+                <svg
+                  key={i}
+                  className={`w-7 h-7 ${fill}`}
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                </svg>
+              );
+            })}
+          </div>
+          <p className="text-sm font-black text-[#093832]">
+            {overall.label} ({overall.stars} / 5)
+          </p>
+          <p className="text-xs text-gray-400 mt-1 leading-relaxed max-w-[280px] mx-auto">
+            {overall.description}
+          </p>
         </div>
 
         <div className="grid grid-cols-3 gap-2.5 text-center">
