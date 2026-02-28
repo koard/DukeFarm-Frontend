@@ -173,7 +173,6 @@ export default function GrowthChart({ data }: Props) {
 
       <p className="text-[11px] text-gray-400 text-center mt-3 leading-relaxed">
         💡 เส้นมาตรฐานคำนวณจากโมเดลการเจริญเติบโต (Gompertz)
-        <br />ปรับตามน้ำหนักเริ่มต้นของรอบการเลี้ยงนี้
       </p>
     </div>
   );
