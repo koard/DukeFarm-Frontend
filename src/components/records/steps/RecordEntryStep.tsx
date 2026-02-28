@@ -132,6 +132,9 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
 
   // Fetch feed formulas and supplements from API (filtered by fishType/farmType)
   useEffect(() => {
+    // รอให้มีประเภทปลาก่อนค่อย fetch — ป้องกันโหลดสูตรอาหารทั้งหมดโดยไม่กรอง
+    if (!fishType) return;
+
     const fetchFormulas = async () => {
       try {
         const token = localStorage.getItem('authToken');
