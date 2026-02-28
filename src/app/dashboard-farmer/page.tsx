@@ -1072,6 +1072,14 @@ function DashboardContent() {
                   </div>
                   {/* สิ้นสุดการ์ดวิเคราะห์การเลี้ยง */}
 
+          {/* ปุ่มดูสรุปคุณภาพการเลี้ยง (ลิงก์ไปหน้า Quality Report) */}
+          <Link href={getSubLink("quality-report")} className="block w-full">
+            <button className="w-full bg-gradient-to-r from-[#093832] to-[#0A8865] hover:from-[#0A4A3C] hover:to-[#0C9A72] text-white py-3.5 rounded-2xl flex items-center justify-center gap-2 shadow-md transition-all text-sm cursor-pointer font-bold mb-2">
+              <span className="text-base">📊</span>
+              ดูสรุปคุณภาพการเลี้ยง
+            </button>
+          </Link>
+
           <div className="space-y-4">
             <div className="bg-gradient-to-r from-[#FFF6E2] via-[#FFF6E2] to-[#E6DAFF] rounded-2xl shadow-sm flex overflow-hidden h-28 border border-orange-50/20">
 
