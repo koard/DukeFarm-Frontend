@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, RefreshCw, Search, Trash2, ChevronDown } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ChevronLeft, ChevronRight, RefreshCw, Search, Trash2, ChevronDown, BarChart3 } from 'lucide-react';
 import { ProfileDropdownMenu } from '@/components/common/ProfileDropdownMenu';
 
 import { API_BASE_URL } from '@/config/api';
@@ -28,6 +29,7 @@ type RecordItem = {
 };
 
 export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onViewDetails, onBack, farmType, pondId }) => {
+  const router = useRouter();
   const [records, setRecords] = useState<RecordItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [pageSize, setPageSize] = useState(10);
@@ -360,6 +362,20 @@ export const RecordListStep: React.FC<RecordListStepProps> = ({ onAddNew, onView
                 เริ่มรอบการเลี้ยงใหม่
               </button>
             )}
+
+            {/* Quality report button */}
+            <button
+              onClick={() => {
+                const params = new URLSearchParams();
+                if (pondId) params.set('pondId', pondId);
+                params.set('type', farmType);
+                router.push(`/dashboard-farmer/quality-report?${params.toString()}`);
+              }}
+              className="mt-3 w-full bg-white/20 text-white text-sm font-bold py-3 rounded-xl hover:bg-white/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            >
+              <BarChart3 className="w-4 h-4" />
+              ดูข้อมูลคุณภาพการเลี้ยง
+            </button>
 
             {/* Back to current cycle — when viewing old cycle */}
             {!isViewingActiveCycle && (
