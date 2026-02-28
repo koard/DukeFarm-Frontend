@@ -154,17 +154,6 @@ export default function QualitySummaryCards({ assessment }: Props) {
           </p>
         </div>
       </div>
-
-      {/* ต้นทุนรวม */}
-      <div className="bg-gradient-to-r from-[#093832] to-[#0A8865] rounded-2xl px-5 py-4 text-white shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <span className="text-xl">💰</span>
-            <span className="text-sm font-bold text-white/90">ต้นทุนรวม (อาหาร+ยา)</span>
-          </div>
-          <p className="text-2xl font-black">{totalCost.toLocaleString()} ฿</p>
-        </div>
-      </div>
     </div>
   );
 }

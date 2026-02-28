@@ -264,7 +264,7 @@ function QualityReportContent() {
                     value={cycle.id}
                     className="bg-white text-gray-900"
                   >
-                    รอบที่ {cycles.length - idx}
+                    รอบการเลี้ยงที่ {cycles.length - idx}
                   </option>
                 ))}
               </select>
