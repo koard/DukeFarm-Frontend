@@ -14,33 +14,6 @@ interface Props {
   assessment: QualityAssessment;
 }
 
-/** แถบแสดงสัดส่วน */
-function CostBar({ food, medicine }: { food: number; medicine: number }) {
-  const total = food + medicine;
-  if (total <= 0) return null;
-  const foodPct = Math.round((food / total) * 100);
-  const medPct = 100 - foodPct;
-
-  return (
-    <div className="mt-3">
-      <div className="flex items-center justify-between text-[11px] text-gray-400 mb-1.5">
-        <span>🍚 ค่าอาหาร {foodPct}%</span>
-        <span>💊 ค่ายา {medPct}%</span>
-      </div>
-      <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden flex">
-        <div
-          className="h-full rounded-l-full bg-[#0A8865] transition-all"
-          style={{ width: `${foodPct}%` }}
-        />
-        <div
-          className="h-full rounded-r-full bg-amber-400 transition-all"
-          style={{ width: `${medPct}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
 export default function CostSummary({ assessment }: Props) {
   const {
     totalFoodCost,
