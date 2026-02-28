@@ -185,7 +185,7 @@ export function calculateSR(remaining: number, released: number): number {
 }
 
 // ---------------------------------------------------------------------------
-// อัตราการแลกเนื้อ (FCR — Feed Conversion Ratio)
+// อัตราการเปลี่ยนอาหารเป็นเนื้อ (FCR — Feed Conversion Ratio)
 // ---------------------------------------------------------------------------
 
 /**
