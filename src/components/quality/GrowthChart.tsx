@@ -99,7 +99,6 @@ export default function GrowthChart({ data }: Props) {
   return (
     <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-5">
       <div className="flex items-center gap-2.5 mb-2">
-        <span className="text-xl">📉</span>
         <h3 className="text-base font-bold text-[#093832]">กราฟเปรียบเทียบน้ำหนักปลา</h3>
       </div>
       <p className="text-xs text-gray-400 mb-4 ml-8">เปรียบเทียบน้ำหนักที่เกษตรกรบันทึก กับค่ามาตรฐานที่ปลาควรโตได้</p>

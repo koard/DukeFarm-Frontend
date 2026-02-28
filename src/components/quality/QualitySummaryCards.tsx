@@ -69,7 +69,7 @@ export default function QualitySummaryCards({ assessment }: Props) {
           <div className="flex items-center gap-1.5 mb-0.5">
             <span className="text-sm font-bold text-gray-700">ดัชนีเจริญเติบโต (GPI)</span>
           </div>
-          <p className="text-[11px] text-gray-400 mb-1.5">เปรียบเทียบน้ำหนักจริงกับค่ามาตรฐาน</p>
+          <p className="text-xs text-gray-400 mb-1.5">เปรียบเทียบน้ำหนักจริงกับค่ามาตรฐาน</p>
           <p className="text-3xl font-black" style={{ color: gpiRating.color }}>
             {gpi.toFixed(0)}%
           </p>
@@ -86,7 +86,7 @@ export default function QualitySummaryCards({ assessment }: Props) {
           <div className="flex items-center gap-1.5 mb-0.5">
             <span className="text-sm font-bold text-gray-700">น้ำหนักเพิ่มต่อวัน (ADG)</span>
           </div>
-          <p className="text-[11px] text-gray-400 mb-1.5">น้ำหนักปลาที่เพิ่มขึ้นเฉลี่ยในแต่ละวัน</p>
+          <p className="text-xs text-gray-400 mb-1.5">น้ำหนักปลาที่เพิ่มขึ้นเฉลี่ยในแต่ละวัน</p>
           <p className="text-3xl font-black text-[#093832]">
             {actualADG.toFixed(2)}
           </p>
@@ -107,7 +107,7 @@ export default function QualitySummaryCards({ assessment }: Props) {
           <div className="flex items-center gap-1.5 mb-0.5">
             <span className="text-sm font-bold text-gray-700">อัตราการรอดตาย (SR)</span>
           </div>
-          <p className="text-[11px] text-gray-400 mb-1.5">สัดส่วนปลาที่ยังมีชีวิตอยู่จากที่ปล่อยทั้งหมด</p>
+          <p className="text-xs text-gray-400 mb-1.5">สัดส่วนปลาที่ยังมีชีวิตอยู่จากที่ปล่อยทั้งหมด</p>
           {survivalRate != null ? (
             <>
               <p className="text-3xl font-black" style={{ color: srRating?.color ?? "#374151" }}>
@@ -136,7 +136,7 @@ export default function QualitySummaryCards({ assessment }: Props) {
           <div className="flex items-center gap-1.5 mb-0.5">
             <span className="text-sm font-bold text-gray-700">อัตราการแลกเนื้อ (FCR)</span>
           </div>
-          <p className="text-[11px] text-gray-400 mb-1.5">ปริมาณอาหารที่ใช้ต่อน้ำหนักปลาที่เพิ่มขึ้น 1 กก.</p>
+          <p className="text-xs text-gray-400 mb-1.5">ปริมาณอาหารที่ใช้ต่อน้ำหนักปลาที่เพิ่มขึ้น 1 กก.</p>
           {fcr != null ? (
             <>
               <p className="text-3xl font-black" style={{ color: fcrRating?.color ?? "#374151" }}>
