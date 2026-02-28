@@ -460,7 +460,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
                       ref={dateInputRef}
                       type="date"
                       value={releaseDate}
-                      max={new Date().toISOString().split('T')[0]}
+                      max={`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`}
                       onChange={(e) => setReleaseDate(e.target.value)}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:pointer-events-none"
                     />
