@@ -226,7 +226,7 @@ export function calculateFCR(
 // เกณฑ์การประเมิน (Rating thresholds)
 // ---------------------------------------------------------------------------
 
-export type RatingLevel = 'excellent' | 'normal' | 'below' | 'critical';
+export type RatingLevel = 'excellent' | 'good' | 'normal' | 'below' | 'critical';
 
 export interface Rating {
   level: RatingLevel;
@@ -238,50 +238,33 @@ export interface Rating {
 
 /**
  * ประเมินเกณฑ์ GPI
- *
- * | GPI       | เกณฑ์          |
- * |-----------|----------------|
- * | ≥ 110%    | ดีเยี่ยม ⭐     |
- * | 90–109%   | ปกติ ✅         |
- * | 70–89%    | ต่ำกว่ามาตรฐาน ⚠️ |
- * | < 70%     | ต้องปรับปรุง 🔴  |
  */
 export function getGPIRating(gpi: number): Rating {
   if (gpi >= 110) return { level: 'excellent', label: 'ดีเยี่ยม', color: '#15803d', bgColor: '#dcfce7', icon: '⭐' };
-  if (gpi >= 90)  return { level: 'normal',    label: 'ปกติ',     color: '#22c55e', bgColor: '#f0fdf4', icon: '✅' };
-  if (gpi >= 70)  return { level: 'below',     label: 'ต่ำกว่ามาตรฐาน', color: '#f97316', bgColor: '#fff7ed', icon: '⚠️' };
+  if (gpi >= 100)  return { level: 'good',    label: 'ดี',     color: '#22c55e', bgColor: '#f0fdf4', icon: '✅' };
+  if (gpi >= 90)   return { level: 'normal',  label: 'ปกติ',   color: '#f97316', bgColor: '#fff7ed', icon: '⚠️' };
+  if (gpi >= 80)  return { level: 'below',     label: 'ต่ำกว่ามาตรฐาน', color: '#f97316', bgColor: '#fff7ed', icon: '⚠️' };
   return { level: 'critical', label: 'ต้องปรับปรุง', color: '#ef4444', bgColor: '#fef2f2', icon: '🔴' };
 }
 
 /**
  * ประเมินเกณฑ์ Survival Rate
- *
- * | SR        | เกณฑ์          |
- * |-----------|----------------|
- * | ≥ 80%     | ดี ✅           |
- * | 60–79%    | พอใช้ ⚠️       |
- * | < 60%     | ต้องปรับปรุง 🔴 |
  */
 export function getSRRating(sr: number): Rating {
-  if (sr >= 80) return { level: 'excellent', label: 'ดี',     color: '#22c55e', bgColor: '#f0fdf4', icon: '✅' };
-  if (sr >= 60) return { level: 'below',     label: 'พอใช้',  color: '#f97316', bgColor: '#fff7ed', icon: '⚠️' };
+  if (sr > 90) return { level: 'excellent', label: 'ดีเยี่ยม', color: '#0ea5e9', bgColor: '#e0f2fe', icon: '🌟' };
+  if (sr > 80) return { level: 'good', label: 'ดี', color: '#22c55e', bgColor: '#f0fdf4', icon: '✅' };
+  if (sr > 70) return { level: 'normal', label: 'พอใช้', color: '#f97316', bgColor: '#fff7ed', icon: '⚠️' };
   return { level: 'critical', label: 'ต้องปรับปรุง', color: '#ef4444', bgColor: '#fef2f2', icon: '🔴' };
 }
 
 /**
  * ประเมินเกณฑ์ FCR
- *
- * | FCR       | เกณฑ์          |
- * |-----------|----------------|
- * | ≤ 1.5     | ดีเยี่ยม ⭐     |
- * | 1.5–2.0   | ปกติ ✅         |
- * | 2.0–2.5   | สูงเกิน ⚠️     |
- * | > 2.5     | สิ้นเปลือง 🔴   |
  */
 export function getFCRRating(fcr: number): Rating {
   if (fcr <= 1.5) return { level: 'excellent', label: 'ดีเยี่ยม',   color: '#15803d', bgColor: '#dcfce7', icon: '⭐' };
-  if (fcr <= 2.0) return { level: 'normal',    label: 'ปกติ',       color: '#22c55e', bgColor: '#f0fdf4', icon: '✅' };
-  if (fcr <= 2.5) return { level: 'below',     label: 'สูงเกิน',   color: '#f97316', bgColor: '#fff7ed', icon: '⚠️' };
+  if (fcr <= 2.0) return { level: 'good',    label: 'ดี',         color: '#22c55e', bgColor: '#f0fdf4', icon: '✅' };
+  if (fcr <= 2.5) return { level: 'normal',    label: 'ปกติ',       color: '#22c55e', bgColor: '#f0fdf4', icon: '✅' };
+  if (fcr <= 3.0) return { level: 'below',     label: 'สูงเกิน',   color: '#f97316', bgColor: '#fff7ed', icon: '⚠️' };
   return { level: 'critical', label: 'สิ้นเปลือง', color: '#ef4444', bgColor: '#fef2f2', icon: '🔴' };
 }
 
