@@ -52,7 +52,7 @@ export default function QualitySummaryCards({ assessment }: Props) {
         {/* Star rating row */}
         <div className="relative flex items-center justify-between mb-4">
           <div>
-            <p className="text-white/70 text-xs font-semibold tracking-wide uppercase mb-1">คุณภาพการเลี้ยงโดยรวม</p>
+            <p className="text-white/70 text-sm font-semibold tracking-wide uppercase mb-1">คุณภาพการเลี้ยงโดยรวม</p>
             <div className="flex items-baseline gap-2">
               <span className="text-4xl font-black text-white">{overall.stars}</span>
               <span className="text-white/60 text-lg font-bold">/ 5</span>
