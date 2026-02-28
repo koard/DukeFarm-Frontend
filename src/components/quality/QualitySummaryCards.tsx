@@ -118,7 +118,7 @@ export default function QualitySummaryCards({ assessment }: Props) {
         <IndexCard
           title="น้ำหนักเพิ่มต่อวัน"
           abbr="ADG"
-          value={actualADG.toFixed(2)}
+          value={assessment.totalDays === 0 ? null : actualADG.toFixed(2)}
           ratingLabel="กรัม/วัน"
           ratingColor="#0d9488"
           bgColor="#f0fdfa"
