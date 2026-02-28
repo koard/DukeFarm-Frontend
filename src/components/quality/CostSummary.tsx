@@ -71,8 +71,6 @@ export default function CostSummary({ assessment }: Props) {
           </p>
         </div>
 
-        <CostBar food={totalFoodCost} medicine={totalMedicineCost} />
-
         {/* ค่าอาหาร / ค่ายา แยก */}
         <div className="grid grid-cols-2 gap-3 mt-4">
           <div className="bg-[#f0fdf4] rounded-xl px-3.5 py-3">
