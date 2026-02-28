@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -483,7 +484,6 @@ function DashboardContent() {
   }, []);
 
   const { data: dashboardData, loading } = useDashboardData<DashboardData>(farmType, pondId);
-
   // Derive weather state from actual time + weather data
   const weatherState = (() => {
     const hour = currentTime ? currentTime.getHours() : 12;
@@ -517,6 +517,7 @@ function DashboardContent() {
     // Default: sunny day
     return "sunny_day";
   })();
+  // const weatherState = "cloudy";
 
   const getWeatherBg = () => {
     switch (weatherState) {
@@ -595,6 +596,16 @@ function DashboardContent() {
   };
   const marketSize = marketSizeMap[farmType] || "-";
 
+  const stars = useMemo(
+  () =>
+    Array.from({ length: 25 }).map(() => ({
+      top: `${Math.random() * 80}%`,
+      left: `${Math.random() * 90}%`,
+      duration: 2 + Math.random() * 2,
+    })),
+  []
+);
+
   return (
     <div className="min-h-screen bg-white pb-10 font-sans">
 
@@ -632,63 +643,263 @@ function DashboardContent() {
         </div>
 
         {/* -------------------------------------------------------------------------
-            3. IPHONE WEATHER CARD
-            ------------------------------------------------------------------------- */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className={`relative overflow-hidden rounded-[35px] text-white transition-all bg-gradient-to-b ${getWeatherBg()}`}
-        >
-          {/* Background decoration - Multi-layer blur effects */}
-          {/* Top-right glow */}
-          <div className="absolute -top-20 -right-20 w-80 h-80 bg-white/25 rounded-full blur-[100px] opacity-60" />
-          {/* Left side glow */}
-          <div className="absolute top-1/2 -left-16 w-48 h-48 bg-white/15 rounded-full blur-[70px] opacity-50" />
-          {/* Bottom-right accent */}
-          <div className="absolute -bottom-10 right-12 w-56 h-56 bg-white/10 rounded-full blur-[85px] opacity-40" />
-          
-          {/* Subtle overlay gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-transparent" />
+              3. IPHONE WEATHER CARD 
+          ------------------------------------------------------------------------- */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className={`relative overflow-hidden rounded-[35px] text-white transition-all bg-gradient-to-b ${getWeatherBg()} weather-animated-bg shadow-lg`}
+          >
 
-          <div className="relative z-10 flex flex-col items-center justify-center text-center px-8 py-6">
+            {/* ===== Animated Gradient Background ===== */}
+            <style jsx>{`
+              @keyframes gradientMove {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+              }
+              .weather-animated-bg {
+                background-size: 200% 200%;
+                animation: gradientMove 15s ease infinite;
+              }
+            `}</style>
 
-            <span className="text-2xl font-semibold tracking-wide drop-shadow-sm mb-2">
-              {currentTime ? currentTime.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }) + ' น.' : (loading ? "กำลังโหลด..." : "--:--")}
-            </span>
+            {/* ===== Decorative Blur Layers ===== */}
+            <div className="absolute -top-20 -right-20 w-80 h-80 bg-white/20 rounded-full blur-[100px] opacity-60" />
+            <div className="absolute top-1/2 -left-16 w-48 h-48 bg-white/10 rounded-full blur-[70px] opacity-50" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent" />
+            <div className="absolute inset-0 backdrop-blur-[1px] bg-white/5" />
 
-            <span className="text-[90px] font-semibold leading-none tracking-tighter drop-shadow-lg mb-3">
-              {loading ? "--" : Math.round(currentTemp)}°
-            </span>
+            {/* ================= WEATHER EFFECTS (7 สภาพอากาศ) ================= */}
 
-            <span className="text-xl font-medium opacity-90 tracking-wide mb-2">
-              {loading ? "..." : getThaiWeatherCondition(currentCondition)}
-            </span>
+            {/* 1.Sunny Day */}
+            {weatherState === "sunny_day" && (
+              <div className="absolute inset-0 pointer-events-none">
+                <motion.div
+                  className="absolute w-48 h-48 bg-yellow-200/50 rounded-full blur-3xl"
+                  animate={{ scale: [1, 1.1, 1], opacity: [0.6, 0.9, 0.6] }}
+                  transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
+                  style={{ top: "5%", right: "10%" }}
+                />
+                <motion.div
+                  className="absolute w-24 h-24 bg-yellow-100/80 rounded-full shadow-[0_0_60px_rgba(255,255,150,0.8)] blur-[2px]"
+                  style={{ top: "12%", right: "18%" }}
+                />
+              </div>
+            )}
 
-            <div className="flex gap-3 text-lg font-medium opacity-90 pt">
-              <span className="drop-shadow-sm">สูงสุด:{Math.round(highTemp)}°</span>
-              <span>|</span>
-              <span className="drop-shadow-sm">ต่ำสุด:{Math.round(lowTemp)}°</span>
+            {/* 2.Rain */}
+            {weatherState === "rain" && (
+              <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                {[...Array(25)].map((_, i) => (
+                  <motion.div
+                    key={`rain-${i}`}
+                    className="absolute w-[2px] bg-white/40 rounded-full"
+                    style={{ 
+                      left: `${(i * 4.5) % 100}%`, 
+                      height: `${15 + (i % 20)}px`,
+                      top: "-10%" 
+                    }}
+                    animate={{ y: ["0vh", "120vh"], opacity: [0, 1, 0] }}
+                    transition={{
+                      duration: 0.8 + ((i % 5) * 0.1),
+                      repeat: Infinity,
+                      delay: (i % 10) * 0.2,
+                      ease: "linear",
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* 3.Night */}
+            {weatherState === "night" && (
+              <div className="absolute inset-0 pointer-events-none">
+                {/* Moon */}
+                <motion.div
+                  className="absolute w-20 h-20 bg-white/90 rounded-full shadow-[0_0_40px_rgba(255,255,255,0.8)]"
+                  style={{ top: "15%", right: "15%" }}
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                />
+                {/* Stars */}
+                {[
+                  { t: "10%", l: "20%", d: 3 }, { t: "25%", l: "40%", d: 4 },
+                  { t: "15%", l: "70%", d: 2.5 }, { t: "40%", l: "10%", d: 5 },
+                  { t: "50%", l: "80%", d: 3.5 }, { t: "60%", l: "30%", d: 4.5 },
+                  { t: "30%", l: "85%", d: 3 }, { t: "75%", l: "60%", d: 5 }
+                ].map((star, i) => (
+                  <motion.div
+                    key={`star-${i}`}
+                    className="absolute w-1.5 h-1.5 bg-white rounded-full"
+                    style={{ top: star.t, left: star.l }}
+                    animate={{ opacity: [0.1, 1, 0.1], scale: [0.8, 1.2, 0.8] }}
+                    transition={{ duration: star.d, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* 4.Hot Day */}
+            {weatherState === "hot_day" && (
+              <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <motion.div
+                  className="absolute w-72 h-72 bg-red-500/30 rounded-full blur-3xl"
+                  style={{ top: "-5%", right: "-5%" }}
+                  animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0.8, 0.5] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <motion.div
+                  className="absolute w-32 h-32 bg-gradient-to-br from-yellow-100 to-orange-500 rounded-full shadow-[0_0_80px_rgba(255,80,0,0.9)]"
+                  style={{ top: "10%", right: "15%" }}
+                  animate={{ scale: [1, 1.05, 1] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <motion.div
+                  className="absolute inset-0 backdrop-blur-[1.5px] bg-red-900/10"
+                  animate={{ opacity: [0.1, 0.3, 0.1] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                />
+              </div>
+            )}
+
+            {/* 5.Sunrise */}
+            {weatherState === "sunrise" && (
+              <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <motion.div
+                  className="absolute w-full h-64 bg-gradient-to-t from-orange-300/50 via-pink-200/20 to-transparent bottom-0"
+                  animate={{ opacity: [0.5, 0.8, 0.5] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <motion.div
+                  className="absolute w-40 h-40 bg-gradient-to-t from-yellow-100 to-orange-200 rounded-full shadow-[0_0_60px_rgba(255,180,100,0.8)]"
+                  style={{ bottom: "-10%", left: "25%" }}
+                  animate={{ y: [0, -30, 0], scale: [1, 1.05, 1] }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                />
+              </div>
+            )}
+
+            {/* 6.Sunset */}
+            {weatherState === "sunset" && (
+              <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <motion.div
+                  className="absolute w-full h-72 bg-gradient-to-t from-red-500/40 via-purple-400/20 to-transparent bottom-0"
+                  animate={{ opacity: [0.6, 0.9, 0.6] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                />
+                <motion.div
+                  className="absolute w-40 h-40 bg-gradient-to-b from-orange-300 to-red-500 rounded-full shadow-[0_0_70px_rgba(255,60,0,0.8)]"
+                  style={{ bottom: "0%", right: "25%" }}
+                  animate={{ y: [0, 20, 0] }}
+                  transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                />
+              </div>
+            )}
+
+            {/* 7.Cloudy */}
+            {weatherState === "cloudy" && (
+              <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute inset-0 bg-slate-800/20 backdrop-blur-[1px]" />
+
+                <motion.svg
+                  viewBox="0 0 100 60"
+                  fill="currentColor"
+                  className="absolute text-slate-500/70 w-96 h-56 drop-shadow-xl"
+                  initial={{ left: "-80%", top: "-10%" }}
+                  animate={{ left: "120%" }}
+                  transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
+                >
+                  <path d="M 25 55 L 75 55 C 86.046 55 95 46.046 95 35 C 95 25.106 87.818 16.891 78.384 15.318 C 74.45 6.275 65.26 0 54.5 0 C 42.479 0 32.33 8.356 29.569 19.64 C 27.886 18.583 25.903 18 23.8 18 C 17.283 18 12 23.283 12 29.8 C 12 30.292 12.03 30.776 12.088 31.25 C 5.341 32.744 0.5 38.835 0.5 46 C 0.5 50.971 4.529 55 9.5 55 L 25 55 Z"/>
+                </motion.svg>
+
+                <motion.svg
+                  viewBox="0 0 100 60"
+                  fill="currentColor"
+                  className="absolute text-slate-300/60 w-72 h-44 drop-shadow-2xl"
+                  initial={{ left: "-60%", top: "15%" }}
+                  animate={{ left: "120%" }}
+                  transition={{ duration: 35, repeat: Infinity, ease: "linear", delay: 8 }}
+                >
+                  <path d="M 25 55 L 75 55 C 86.046 55 95 46.046 95 35 C 95 25.106 87.818 16.891 78.384 15.318 C 74.45 6.275 65.26 0 54.5 0 C 42.479 0 32.33 8.356 29.569 19.64 C 27.886 18.583 25.903 18 23.8 18 C 17.283 18 12 23.283 12 29.8 C 12 30.292 12.03 30.776 12.088 31.25 C 5.341 32.744 0.5 38.835 0.5 46 C 0.5 50.971 4.529 55 9.5 55 L 25 55 Z"/>
+                </motion.svg>
+
+                <motion.svg
+                  viewBox="0 0 100 60"
+                  fill="currentColor"
+                  className="absolute text-white/40 w-56 h-32 drop-shadow-[0_10px_15px_rgba(0,0,0,0.1)]"
+                  initial={{ left: "-40%", top: "45%" }}
+                  animate={{ left: "120%" }}
+                  transition={{ duration: 22, repeat: Infinity, ease: "linear", delay: 2 }}
+                >
+                  <path d="M 25 55 L 75 55 C 86.046 55 95 46.046 95 35 C 95 25.106 87.818 16.891 78.384 15.318 C 74.45 6.275 65.26 0 54.5 0 C 42.479 0 32.33 8.356 29.569 19.64 C 27.886 18.583 25.903 18 23.8 18 C 17.283 18 12 23.283 12 29.8 C 12 30.292 12.03 30.776 12.088 31.25 C 5.341 32.744 0.5 38.835 0.5 46 C 0.5 50.971 4.529 55 9.5 55 L 25 55 Z"/>
+                </motion.svg>
+
+                <motion.svg
+                  viewBox="0 0 100 60"
+                  fill="currentColor"
+                  className="absolute text-white/20 w-32 h-20"
+                  initial={{ left: "-30%", top: "8%" }}
+                  animate={{ left: "120%" }}
+                  transition={{ duration: 15, repeat: Infinity, ease: "linear", delay: 12 }}
+                >
+                  <path d="M 25 55 L 75 55 C 86.046 55 95 46.046 95 35 C 95 25.106 87.818 16.891 78.384 15.318 C 74.45 6.275 65.26 0 54.5 0 C 42.479 0 32.33 8.356 29.569 19.64 C 27.886 18.583 25.903 18 23.8 18 C 17.283 18 12 23.283 12 29.8 C 12 30.292 12.03 30.776 12.088 31.25 C 5.341 32.744 0.5 38.835 0.5 46 C 0.5 50.971 4.529 55 9.5 55 L 25 55 Z"/>
+                </motion.svg>
+              </div>
+            )}
+
+            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/30 pointer-events-none z-[5]" />
+
+            <div className="relative z-10 flex flex-col items-center justify-center text-center px-8 py-6">
+              
+              <span className="text-2xl font-bold tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-2">
+                {currentTime
+                  ? currentTime.toLocaleTimeString("th-TH", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }) + " น."
+                  : loading
+                  ? "กำลังโหลด..."
+                  : "--:--"}
+              </span>
+
+              <span className="text-[100px] font-bold leading-none tracking-tighter drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)] mb-3">
+                {loading ? "--" : Math.round(currentTemp)}°
+              </span>
+
+              <span className="text-xl font-bold opacity-95 tracking-wide mb-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                {loading ? "..." : getThaiWeatherCondition(currentCondition)}
+              </span>
+
+              <div className="flex gap-3 text-lg font-bold opacity-95 pt-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                <span>
+                  สูงสุด:{Math.round(highTemp)}°
+                </span>
+                <span className="opacity-70">|</span>
+                <span>
+                  ต่ำสุด:{Math.round(lowTemp)}°
+                </span>
+              </div>
             </div>
-          </div>
 
-          {/* ---- Temperature Report (inside weather card) ---- */}
-          <div className="relative z-10 mx-6 border-t-2 border-white/30" />
-          <div className="relative z-10 px-6 py-5">
-            <div className="text-lg font-medium text-white text-center leading-snug drop-shadow-sm">
-              {loading ? (
-                <p className="animate-pulse">กำลังโหลดข้อมูล...</p>
-              ) : (
-                <>
-                  <p>{tempAdvice || "ไม่มีข้อมูลอุณหภูมิ"}</p>
-                  {feedAdvice && (
-                    <p className="mt-1">{feedAdvice}</p>
-                  )}
-                </>
-              )}
+            <div className="relative z-10 mx-6 border-t border-white/40 shadow-[0_1px_2px_rgba(0,0,0,0.5)]" />
+
+            <div className="relative z-10 px-6 py-5 min-h-[100px] flex items-center justify-center">
+              <div className="absolute inset-2 bg-black/10 backdrop-blur-[2px] rounded-[20px] -z-10" />
+              <div className="text-[16px] font-semibold text-white text-center leading-relaxed drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                {loading ? (
+                  <p className="animate-pulse">กำลังโหลดข้อมูล...</p>
+                ) : (
+                  <>
+                    <p>{tempAdvice || "ไม่มีข้อมูลอุณหภูมิ"}</p>
+                    {feedAdvice && <p className="mt-1.5 opacity-90">{feedAdvice}</p>}
+                  </>
+                )}
+              </div>
             </div>
-          </div>
-        </motion.div>
+            
+          </motion.div>
 
         {/* -------------------------------------------------------------------------
             5. FORECAST SECTION (iOS Style)
