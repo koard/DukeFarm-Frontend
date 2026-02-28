@@ -509,27 +509,6 @@ function DashboardContent() {
     return `แนะนำให้ลดอาหารลง ${Math.abs(pct)}%`;
   })();
 
-  const [pondName, setPondName] = useState<string>("");
-
-  useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        const ponds = user?.farmerProfile?.ponds || [];
-        if (pondId) {
-          const idx = ponds.findIndex((p: { id: string }) => p.id === pondId);
-          setPondName(idx !== -1 ? `บ่อที่ ${idx + 1}` : "บ่อที่ 1");
-        } else {
-          setPondName(ponds.length > 0 ? "บ่อที่ 1" : "ยังไม่มีบ่อ");
-        }
-      }
-    } catch (e) {
-      console.error("Failed to get pond index", e);
-      setPondName("บ่อที่ 1");
-    }
-  }, [pondId]);
-
   // Pond Summary Data
   const summary = dashboardData?.summary;
   const fishType = summary?.latestFishStageName || "ไม่ระบุ";
