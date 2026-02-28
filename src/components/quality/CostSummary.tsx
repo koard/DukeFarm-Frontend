@@ -25,9 +25,9 @@ function DonutChart({
   medicine: number;
   total: number;
 }) {
-  const R = 44;
-  const stroke = 12;
-  const size = 120;
+  const R = 60;
+  const stroke = 13;
+  const size = 160;
   const cx = size / 2;
   const cy = size / 2;
   const circumference = 2 * Math.PI * R;
@@ -78,11 +78,11 @@ function DonutChart({
       )}
 
       {/* center label */}
-      <text x={cx} y={cy - 9} textAnchor="middle" style={{ fontSize: 9, fill: "#94a3b8", fontWeight: 500 }}>รวมทั้งหมด</text>
-      <text x={cx} y={cy + 8} textAnchor="middle" style={{ fontSize: 14, fill: "#0f172a", fontWeight: 800 }}>
+      <text x={cx} y={cy - 12} textAnchor="middle" style={{ fontSize: 10, fill: "#94a3b8", fontWeight: 500 }}>รวมทั้งหมด</text>
+      <text x={cx} y={cy + 8} textAnchor="middle" style={{ fontSize: 20, fill: "#0f172a", fontWeight: 800 }}>
         {total.toLocaleString()}
       </text>
-      <text x={cx} y={cy + 22} textAnchor="middle" style={{ fontSize: 9, fill: "#94a3b8", fontWeight: 500 }}>บาท</text>
+      <text x={cx} y={cy + 24} textAnchor="middle" style={{ fontSize: 11, fill: "#94a3b8", fontWeight: 500 }}>บาท</text>
     </svg>
   );
 }
@@ -196,11 +196,11 @@ export default function CostSummary({ assessment }: Props) {
         <div className="grid grid-cols-2 gap-3 pt-1 border-t border-gray-100">
           {/* per fish */}
           <div className="rounded-xl bg-gradient-to-br from-[#093832] to-[#0f6554] p-3.5 flex flex-col gap-1">
-            <span className="text-[10px] font-medium text-white/60 uppercase tracking-wider">ต่อปลา 1 ตัว</span>
+            <span className="text-sm font-medium text-white/60 uppercase tracking-wider">ต้นทุนต่อปลา 1 ตัว</span>
             {costPerFish != null ? (
               <p className="text-lg font-black text-white leading-none">
                 {costPerFish.toFixed(2)}
-                <span className="text-[11px] font-semibold ml-1 opacity-70">บาท</span>
+                <span className="text-sm font-semibold ml-1 opacity-70">บาท</span>
               </p>
             ) : (
               <p className="text-sm font-bold text-white/30">ไม่มีข้อมูล</p>
@@ -208,11 +208,11 @@ export default function CostSummary({ assessment }: Props) {
           </div>
           {/* per kg */}
           <div className="rounded-xl bg-gradient-to-br from-[#1e40af] to-[#0ea5e9] p-3.5 flex flex-col gap-1">
-            <span className="text-[10px] font-medium text-white/60 uppercase tracking-wider">ต่อ 1 กก.</span>
+            <span className="text-sm font-medium text-white/60 uppercase tracking-wider">ต้นทุนต่อปลา 1 กก.</span>
             {costPerKg != null ? (
               <p className="text-lg font-black text-white leading-none">
                 {costPerKg.toFixed(1)}
-                <span className="text-[11px] font-semibold ml-1 opacity-70">บาท</span>
+                <span className="text-sm font-semibold ml-1 opacity-70">บาท</span>
               </p>
             ) : (
               <p className="text-sm font-bold text-white/30">ไม่มีข้อมูล</p>
