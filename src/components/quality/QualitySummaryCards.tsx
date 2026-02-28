@@ -52,7 +52,7 @@ export default function QualitySummaryCards({ assessment }: Props) {
         {/* Star rating row */}
         <div className="relative flex items-center justify-between mb-4">
           <div>
-            <p className="text-white/70 text-xs font-semibold tracking-wide uppercase mb-1">คุณภาพการเลี้ยง</p>
+            <p className="text-white/70 text-xs font-semibold tracking-wide uppercase mb-1">คุณภาพการเลี้ยงโดยรวม</p>
             <div className="flex items-baseline gap-2">
               <span className="text-4xl font-black text-white">{overall.stars}</span>
               <span className="text-white/60 text-lg font-bold">/ 5</span>
@@ -144,7 +144,7 @@ export default function QualitySummaryCards({ assessment }: Props) {
           ratingLabel={fcrRating?.label ?? "-"}
           ratingColor={fcrRating?.color ?? "#9ca3af"}
           bgColor={fcrRating?.bgColor ?? "#f9fafb"}
-          subtitle={fcr != null ? `อาหาร ${fcr.toFixed(2)} กก. จะกลายเป็นเนื้อปลา 1 กก.` : undefined}
+          subtitle={fcr != null ? `อาหาร ${fcr.toFixed(2)} กก. ต่อเนื้อปลา 1 กก.` : undefined}
         />
       </div>
     </div>
