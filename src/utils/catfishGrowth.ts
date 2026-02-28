@@ -242,7 +242,7 @@ export interface Rating {
 export function getGPIRating(gpi: number): Rating {
   if (gpi >= 110) return { level: 'excellent', label: 'ดีเยี่ยม', color: '#15803d', bgColor: '#dcfce7', icon: '⭐' };
   if (gpi >= 100)  return { level: 'good',    label: 'ดี',     color: '#22c55e', bgColor: '#f0fdf4', icon: '✅' };
-  if (gpi >= 90)   return { level: 'normal',  label: 'ปกติ',   color: '#f97316', bgColor: '#fff7ed', icon: '⚠️' };
+  if (gpi >= 90)   return { level: 'normal',  label: 'ปกติ',   color: '#facc15', bgColor: '#fff7ed', icon: '⚠️' };
   if (gpi >= 80)  return { level: 'below',     label: 'ต่ำกว่ามาตรฐาน', color: '#f97316', bgColor: '#fff7ed', icon: '⚠️' };
   return { level: 'critical', label: 'ต้องปรับปรุง', color: '#ef4444', bgColor: '#fef2f2', icon: '🔴' };
 }
@@ -251,10 +251,10 @@ export function getGPIRating(gpi: number): Rating {
  * ประเมินเกณฑ์ Survival Rate
  */
 export function getSRRating(sr: number): Rating {
-  if (sr > 90) return { level: 'excellent', label: 'ดีเยี่ยม', color: '#0ea5e9', bgColor: '#e0f2fe', icon: '🌟' };
-  if (sr > 80) return { level: 'good', label: 'ดี', color: '#22c55e', bgColor: '#f0fdf4', icon: '✅' };
-  if (sr > 70) return { level: 'normal', label: 'พอใช้', color: '#f97316', bgColor: '#fff7ed', icon: '⚠️' };
-  return { level: 'critical', label: 'ต้องปรับปรุง', color: '#ef4444', bgColor: '#fef2f2', icon: '🔴' };
+  if (sr > 90) return { level: 'excellent', label: 'ดีเยี่ยม', color: '#15803d', bgColor: '#dcfce7', icon: '🌟' };
+  if (sr > 80) return { level: 'good', label: 'ดี', color: '#22c55e', bgColor: '#e6f4ea', icon: '✅' };
+  if (sr > 70) return { level: 'normal', label: 'พอใช้', color: '#facc15', bgColor: '#fef9c3', icon: '⚠️' };
+  return { level: 'critical', label: 'ต้องปรับปรุง', color: '#f97316', bgColor: '#fee2e2', icon: '🔴' };
 }
 
 /**
@@ -263,7 +263,7 @@ export function getSRRating(sr: number): Rating {
 export function getFCRRating(fcr: number): Rating {
   if (fcr <= 1.5) return { level: 'excellent', label: 'ดีเยี่ยม',   color: '#15803d', bgColor: '#dcfce7', icon: '⭐' };
   if (fcr <= 2.0) return { level: 'good',    label: 'ดี',         color: '#22c55e', bgColor: '#f0fdf4', icon: '✅' };
-  if (fcr <= 2.5) return { level: 'normal',    label: 'ปกติ',       color: '#22c55e', bgColor: '#f0fdf4', icon: '✅' };
+  if (fcr <= 2.5) return { level: 'normal',    label: 'ปกติ',       color: '#facc15', bgColor: '#fff7ed', icon: '✅' };
   if (fcr <= 3.0) return { level: 'below',     label: 'สูงเกิน',   color: '#f97316', bgColor: '#fff7ed', icon: '⚠️' };
   return { level: 'critical', label: 'สิ้นเปลือง', color: '#ef4444', bgColor: '#fef2f2', icon: '🔴' };
 }
