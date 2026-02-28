@@ -78,7 +78,7 @@ function DonutChart({
       )}
 
       {/* center label */}
-      <text x={cx} y={cy - 12} textAnchor="middle" style={{ fontSize: 14, fill: "#94a3b8", fontWeight: 500 }}>รั้งหมด</text>
+      <text x={cx} y={cy - 12} textAnchor="middle" style={{ fontSize: 14, fill: "#94a3b8", fontWeight: 500 }}>ทั้งหมด</text>
       <text x={cx} y={cy + 8} textAnchor="middle" style={{ fontSize: 20, fill: "#0f172a", fontWeight: 800 }}>
         {total.toLocaleString()}
       </text>
