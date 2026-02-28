@@ -46,7 +46,7 @@ export default function QualitySummaryCards({ assessment }: Props) {
             <p className="text-xs font-bold text-gray-400">วัน</p>
           </div>
           <div className="bg-gray-50 rounded-xl p-3">
-            <p className="text-xs font-semibold text-gray-500 mb-1">น้ำหนักตอนปล่อย</p>
+            <p className="text-xs font-semibold text-gray-500 mb-1">น้ำหนักแรก</p>
             <p className="text-xl font-black text-[#093832]">{initialWeightGr.toFixed(1)}</p>
             <p className="text-xs font-bold text-gray-400">กรัม</p>
           </div>
@@ -67,7 +67,6 @@ export default function QualitySummaryCards({ assessment }: Props) {
           style={{ backgroundColor: gpiRating.bgColor, borderColor: `${gpiRating.color}30` }}
         >
           <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="text-lg">{gpiRating.icon}</span>
             <span className="text-sm font-bold text-gray-700">ดัชนีเจริญเติบโต (GPI)</span>
           </div>
           <p className="text-[11px] text-gray-400 mb-1.5">เปรียบเทียบน้ำหนักจริงกับค่ามาตรฐาน</p>
@@ -85,7 +84,6 @@ export default function QualitySummaryCards({ assessment }: Props) {
         {/* ADG — อัตราการเจริญเติบโตต่อวัน */}
         <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-4">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="text-lg">📈</span>
             <span className="text-sm font-bold text-gray-700">น้ำหนักเพิ่มต่อวัน (ADG)</span>
           </div>
           <p className="text-[11px] text-gray-400 mb-1.5">น้ำหนักปลาที่เพิ่มขึ้นเฉลี่ยในแต่ละวัน</p>
@@ -107,7 +105,6 @@ export default function QualitySummaryCards({ assessment }: Props) {
           }}
         >
           <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="text-lg">🐟</span>
             <span className="text-sm font-bold text-gray-700">อัตราการรอดตาย (SR)</span>
           </div>
           <p className="text-[11px] text-gray-400 mb-1.5">สัดส่วนปลาที่ยังมีชีวิตอยู่จากที่ปล่อยทั้งหมด</p>
@@ -137,7 +134,6 @@ export default function QualitySummaryCards({ assessment }: Props) {
           }}
         >
           <div className="flex items-center gap-1.5 mb-0.5">
-            <span className="text-lg">🍚</span>
             <span className="text-sm font-bold text-gray-700">อัตราการแลกเนื้อ (FCR)</span>
           </div>
           <p className="text-[11px] text-gray-400 mb-1.5">ปริมาณอาหารที่ใช้ต่อน้ำหนักปลาที่เพิ่มขึ้น 1 กก.</p>
