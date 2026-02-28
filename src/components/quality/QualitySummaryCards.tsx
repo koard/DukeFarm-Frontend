@@ -49,10 +49,6 @@ export default function QualitySummaryCards({ assessment }: Props) {
 
       {/* ────────── Hero Card: คะแนนรวม + สรุปน้ำหนัก ────────── */}
       <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${ratingTheme.gradient} p-5 shadow-lg`}>
-        {/* Background decoration */}
-        <div className="absolute -top-8 -right-8 w-32 h-32 bg-white/10 rounded-full" />
-        <div className="absolute -bottom-6 -left-6 w-24 h-24 bg-white/5 rounded-full" />
-
         {/* Star rating row */}
         <div className="relative flex items-center justify-between mb-4">
           <div>
@@ -179,12 +175,6 @@ function IndexCard({
       className="rounded-2xl border shadow-sm p-4 flex flex-col justify-between min-h-[140px] relative overflow-hidden"
       style={{ backgroundColor: bgColor, borderColor: `${ratingColor}20` }}
     >
-      {/* Subtle corner accent */}
-      <div
-        className="absolute -top-3 -right-3 w-12 h-12 rounded-full opacity-10"
-        style={{ backgroundColor: ratingColor }}
-      />
-
       <div>
         <div className="flex items-center justify-between mb-1">
           <span className="text-xs font-bold text-gray-500">{title}</span>

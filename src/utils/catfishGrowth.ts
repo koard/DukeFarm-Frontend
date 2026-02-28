@@ -466,13 +466,13 @@ export function computeQualityAssessment(
   const firstDate = new Date(firstRecordDate);
   const latestDate = new Date(latestWithWeight.recordedAt);
 
-  // จำนวนวันสำหรับคำนวณ: first record → latest record
-  const totalDays = Math.max(1, Math.floor((latestDate.getTime() - firstDate.getTime()) / (24 * 60 * 60 * 1000)));
+  // จำนวนวันสำหรับคำนวณ: first record → latest record (วันแรก = day 0)
+  const totalDays = Math.max(0, Math.floor((latestDate.getTime() - firstDate.getTime()) / (24 * 60 * 60 * 1000)));
 
-  // จำนวนวันสำหรับแสดงผล: release date → วันนี้
+  // จำนวนวันสำหรับแสดงผล: release date → วันนี้ (วันปล่อย = day 0)
   const releaseDate = new Date(cycleStartDate);
   const now = new Date();
-  const daysSinceRelease = Math.max(1, Math.floor((now.getTime() - releaseDate.getTime()) / (24 * 60 * 60 * 1000)));
+  const daysSinceRelease = Math.max(0, Math.floor((now.getTime() - releaseDate.getTime()) / (24 * 60 * 60 * 1000)));
 
   // คำนวณดัชนีต่างๆ
   const standardWeightGr = getStandardWeight(effectiveInitialWeight, totalDays);
