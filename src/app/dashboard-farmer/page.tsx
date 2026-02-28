@@ -513,7 +513,6 @@ function DashboardContent() {
   const summary = dashboardData?.summary;
   const fishType = summary?.latestFishStageName || "ไม่ระบุ";
   const avgWeight = summary?.averageFishWeight ? summary.averageFishWeight.toFixed(1) : "-";
-  const releaseDate = formatThaiDate(summary?.releaseDate);
   const releaseCount = summary?.totalReleased ? summary.totalReleased.toLocaleString() : "-";
   const remainingCount = summary?.currentCount ? summary.currentCount.toLocaleString() : "-";
   const survivalRate = summary?.survivalRatePct ?? null;
@@ -934,17 +933,6 @@ function DashboardContent() {
                   </p>
                 </div>
               </div>
-            </div>
-
-            {/* วันที่ปล่อยลงบ่อ */}
-            <div className="flex items-center justify-between px-2 pt-1 text-[#434343]">
-              <div className="flex items-center gap-2">
-                <Image src="/dashboard/solar_calendar-outline.svg" alt="date" width={20} height={20} />
-                <span className="text-sm font-bold">วันที่ปล่อยลงบ่อ</span>
-              </div>
-              <span className="text-sm font-bold text-[#093832]">
-                {loading ? "..." : releaseDate} 
-              </span>
             </div>
           </div>
 
