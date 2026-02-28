@@ -1,10 +1,10 @@
 ﻿/**
- * CostSummary  สรุปต้นทุนรอบการเลี้ยง
+ * CostSummary  สรุปต้นทุนการเลี้ยง
  *
  * ออกแบบใหม่เป็นแนว Graphical Dashboard:
- *   - Donut chart (SVG) แสดงสัดส่วนค่าอาหาร vs ค่ายา
- *   - Progress bar สำหรับแต่ละรายการ
- *   - Stat cards สำหรับต้นทุนเฉลี่ย
+ *   - Donut chart (SVG) centered แสดงสัดส่วน
+ *   - Clean cost item rows with inline bar
+ *   - Stat pill cards ด้านล่าง
  */
 "use client";
 
@@ -14,162 +14,110 @@ interface Props {
   assessment: QualityAssessment;
 }
 
-// ─── Donut Chart ─────────────────────────────────────────────────────────────
+// ─── SVG Donut Chart ──────────────────────────────────────────────────────────
 
-interface DonutProps {
+function DonutChart({
+  food,
+  medicine,
+  total,
+}: {
   food: number;
   medicine: number;
   total: number;
-}
-
-function DonutChart({ food, medicine, total }: DonutProps) {
-  const R = 52;
-  const stroke = 14;
-  const cx = 70;
-  const cy = 70;
+}) {
+  const R = 44;
+  const stroke = 12;
+  const size = 120;
+  const cx = size / 2;
+  const cy = size / 2;
   const circumference = 2 * Math.PI * R;
 
-  const foodPct = total > 0 ? food / total : 1;
-  const medPct = total > 0 ? medicine / total : 0;
+  const foodFrac = total > 0 ? food / total : 1;
+  const medFrac = total > 0 ? medicine / total : 0;
+  const gap = total > 0 && medicine > 0 ? 0.025 : 0;
 
-  const foodDash = foodPct * circumference;
-  const medDash = medPct * circumference;
-  // gap offset
-  const gapFraction = total > 0 && medicine > 0 ? 0.02 : 0;
-  const foodOffset = 0; // starts at 12 o'clock (rotate -90deg on svg)
-  const medOffset = foodDash + gapFraction * circumference;
+  const foodLen = Math.max(0, foodFrac - gap / 2) * circumference;
+  const medLen = Math.max(0, medFrac - gap / 2) * circumference;
+  const medOffsetDeg = foodFrac * 360;
 
   return (
-    <svg width="140" height="140" viewBox="0 0 140 140" className="drop-shadow-sm">
-      {/* background ring */}
-      <circle
-        cx={cx} cy={cy} r={R}
-        fill="none"
-        stroke="#f1f5f9"
-        strokeWidth={stroke}
-      />
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      style={{ display: "block" }}
+    >
+      {/* track */}
+      <circle cx={cx} cy={cy} r={R} fill="none" stroke="#f1f5f9" strokeWidth={stroke} />
+
       {/* food arc */}
       <circle
         cx={cx} cy={cy} r={R}
         fill="none"
-        stroke="#22c55e"
+        stroke="#16a34a"
         strokeWidth={stroke}
-        strokeDasharray={`${foodDash} ${circumference}`}
-        strokeDashoffset={-foodOffset}
+        strokeDasharray={`${foodLen} ${circumference}`}
         strokeLinecap="round"
         style={{ transform: "rotate(-90deg)", transformOrigin: `${cx}px ${cy}px` }}
       />
+
       {/* medicine arc */}
-      {medicine > 0 && (
+      {medLen > 0 && (
         <circle
           cx={cx} cy={cy} r={R}
           fill="none"
           stroke="#f59e0b"
           strokeWidth={stroke}
-          strokeDasharray={`${medDash} ${circumference}`}
-          strokeDashoffset={-medOffset}
+          strokeDasharray={`${medLen} ${circumference}`}
           strokeLinecap="round"
-          style={{ transform: "rotate(-90deg)", transformOrigin: `${cx}px ${cy}px` }}
+          style={{
+            transform: `rotate(${-90 + medOffsetDeg}deg)`,
+            transformOrigin: `${cx}px ${cy}px`,
+          }}
         />
       )}
-      {/* center text */}
-      <text
-        x={cx} y={cy - 8}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        className="fill-[#093832]"
-        style={{ fontSize: 11, fontWeight: 500, fill: "#64748b" }}
-      >
-        รวม
-      </text>
-      <text
-        x={cx} y={cy + 10}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        style={{ fontSize: 15, fontWeight: 800, fill: "#093832" }}
-      >
+
+      {/* center label */}
+      <text x={cx} y={cy - 9} textAnchor="middle" style={{ fontSize: 9, fill: "#94a3b8", fontWeight: 500 }}>รวมทั้งหมด</text>
+      <text x={cx} y={cy + 8} textAnchor="middle" style={{ fontSize: 14, fill: "#0f172a", fontWeight: 800 }}>
         {total.toLocaleString()}
       </text>
-      <text
-        x={cx} y={cy + 26}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        style={{ fontSize: 10, fontWeight: 500, fill: "#64748b" }}
-      >
-        บาท
-      </text>
+      <text x={cx} y={cy + 22} textAnchor="middle" style={{ fontSize: 9, fill: "#94a3b8", fontWeight: 500 }}>บาท</text>
     </svg>
   );
 }
 
-// ─── Progress Bar ─────────────────────────────────────────────────────────────
+// ─── Cost Row ─────────────────────────────────────────────────────────────────
 
-interface BarProps {
+function CostRow({
+  label,
+  value,
+  pct,
+  color,
+  trackColor,
+}: {
   label: string;
   value: number;
-  total: number;
+  pct: number;
   color: string;
-  bgColor: string;
-  emoji: string;
-  unit?: string;
-}
-
-function CostBar({ label, value, total, color, bgColor, emoji, unit = "บาท" }: BarProps) {
-  const pct = total > 0 ? Math.round((value / total) * 100) : 0;
-
+  trackColor: string;
+}) {
   return (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-base">{emoji}</span>
-          <span className="text-sm font-semibold text-gray-600">{label}</span>
-        </div>
-        <div className="text-right">
-          <span className="text-sm font-bold text-gray-800">
-            {value.toLocaleString(undefined, { minimumFractionDigits: unit === "กก." ? 1 : 0, maximumFractionDigits: unit === "กก." ? 1 : 0 })}
-          </span>
-          <span className="text-xs text-gray-400 ml-1">{unit}</span>
-          {unit === "บาท" && total > 0 && (
-            <span className="text-xs text-gray-400 ml-1">({pct}%)</span>
-          )}
-        </div>
+    <div className="space-y-1">
+      <div className="flex justify-between items-baseline">
+        <span className="text-sm text-gray-500 font-medium">{label}</span>
+        <span className="text-sm font-bold text-gray-800">
+          {value.toLocaleString()}
+          <span className="text-xs font-normal text-gray-400 ml-1">บาท</span>
+          <span className="text-xs font-normal text-gray-400 ml-1">({pct}%)</span>
+        </span>
       </div>
-      <div className="h-2 w-full rounded-full" style={{ backgroundColor: bgColor }}>
+      <div className="h-1.5 w-full rounded-full" style={{ backgroundColor: trackColor }}>
         <div
-          className="h-2 rounded-full transition-all duration-700"
+          className="h-1.5 rounded-full transition-all duration-700"
           style={{ width: `${pct}%`, backgroundColor: color }}
         />
       </div>
-    </div>
-  );
-}
-
-// ─── Stat Card ────────────────────────────────────────────────────────────────
-
-interface StatCardProps {
-  label: string;
-  value: string | null;
-  unit: string;
-  gradient: string;
-  emoji: string;
-}
-
-function StatCard({ label, value, unit, gradient, emoji }: StatCardProps) {
-  return (
-    <div
-      className="rounded-2xl p-4 flex flex-col items-center text-center gap-1"
-      style={{ background: gradient }}
-    >
-      <span className="text-2xl">{emoji}</span>
-      <p className="text-xs text-white/80 font-medium leading-tight">{label}</p>
-      {value != null ? (
-        <p className="text-xl font-black text-white leading-none">
-          {value}
-          <span className="text-xs font-semibold ml-1 opacity-80">{unit}</span>
-        </p>
-      ) : (
-        <p className="text-sm font-bold text-white/50">ไม่มีข้อมูล</p>
-      )}
     </div>
   );
 }
@@ -186,96 +134,91 @@ export default function CostSummary({ assessment }: Props) {
     costPerKg,
   } = assessment;
 
+  const foodPct = totalCost > 0 ? Math.round((totalFoodCost / totalCost) * 100) : 0;
+  const medPct = totalCost > 0 ? Math.round((totalMedicineCost / totalCost) * 100) : 0;
+
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-5 space-y-5">
-      {/* Header */}
-      <div className="flex items-center gap-2.5">
-        <span className="text-xl">💰</span>
-        <h3 className="text-base font-bold text-[#093832]">สรุปต้นทุนรอบการเลี้ยง</h3>
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      {/* ── Header bar ──────────────────────────────── */}
+      <div className="px-5 pt-5 pb-4 flex items-center gap-2 border-b border-gray-100">
+        <span className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-base">💰</span>
+        <h3 className="text-sm font-bold text-[#093832]">สรุปต้นทุนการเลี้ยง</h3>
       </div>
 
-      {/* Donut + Legend */}
-      <div className="flex items-center gap-4">
-        <DonutChart
-          food={totalFoodCost}
-          medicine={totalMedicineCost}
-          total={totalCost}
-        />
-        {/* Legend */}
-        <div className="flex-1 space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-green-500 flex-shrink-0" />
-            <span className="text-xs text-gray-500">ค่าอาหาร</span>
-            <span className="ml-auto text-xs font-bold text-gray-700">
-              {totalCost > 0
-                ? Math.round((totalFoodCost / totalCost) * 100)
-                : 0}%
-            </span>
+      <div className="px-5 py-5 space-y-5">
+        {/* ── Donut + Legend ──────────────────────────── */}
+        <div className="flex flex-col items-center gap-4">
+          <DonutChart
+            food={totalFoodCost}
+            medicine={totalMedicineCost}
+            total={totalCost}
+          />
+
+          {/* Legend pills */}
+          <div className="flex gap-3">
+            <div className="flex items-center gap-1.5 bg-green-50 rounded-full px-3 py-1.5">
+              <span className="w-2 h-2 rounded-full bg-green-600 flex-shrink-0" />
+              <span className="text-xs font-semibold text-green-800">ค่าอาหาร {foodPct}%</span>
+            </div>
+            <div className="flex items-center gap-1.5 bg-amber-50 rounded-full px-3 py-1.5">
+              <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
+              <span className="text-xs font-semibold text-amber-800">ค่ายา {medPct}%</span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-full bg-amber-400 flex-shrink-0" />
-            <span className="text-xs text-gray-500">ค่ายา</span>
-            <span className="ml-auto text-xs font-bold text-gray-700">
-              {totalCost > 0
-                ? Math.round((totalMedicineCost / totalCost) * 100)
-                : 0}%
-            </span>
-          </div>
-          <div className="flex items-center gap-2 pt-1 border-t border-gray-100">
-            <span className="w-3 h-3 rounded-full bg-blue-300 flex-shrink-0" />
-            <span className="text-xs text-gray-500">อาหาร (นน.)</span>
-            <span className="ml-auto text-xs font-bold text-gray-700">
+        </div>
+
+        {/* ── Cost breakdown bars ─────────────────────── */}
+        <div className="space-y-3.5 pt-1 border-t border-gray-100">
+          <CostRow
+            label="ค่าอาหาร"
+            value={totalFoodCost}
+            pct={foodPct}
+            color="#16a34a"
+            trackColor="#dcfce7"
+          />
+          <CostRow
+            label="ค่ายา"
+            value={totalMedicineCost}
+            pct={medPct}
+            color="#f59e0b"
+            trackColor="#fef3c7"
+          />
+          {/* Food kg — separate info row, no bar */}
+          <div className="flex justify-between items-baseline pt-0.5 border-t border-dashed border-gray-100">
+            <span className="text-xs text-gray-400">ปริมาณอาหารที่ใช้</span>
+            <span className="text-xs font-semibold text-gray-600">
               {totalFoodKg.toFixed(1)} กก.
             </span>
           </div>
         </div>
-      </div>
 
-      {/* Progress Bars */}
-      <div className="space-y-4 pt-1 border-t border-gray-100">
-        <CostBar
-          label="ค่าอาหาร"
-          value={totalFoodCost}
-          total={totalCost}
-          color="#22c55e"
-          bgColor="#dcfce7"
-          emoji="🌾"
-        />
-        <CostBar
-          label="ค่ายา"
-          value={totalMedicineCost}
-          total={totalCost}
-          color="#f59e0b"
-          bgColor="#fef3c7"
-          emoji="💊"
-        />
-        <CostBar
-          label="ปริมาณอาหาร"
-          value={totalFoodKg}
-          total={totalFoodKg}
-          color="#60a5fa"
-          bgColor="#dbeafe"
-          emoji="⚖️"
-          unit="กก."
-        />
-      </div>
-
-      {/* Stat Cards */}
-      <div className="grid grid-cols-2 gap-3 pt-1 border-t border-gray-100">
-        <StatCard
-          label="เฉลี่ยต่อปลา 1 ตัว"
-          value={costPerFish != null ? costPerFish.toFixed(2) : null}
-          unit="บาท"
-          gradient="linear-gradient(135deg, #093832 0%, #0f6554 100%)"
-          emoji="🐟"
-        />
-        <StatCard
-          label="เฉลี่ยต่อ 1 กก."
-          value={costPerKg != null ? costPerKg.toFixed(1) : null}
-          unit="บาท"
-          gradient="linear-gradient(135deg, #1d4ed8 0%, #0ea5e9 100%)"
-          emoji="📦"
-        />
+        {/* ── Average stat pills ──────────────────────── */}
+        <div className="grid grid-cols-2 gap-3 pt-1 border-t border-gray-100">
+          {/* per fish */}
+          <div className="rounded-xl bg-gradient-to-br from-[#093832] to-[#0f6554] p-3.5 flex flex-col gap-1">
+            <span className="text-[10px] font-medium text-white/60 uppercase tracking-wider">ต่อปลา 1 ตัว</span>
+            {costPerFish != null ? (
+              <p className="text-lg font-black text-white leading-none">
+                {costPerFish.toFixed(2)}
+                <span className="text-[11px] font-semibold ml-1 opacity-70">บาท</span>
+              </p>
+            ) : (
+              <p className="text-sm font-bold text-white/30">ไม่มีข้อมูล</p>
+            )}
+          </div>
+          {/* per kg */}
+          <div className="rounded-xl bg-gradient-to-br from-[#1e40af] to-[#0ea5e9] p-3.5 flex flex-col gap-1">
+            <span className="text-[10px] font-medium text-white/60 uppercase tracking-wider">ต่อ 1 กก.</span>
+            {costPerKg != null ? (
+              <p className="text-lg font-black text-white leading-none">
+                {costPerKg.toFixed(1)}
+                <span className="text-[11px] font-semibold ml-1 opacity-70">บาท</span>
+              </p>
+            ) : (
+              <p className="text-sm font-bold text-white/30">ไม่มีข้อมูล</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
