@@ -78,11 +78,11 @@ function DonutChart({
       )}
 
       {/* center label */}
-      <text x={cx} y={cy - 12} textAnchor="middle" style={{ fontSize: 10, fill: "#94a3b8", fontWeight: 500 }}>รวมทั้งหมด</text>
+      <text x={cx} y={cy - 12} textAnchor="middle" style={{ fontSize: 14, fill: "#94a3b8", fontWeight: 500 }}>รั้งหมด</text>
       <text x={cx} y={cy + 8} textAnchor="middle" style={{ fontSize: 20, fill: "#0f172a", fontWeight: 800 }}>
         {total.toLocaleString()}
       </text>
-      <text x={cx} y={cy + 24} textAnchor="middle" style={{ fontSize: 11, fill: "#94a3b8", fontWeight: 500 }}>บาท</text>
+      <text x={cx} y={cy + 24} textAnchor="middle" style={{ fontSize: 14, fill: "#94a3b8", fontWeight: 500 }}>บาท</text>
     </svg>
   );
 }
@@ -154,19 +154,6 @@ export default function CostSummary({ assessment }: Props) {
             total={totalCost}
           />
 
-          {/* Legend pills */}
-          <div className="flex gap-3">
-            <div className="flex items-center gap-1.5 bg-green-50 rounded-full px-3 py-1.5">
-              <span className="w-2 h-2 rounded-full bg-green-600 flex-shrink-0" />
-              <span className="text-xs font-semibold text-green-800">ค่าอาหาร {foodPct}%</span>
-            </div>
-            <div className="flex items-center gap-1.5 bg-amber-50 rounded-full px-3 py-1.5">
-              <span className="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0" />
-              <span className="text-xs font-semibold text-amber-800">ค่ายา {medPct}%</span>
-            </div>
-          </div>
-        </div>
-
         {/* ── Cost breakdown bars ─────────────────────── */}
         <div className="space-y-3.5 pt-1 border-t border-gray-100">
           <CostRow
@@ -185,8 +172,8 @@ export default function CostSummary({ assessment }: Props) {
           />
           {/* Food kg — separate info row, no bar */}
           <div className="flex justify-between items-baseline pt-0.5 border-t border-dashed border-gray-100">
-            <span className="text-xs text-gray-400">ปริมาณอาหารที่ใช้</span>
-            <span className="text-xs font-semibold text-gray-600">
+            <span className="text-sm text-gray-400">ปริมาณอาหารที่ใช้</span>
+            <span className="text-sm font-semibold text-gray-600">
               {totalFoodKg.toFixed(1)} กก.
             </span>
           </div>
@@ -196,11 +183,11 @@ export default function CostSummary({ assessment }: Props) {
         <div className="grid grid-cols-2 gap-3 pt-1 border-t border-gray-100">
           {/* per fish */}
           <div className="rounded-xl bg-gradient-to-br from-[#093832] to-[#0f6554] p-3.5 flex flex-col gap-1">
-            <span className="text-sm font-medium text-white/60 uppercase tracking-wider">ต้นทุนต่อปลา 1 ตัว</span>
+            <span className="text-sm font-medium text-white/60 uppercase">ต้นทุนต่อปลา 1 ตัว</span>
             {costPerFish != null ? (
               <p className="text-lg font-black text-white leading-none">
                 {costPerFish.toFixed(2)}
-                <span className="text-sm font-semibold ml-1 opacity-70">บาท</span>
+                <span className="text-sm font-semibold ml-1 opacity-70"> บาท</span>
               </p>
             ) : (
               <p className="text-sm font-bold text-white/30">ไม่มีข้อมูล</p>
@@ -208,11 +195,11 @@ export default function CostSummary({ assessment }: Props) {
           </div>
           {/* per kg */}
           <div className="rounded-xl bg-gradient-to-br from-[#1e40af] to-[#0ea5e9] p-3.5 flex flex-col gap-1">
-            <span className="text-sm font-medium text-white/60 uppercase tracking-wider">ต้นทุนต่อปลา 1 กก.</span>
+            <span className="text-sm font-medium text-white/60 uppercase">ต้นทุนต่อปลา 1 กก.</span>
             {costPerKg != null ? (
               <p className="text-lg font-black text-white leading-none">
                 {costPerKg.toFixed(1)}
-                <span className="text-sm font-semibold ml-1 opacity-70">บาท</span>
+                <span className="text-sm font-semibold ml-1 opacity-70"> บาท</span>
               </p>
             ) : (
               <p className="text-sm font-bold text-white/30">ไม่มีข้อมูล</p>
