@@ -40,24 +40,6 @@ interface RecordAnalysisStepProps {
 export const RecordAnalysisStep: React.FC<RecordAnalysisStepProps> = ({ onBack, recordId }) => {
   const [data, setData] = React.useState<RecordData | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const [pondIndex, setPondIndex] = React.useState<number>(-1);
-
-  // Load ponds from localStorage to determine correct pond number
-  React.useEffect(() => {
-    try {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        const profilePonds = user?.farmerProfile?.ponds;
-        if (Array.isArray(profilePonds) && data?.pond?.id) {
-          const idx = profilePonds.findIndex((p: { id: string }) => p.id === data.pond?.id);
-          setPondIndex(idx);
-        }
-      }
-    } catch (e) {
-      console.error('Error loading ponds from localStorage:', e);
-    }
-  }, [data]);
 
   React.useEffect(() => {
     if (!recordId) {
@@ -98,7 +80,7 @@ export const RecordAnalysisStep: React.FC<RecordAnalysisStepProps> = ({ onBack, 
   if (!data) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center gap-4">
-        <p className="text-gray-500">ไม่พบข้อมูลผลวิเคราะห์</p>
+        <p className="text-gray-500">ไม่พบข้อมูลการบันทึก</p>
         <button onClick={onBack} className="text-[#EF6E11] font-bold">กลับ</button>
       </div>
     );
@@ -126,10 +108,6 @@ export const RecordAnalysisStep: React.FC<RecordAnalysisStepProps> = ({ onBack, 
       <div className="px-5 mt-6 space-y-4">
 
         <div className="rounded-[30px] overflow-hidden shadow-lg border border-gray-100 bg-white pb-6 space-y-4">
-          {/* ส่วนหัวบ่อ */}
-          <div className="bg-[#093832] px-6 py-4 text-white font-bold text-lg">
-            − บ่อที่ {pondIndex >= 0 ? pondIndex + 1 : '-'}
-          </div>
 
           {/* ข้อมูลขนาดบ่อ */}
           <div className="px-6 text-xs text-[#093832] font-semibold leading-relaxed">
