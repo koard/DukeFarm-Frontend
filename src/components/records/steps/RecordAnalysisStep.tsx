@@ -86,13 +86,6 @@ export const RecordAnalysisStep: React.FC<RecordAnalysisStepProps> = ({ onBack, 
     );
   }
 
-  const pondName = data.pond?.pondType === 'EARTHEN' ? 'บ่อดิน' : 'บ่อปูน';
-  const width = data.pond?.widthM || 0;
-  const length = data.pond?.lengthM || 0;
-  const depth = data.pond?.depthM || 0;
-  const volume = width * length * depth; // m3
-  const volumeLiters = volume * 1000;
-
   return (
     <div className="min-h-screen bg-white relative pb-32 font-sans">
       <div className="bg-[#093832] text-white px-4 pt-5 pb-4 rounded-b-3xl shadow-md relative z-10 flex items-center justify-between">
@@ -108,12 +101,6 @@ export const RecordAnalysisStep: React.FC<RecordAnalysisStepProps> = ({ onBack, 
       <div className="px-5 mt-6 space-y-4">
 
         <div className="rounded-[30px] overflow-hidden shadow-lg border border-gray-100 bg-white pb-6 space-y-4">
-
-          {/* ข้อมูลขนาดบ่อ */}
-          <div className="px-6 text-xs text-[#093832] font-semibold leading-relaxed">
-            <p>{pondName} - กว้าง {width} x ยาว {length} x ลึก {depth}</p>
-            <p>ปริมาตร = {volume} ลูกบาศก์เมตร หรือ {volumeLiters.toLocaleString()} ลิตร</p>
-          </div>
 
           <div className="px-4 space-y-3">
             {/* 3. ประเภทปลา และขนาดปลา */}

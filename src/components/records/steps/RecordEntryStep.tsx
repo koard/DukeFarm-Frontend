@@ -463,6 +463,9 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
                 <div className="relative">
                   <input
                     type="number"
+                    inputMode="decimal"
+                    step="0.1"
+                    min="0"
                     placeholder="0"
                     value={fishSize}
                     onChange={(e) => setFishSize(e.target.value)}
@@ -504,7 +507,7 @@ export const RecordEntryStep: React.FC<RecordEntryStepProps> = ({ onAnalyze, onB
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-black ml-1">ปริมาณอาหาร</label>
               <div className="relative">
-                <input type="text" placeholder="ระบุจำนวน" value={foodAmount} onChange={(e) => setFoodAmount(e.target.value)} className="w-full border border-gray-200 rounded-xl pl-4 pr-16 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-400" />
+                <input type="number" inputMode="decimal" step="0.1" min="0" placeholder="ระบุจำนวน" value={foodAmount} onChange={(e) => setFoodAmount(e.target.value)} className="w-full border border-gray-200 rounded-xl pl-4 pr-16 py-3.5 text-sm font-bold text-gray-700 focus:text-black focus:border-[#093832] outline-none placeholder:text-gray-400" />
                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-bold text-gray-400 pointer-events-none">กิโลกรัม</span>
               </div>
             </div>
