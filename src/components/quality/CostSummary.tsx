@@ -153,6 +153,7 @@ export default function CostSummary({ assessment }: Props) {
             medicine={totalMedicineCost}
             total={totalCost}
           />
+        </div>
 
         {/* ── Cost breakdown bars ─────────────────────── */}
         <div className="space-y-3.5 pt-1 border-t border-gray-100">
