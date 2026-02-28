@@ -245,9 +245,6 @@ function QualityReportContent() {
         </button>
         <div>
           <h1 className="text-xl font-bold">สรุปคุณภาพการเลี้ยง</h1>
-          <p className="text-xs text-white/70">
-            {FARM_TYPE_LABELS[farmType] || farmType} — ดูว่าปลาโตดีแค่ไหน
-          </p>
         </div>
       </div>
 
