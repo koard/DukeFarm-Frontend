@@ -91,10 +91,10 @@ export default function QualitySummaryCards({ assessment }: Props) {
             <div key={i} className="bg-white/15 backdrop-blur-sm rounded-xl px-2.5 py-2.5 text-center">
               <div className="flex items-center justify-center gap-1 text-white/60 mb-1">
                 {s.icon}
-                <span className="text-[10px] font-semibold">{s.label}</span>
+                <span className="text-xs font-semibold">{s.label}</span>
               </div>
               <p className="text-lg font-black text-white leading-tight">{s.value}</p>
-              <p className="text-[10px] font-bold text-white/50">{s.unit}</p>
+              <p className="text-xs font-bold text-white/50">{s.unit}</p>
             </div>
           ))}
         </div>
