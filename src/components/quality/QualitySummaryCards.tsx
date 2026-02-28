@@ -114,17 +114,6 @@ export default function QualitySummaryCards({ assessment }: Props) {
           subtitle={`มาตรฐาน ${standardWeightGr.toFixed(0)} ก. / จริง ${latestWeightGr.toFixed(0)} ก.`}
         />
 
-        {/* ADG */}
-        <IndexCard
-          title="น้ำหนักเพิ่มต่อวัน"
-          abbr="ADG"
-          value={assessment.totalDays === 0 ? null : actualADG.toFixed(2)}
-          ratingLabel="กรัม/วัน"
-          ratingColor="#0d9488"
-          bgColor="#f0fdfa"
-          subtitle={`มาตรฐาน ${standardADG.toFixed(2)} กรัม/วัน`}
-        />
-
         {/* SR */}
         <IndexCard
           title="อัตราการรอดชีวิต"
@@ -136,6 +125,17 @@ export default function QualitySummaryCards({ assessment }: Props) {
           subtitle={`คงเหลือ ${assessment.fishRemaining?.toLocaleString() ?? "-"} จาก ${assessment.fishReleased?.toLocaleString() ?? "-"} ตัว`}
         />
 
+        {/* ADG */}
+        <IndexCard
+          title="อัตราการเจริญเติบโตเฉลี่ยต่อวัน"
+          abbr="ADG"
+          value={assessment.totalDays === 0 ? null : actualADG.toFixed(2)}
+          ratingLabel="กรัม/วัน"
+          ratingColor="#0d9488"
+          bgColor="#f0fdfa"
+          subtitle={`มาตรฐาน ${standardADG.toFixed(2)} กรัม/วัน`}
+        />
+
         {/* FCR */}
         <IndexCard
           title="อัตราการเปลี่ยนอาหารเป็นเนื้อปลา"
@@ -144,7 +144,7 @@ export default function QualitySummaryCards({ assessment }: Props) {
           ratingLabel={fcrRating?.label ?? "-"}
           ratingColor={fcrRating?.color ?? "#9ca3af"}
           bgColor={fcrRating?.bgColor ?? "#f9fafb"}
-          subtitle={fcr != null ? "อาหารที่ต้องใช้ต่อเนื้อปลา 1 กก." : undefined}
+          subtitle={fcr != null ? `อาหาร ${fcr.toFixed(2)} กก. จะกลายเป็นเนื้อปลา 1 กก.` : undefined}
         />
       </div>
     </div>
