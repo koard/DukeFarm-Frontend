@@ -2,7 +2,8 @@
  * QualitySummaryCards — การ์ดสรุปดัชนีคุณภาพการเลี้ยง
  *
  * แสดงผล GPI, ADG, Survival Rate, FCR และต้นทุนรวม
- * ในรูปแบบการ์ดแนวนอน 5 ช่อง พร้อมเกณฑ์สีและไอคอน
+ * ออกแบบสำหรับเกษตรกร — ฟอนต์ใหญ่อ่านง่าย + คำอธิบายภาษาไทย
+ * พร้อมคงข้อมูลทางวิทยาศาสตร์ (ชื่อย่อ + ค่ามาตรฐาน) ไว้ในส่วนรอง
  */
 "use client";
 
@@ -30,69 +31,74 @@ export default function QualitySummaryCards({ assessment }: Props) {
   } = assessment;
 
   return (
-    <div className="space-y-3">
-      {/* ส่วนหัว: ข้อมูลทั่วไป */}
-      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-4">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-lg">📊</span>
-          <h3 className="text-sm font-bold text-[#093832]">ภาพรวมคุณภาพการเลี้ยง</h3>
+    <div className="space-y-4">
+      {/* ส่วนหัว: ข้อมูลทั่วไปของรอบการเลี้ยง */}
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-5">
+        <div className="flex items-center gap-2.5 mb-4">
+          <span className="text-xl">📊</span>
+          <h3 className="text-base font-bold text-[#093832]">ภาพรวมรอบการเลี้ยง</h3>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="bg-gray-50 rounded-xl p-2.5">
-            <p className="text-[10px] font-semibold text-gray-400 mb-0.5">เลี้ยงมาแล้ว</p>
-            <p className="text-base font-black text-[#093832]">{totalDays} <span className="text-xs font-bold">วัน</span></p>
+        <div className="grid grid-cols-3 gap-2.5 text-center">
+          <div className="bg-gray-50 rounded-xl p-3">
+            <p className="text-xs font-semibold text-gray-500 mb-1">เลี้ยงมาแล้ว</p>
+            <p className="text-xl font-black text-[#093832]">{totalDays}</p>
+            <p className="text-xs font-bold text-gray-400">วัน</p>
           </div>
-          <div className="bg-gray-50 rounded-xl p-2.5">
-            <p className="text-[10px] font-semibold text-gray-400 mb-0.5">น้ำหนักเริ่มต้น</p>
-            <p className="text-base font-black text-[#093832]">{initialWeightGr.toFixed(1)} <span className="text-xs font-bold">ก.</span></p>
+          <div className="bg-gray-50 rounded-xl p-3">
+            <p className="text-xs font-semibold text-gray-500 mb-1">น้ำหนักตอนปล่อย</p>
+            <p className="text-xl font-black text-[#093832]">{initialWeightGr.toFixed(1)}</p>
+            <p className="text-xs font-bold text-gray-400">กรัม</p>
           </div>
-          <div className="bg-gray-50 rounded-xl p-2.5">
-            <p className="text-[10px] font-semibold text-gray-400 mb-0.5">น้ำหนักล่าสุด</p>
-            <p className="text-base font-black text-[#093832]">{latestWeightGr.toFixed(1)} <span className="text-xs font-bold">ก.</span></p>
+          <div className="bg-gray-50 rounded-xl p-3">
+            <p className="text-xs font-semibold text-gray-500 mb-1">น้ำหนักล่าสุด</p>
+            <p className="text-xl font-black text-[#093832]">{latestWeightGr.toFixed(1)}</p>
+            <p className="text-xs font-bold text-gray-400">กรัม</p>
           </div>
         </div>
       </div>
 
-      {/* การ์ดดัชนี 4 ช่อง */}
+      {/* การ์ดดัชนี 4 ช่อง — ใช้ภาษาไทยเป็นหลัก ศัพท์เทคนิคเป็นส่วนรอง */}
       <div className="grid grid-cols-2 gap-3">
 
-        {/* GPI — ดัชนีการเจริญเติบโต */}
+        {/* GPI — ปลาโตได้ดีแค่ไหน */}
         <div
           className="rounded-2xl border shadow-sm p-4 relative overflow-hidden"
           style={{ backgroundColor: gpiRating.bgColor, borderColor: `${gpiRating.color}30` }}
         >
-          <div className="flex items-center gap-1.5 mb-2">
-            <span className="text-base">{gpiRating.icon}</span>
-            <span className="text-[10px] font-bold text-gray-500">GPI (การเจริญเติบโต)</span>
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="text-lg">{gpiRating.icon}</span>
+            <span className="text-sm font-bold text-gray-700">ปลาโตดีแค่ไหน</span>
           </div>
-          <p className="text-2xl font-black" style={{ color: gpiRating.color }}>
+          <p className="text-[11px] font-semibold text-gray-400 mb-1">ดัชนีเจริญเติบโต (GPI)</p>
+          <p className="text-3xl font-black" style={{ color: gpiRating.color }}>
             {gpi.toFixed(0)}%
           </p>
-          <p className="text-[11px] font-bold mt-0.5" style={{ color: gpiRating.color }}>
+          <p className="text-sm font-bold mt-1" style={{ color: gpiRating.color }}>
             {gpiRating.label}
           </p>
-          <p className="text-[10px] text-gray-400 mt-1">
-            มาตรฐาน: {standardWeightGr.toFixed(1)}ก.
+          <p className="text-xs text-gray-400 mt-1.5">
+            ควรได้ {standardWeightGr.toFixed(1)} ก. ได้จริง {latestWeightGr.toFixed(1)} ก.
           </p>
         </div>
 
-        {/* ADG — อัตราการเจริญเติบโตรายวัน */}
+        {/* ADG — โตวันละกี่กรัม */}
         <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-4">
-          <div className="flex items-center gap-1.5 mb-2">
-            <span className="text-base">📈</span>
-            <span className="text-[10px] font-bold text-gray-500">ADG (โตต่อวัน)</span>
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="text-lg">📈</span>
+            <span className="text-sm font-bold text-gray-700">โตวันละเท่าไหร่</span>
           </div>
-          <p className="text-2xl font-black text-[#093832]">
+          <p className="text-[11px] font-semibold text-gray-400 mb-1">น้ำหนักเพิ่มต่อวัน (ADG)</p>
+          <p className="text-3xl font-black text-[#093832]">
             {actualADG.toFixed(2)}
           </p>
-          <p className="text-[11px] font-bold text-[#093832] mt-0.5">กรัม/วัน</p>
-          <p className="text-[10px] text-gray-400 mt-1">
-            มาตรฐาน: {standardADG.toFixed(2)} ก./วัน
+          <p className="text-sm font-bold text-[#093832] mt-1">กรัม/วัน</p>
+          <p className="text-xs text-gray-400 mt-1.5">
+            มาตรฐาน: {standardADG.toFixed(2)} กรัม/วัน
           </p>
         </div>
 
-        {/* SR — อัตราการรอดตาย */}
+        {/* SR — ปลารอดเท่าไหร่ */}
         <div
           className="rounded-2xl border shadow-sm p-4"
           style={{
@@ -100,28 +106,29 @@ export default function QualitySummaryCards({ assessment }: Props) {
             borderColor: srRating ? `${srRating.color}30` : "#e5e7eb",
           }}
         >
-          <div className="flex items-center gap-1.5 mb-2">
-            <span className="text-base">🐟</span>
-            <span className="text-[10px] font-bold text-gray-500">อัตราการรอดตาย</span>
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="text-lg">🐟</span>
+            <span className="text-sm font-bold text-gray-700">ปลารอดเท่าไหร่</span>
           </div>
+          <p className="text-[11px] font-semibold text-gray-400 mb-1">อัตราการรอดตาย (SR)</p>
           {survivalRate != null ? (
             <>
-              <p className="text-2xl font-black" style={{ color: srRating?.color ?? "#374151" }}>
+              <p className="text-3xl font-black" style={{ color: srRating?.color ?? "#374151" }}>
                 {survivalRate.toFixed(0)}%
               </p>
-              <p className="text-[11px] font-bold mt-0.5" style={{ color: srRating?.color ?? "#374151" }}>
+              <p className="text-sm font-bold mt-1" style={{ color: srRating?.color ?? "#374151" }}>
                 {srRating?.label ?? "-"}
               </p>
             </>
           ) : (
-            <p className="text-lg font-black text-gray-300 mt-1">-</p>
+            <p className="text-xl font-black text-gray-300 mt-2">ไม่มีข้อมูล</p>
           )}
-          <p className="text-[10px] text-gray-400 mt-1">
-            คงเหลือ {assessment.fishRemaining?.toLocaleString() ?? "-"} / {assessment.fishReleased?.toLocaleString() ?? "-"} ตัว
+          <p className="text-xs text-gray-400 mt-1.5">
+            คงเหลือ {assessment.fishRemaining?.toLocaleString() ?? "-"} จาก {assessment.fishReleased?.toLocaleString() ?? "-"} ตัว
           </p>
         </div>
 
-        {/* FCR — อัตราการแลกเนื้อ */}
+        {/* FCR — ให้อาหารกี่กก. ถึงได้เนื้อ 1 กก. */}
         <div
           className="rounded-2xl border shadow-sm p-4"
           style={{
@@ -129,36 +136,37 @@ export default function QualitySummaryCards({ assessment }: Props) {
             borderColor: fcrRating ? `${fcrRating.color}30` : "#e5e7eb",
           }}
         >
-          <div className="flex items-center gap-1.5 mb-2">
-            <span className="text-base">🍚</span>
-            <span className="text-[10px] font-bold text-gray-500">FCR (แลกเนื้อ)</span>
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="text-lg">🍚</span>
+            <span className="text-sm font-bold text-gray-700">แลกเนื้อ</span>
           </div>
+          <p className="text-[11px] font-semibold text-gray-400 mb-1">ใช้อาหารกี่กก./เนื้อ 1 กก. (FCR)</p>
           {fcr != null ? (
             <>
-              <p className="text-2xl font-black" style={{ color: fcrRating?.color ?? "#374151" }}>
+              <p className="text-3xl font-black" style={{ color: fcrRating?.color ?? "#374151" }}>
                 {fcr.toFixed(2)}
               </p>
-              <p className="text-[11px] font-bold mt-0.5" style={{ color: fcrRating?.color ?? "#374151" }}>
+              <p className="text-sm font-bold mt-1" style={{ color: fcrRating?.color ?? "#374151" }}>
                 {fcrRating?.label ?? "-"}
               </p>
             </>
           ) : (
-            <p className="text-lg font-black text-gray-300 mt-1">-</p>
+            <p className="text-xl font-black text-gray-300 mt-2">ไม่มีข้อมูล</p>
           )}
-          <p className="text-[10px] text-gray-400 mt-1">
+          <p className="text-xs text-gray-400 mt-1.5">
             อาหารรวม {assessment.totalFoodKg.toFixed(1)} กก.
           </p>
         </div>
       </div>
 
       {/* ต้นทุนรวม */}
-      <div className="bg-gradient-to-r from-[#093832] to-[#0A8865] rounded-2xl p-4 text-white shadow-sm">
+      <div className="bg-gradient-to-r from-[#093832] to-[#0A8865] rounded-2xl px-5 py-4 text-white shadow-sm">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">💰</span>
-            <span className="text-xs font-bold text-white/80">ต้นทุนรวม (อาหาร+ยา)</span>
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl">💰</span>
+            <span className="text-sm font-bold text-white/90">ต้นทุนรวม (อาหาร+ยา)</span>
           </div>
-          <p className="text-xl font-black">{totalCost.toLocaleString()} ฿</p>
+          <p className="text-2xl font-black">{totalCost.toLocaleString()} ฿</p>
         </div>
       </div>
     </div>

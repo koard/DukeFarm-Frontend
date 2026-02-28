@@ -29,14 +29,14 @@ function Row({
   highlight?: boolean;
 }) {
   return (
-    <div className={`flex items-center justify-between py-2.5 ${highlight ? "" : "border-b border-gray-100"}`}>
-      <div className="flex items-center gap-2">
-        <span className="text-sm">{icon}</span>
-        <span className={`text-xs ${highlight ? "font-bold text-[#093832]" : "font-semibold text-gray-600"}`}>
+    <div className={`flex items-center justify-between py-3 ${highlight ? "" : "border-b border-gray-100"}`}>
+      <div className="flex items-center gap-2.5">
+        <span className="text-base">{icon}</span>
+        <span className={`text-sm ${highlight ? "font-bold text-[#093832]" : "font-semibold text-gray-600"}`}>
           {label}
         </span>
       </div>
-      <span className={`text-sm ${highlight ? "font-black text-[#093832]" : "font-bold text-gray-800"}`}>
+      <span className={`${highlight ? "text-lg font-black text-[#093832]" : "text-base font-bold text-gray-800"}`}>
         {value}
       </span>
     </div>
@@ -54,10 +54,10 @@ export default function CostSummary({ assessment }: Props) {
   } = assessment;
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-lg">💰</span>
-        <h3 className="text-sm font-bold text-[#093832]">สรุปค่าใช้จ่ายรอบการเลี้ยง</h3>
+    <div className="bg-white rounded-2xl border border-gray-200/60 shadow-sm p-5">
+      <div className="flex items-center gap-2.5 mb-4">
+        <span className="text-xl">💰</span>
+        <h3 className="text-base font-bold text-[#093832]">สรุปค่าใช้จ่ายรอบการเลี้ยง</h3>
       </div>
 
       <div className="px-1">

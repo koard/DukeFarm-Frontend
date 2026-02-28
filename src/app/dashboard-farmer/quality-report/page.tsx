@@ -244,9 +244,9 @@ function QualityReportContent() {
           <ChevronLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-lg font-bold">สรุปคุณภาพการเลี้ยง</h1>
+          <h1 className="text-xl font-bold">สรุปคุณภาพการเลี้ยง</h1>
           <p className="text-xs text-white/70">
-            {FARM_TYPE_LABELS[farmType] || farmType} — ประเมินจากโมเดล Gompertz
+            {FARM_TYPE_LABELS[farmType] || farmType} — ดูว่าปลาโตดีแค่ไหน
           </p>
         </div>
       </div>
@@ -298,8 +298,8 @@ function QualityReportContent() {
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3">
               <span className="text-3xl">🐟</span>
             </div>
-            <p className="text-sm font-semibold text-gray-400">ไม่พบข้อมูลบ่อ</p>
-            <p className="text-xs text-gray-300 mt-1">กรุณาเลือกบ่อจากหน้าแดชบอร์ดก่อน</p>
+            <p className="text-base font-semibold text-gray-400">ไม่พบข้อมูลบ่อ</p>
+            <p className="text-sm text-gray-300 mt-1">กรุณาเลือกบ่อจากหน้าแดชบอร์ดก่อน</p>
           </div>
         )}
 
@@ -309,8 +309,8 @@ function QualityReportContent() {
             <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3">
               <span className="text-3xl">📋</span>
             </div>
-            <p className="text-sm font-semibold text-gray-400">ไม่พบรอบการเลี้ยง</p>
-            <p className="text-xs text-gray-300 mt-1">ยังไม่มีรอบการเลี้ยงในบ่อนี้</p>
+            <p className="text-base font-semibold text-gray-400">ไม่พบรอบการเลี้ยง</p>
+            <p className="text-sm text-gray-300 mt-1">ยังไม่มีรอบการเลี้ยงในบ่อนี้</p>
           </div>
         )}
 
@@ -320,8 +320,8 @@ function QualityReportContent() {
             <div className="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center mb-3">
               <span className="text-2xl">⚠️</span>
             </div>
-            <p className="text-sm font-semibold text-gray-500">ข้อมูลไม่เพียงพอสำหรับการประเมิน</p>
-            <p className="text-xs text-gray-400 mt-1">ต้องมีข้อมูลน้ำหนักปลาอย่างน้อย 1 รายการ</p>
+            <p className="text-base font-semibold text-gray-500">ข้อมูลไม่เพียงพอสำหรับการประเมิน</p>
+            <p className="text-sm text-gray-400 mt-1">ต้องมีข้อมูลน้ำหนักปลาอย่างน้อย 1 รายการ</p>
           </div>
         )}
 
