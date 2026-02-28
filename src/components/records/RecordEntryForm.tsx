@@ -58,9 +58,12 @@ export const RecordEntryForm = ({ farmType, backHref, pondId }: RecordEntryFormP
     setCurrentStep(3);
   };
 
-  const handleAnalyze = (id?: string) => {
-    if (id) setSelectedRecordId(id);
-    setCurrentStep(3);
+  const handleAnalyze = () => {
+    // ไปหน้าสรุปคุณภาพการเลี้ยงแทนหน้าผลวิเคราะห์เดิม
+    const params = new URLSearchParams();
+    if (pondId) params.set("pondId", pondId);
+    params.set("type", farmType);
+    router.push(`/dashboard-farmer/quality-report?${params.toString()}`);
   };
   const handleBackToList = () => {
     setSelectedRecordId(null);
