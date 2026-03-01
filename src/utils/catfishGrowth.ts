@@ -645,13 +645,6 @@ export function computeHarvestAdvice(
         title: `ถึงขนาด${stage.nextStage}แล้ว`,
         detail: `น้ำหนัก ${latestWeightGr.toFixed(1)} ก. ≥ ${targetWeight} ก. พร้อมส่งต่อไปเลี้ยงเป็น${stage.nextStage}`,
       });
-    } else if (isApproaching) {
-      signals.push({
-        key: 'weight-approaching',
-        type: 'info',
-        title: `ใกล้ถึงขนาด${stage.nextStage}`,
-        detail: `น้ำหนัก ${latestWeightGr.toFixed(1)} ก. อีก ${(targetWeight - latestWeightGr).toFixed(1)} ก. จะถึงเป้า`,
-      });
     }
 
     // สัญญาณจำนวนวัน (สำหรับ SMALL: 7-10 วัน, LARGE: 11-30 วัน)
@@ -754,13 +747,6 @@ export function computeHarvestAdvice(
       type: 'positive',
       title: 'ถึงขนาดตลาดทั่วไป',
       detail: `น้ำหนัก ${latestWeightGr.toFixed(0)} ก. พร้อมส่งตลาดได้`,
-    });
-  } else if (generalPct >= 70) {
-    signals.push({
-      key: 'weight-approaching',
-      type: 'info',
-      title: 'ใกล้ถึงขนาดตลาด',
-      detail: `น้ำหนัก ${latestWeightGr.toFixed(0)} ก. อีก ${(MARKET_SIZES.GENERAL_MIN - latestWeightGr).toFixed(0)} ก. จะถึงขนาดตลาด`,
     });
   }
 
