@@ -16,9 +16,6 @@ import {
   CheckCircle2,
   Info,
   Target,
-  Timer,
-  Package,
-  Banknote,
 } from "lucide-react";
 
 interface Props {
@@ -85,11 +82,11 @@ function StageProgressBar({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between text-xs text-gray-500">
+      <div className="flex items-center justify-between text-xs font-semibold text-gray-500">
         <span>0 ก.</span>
         <span>{scaleMaxGr.toFixed(0)} ก.</span>
       </div>
-      <div className="relative h-5 bg-gray-100 rounded-full overflow-hidden">
+      <div className="relative h-6 bg-gray-200 rounded-full overflow-hidden">
         {/* Fill bar */}
         <div
           className="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
@@ -110,50 +107,21 @@ function StageProgressBar({
 
         {/* Current weight label */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[10px] font-black text-white drop-shadow-sm">
+          <span className="text-xs font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
             {currentWeight < 10 ? currentWeight.toFixed(1) : currentWeight.toFixed(0)} ก.
           </span>
         </div>
       </div>
 
       {/* Markers legend */}
-      <div className={`flex items-center ${markers.length > 1 ? "justify-between" : "justify-center"} text-[10px] font-semibold`}>
+      <div className={`flex items-center ${markers.length > 1 ? "justify-between" : "justify-center"} text-xs font-bold`}>
         {markers.map((m, i) => (
-          <div key={i} className="flex items-center gap-1" style={{ color: m.color }}>
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: `${m.color}80` }} />
+          <div key={i} className="flex items-center gap-1.5" style={{ color: m.color }}>
+            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: m.color }} />
             {m.label}
           </div>
         ))}
       </div>
-    </div>
-  );
-}
-
-/* ── Stat Pill ──────────────────────────────────────────────── */
-
-function StatPill({
-  icon,
-  label,
-  value,
-  unit,
-  gradient,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  unit?: string;
-  gradient: string;
-}) {
-  return (
-    <div className={`rounded-xl p-3 flex flex-col gap-1 bg-gradient-to-br ${gradient}`}>
-      <div className="flex items-center gap-1.5 text-white/60">
-        {icon}
-        <span className="text-[11px] font-semibold">{label}</span>
-      </div>
-      <p className="text-base font-black text-white leading-none">
-        {value}
-        {unit && <span className="text-xs font-semibold ml-1 opacity-70">{unit}</span>}
-      </p>
     </div>
   );
 }
@@ -205,7 +173,7 @@ export default function HarvestAdvisor({ assessment, farmType }: Props) {
             </span>
           </div>
         </div>
-        <p className="text-sm text-gray-600 leading-relaxed">{advice.description}</p>
+        <p className="text-sm text-gray-700 leading-relaxed">{advice.description}</p>
       </div>
 
       {/* Progress bar */}
@@ -226,8 +194,8 @@ export default function HarvestAdvisor({ assessment, farmType }: Props) {
             >
               <SignalIcon type={sig.type} />
               <div className="min-w-0">
-                <p className="text-xs font-bold text-gray-700">{sig.title}</p>
-                <p className="text-[11px] text-gray-500 leading-snug mt-0.5">{sig.detail}</p>
+                <p className="text-sm font-bold text-gray-800">{sig.title}</p>
+                <p className="text-xs text-gray-600 leading-snug mt-0.5">{sig.detail}</p>
               </div>
             </div>
           ))}
@@ -239,59 +207,24 @@ export default function HarvestAdvisor({ assessment, farmType }: Props) {
         {/* เป้าหมายถัดไป */}
         {advice.nextTarget && (
           <div className="flex items-center gap-3 bg-white/70 rounded-xl px-4 py-3 border border-white">
-            <Target className="w-5 h-5 text-gray-400 flex-shrink-0" />
+            <Target className="w-5 h-5 text-gray-500 flex-shrink-0" />
             <div className="flex-1">
-              <p className="text-xs font-bold text-gray-600">เป้าหมายถัดไป: {advice.nextTarget.label}</p>
-              <p className="text-[11px] text-gray-400">
+              <p className="text-sm font-bold text-gray-700">เป้าหมายถัดไป: {advice.nextTarget.label}</p>
+              <p className="text-xs text-gray-500">
                 ต้องได้น้ำหนัก {advice.nextTarget.weightGr} ก. (เหลืออีก{" "}
                 {(advice.nextTarget.weightGr - assessment.latestWeightGr).toFixed(0)} ก.)
               </p>
             </div>
             {advice.estimatedDaysToTarget != null && (
               <div className="text-right flex-shrink-0">
-                <p className="text-lg font-black text-[#093832]">~{advice.estimatedDaysToTarget}</p>
-                <p className="text-[10px] text-gray-400 font-semibold">วัน</p>
+                <p className="text-xl font-black text-[#093832]">~{advice.estimatedDaysToTarget}</p>
+                <p className="text-xs text-gray-500 font-bold">วัน</p>
               </div>
             )}
           </div>
         )}
 
         {/* Stats grid */}
-        <div className="grid grid-cols-2 gap-2">
-          {/* ผลผลิตโดยประมาณ */}
-          {advice.estimatedYieldKg != null && (
-            <StatPill
-              icon={<Package className="w-3.5 h-3.5" />}
-              label="ผลผลิตประมาณ"
-              value={advice.estimatedYieldKg.toFixed(1)}
-              unit="กก."
-              gradient="from-[#093832] to-[#0f6554]"
-            />
-          )}
-
-          {/* วันที่เลี้ยง */}
-          {advice.estimatedDaysToTarget != null && (
-            <StatPill
-              icon={<Timer className="w-3.5 h-3.5" />}
-              label="อีกประมาณ"
-              value={`~${advice.estimatedDaysToTarget}`}
-              unit="วัน"
-              gradient="from-[#1e40af] to-[#0ea5e9]"
-            />
-          )}
-
-          {/* ถ้าไม่มี target แต่มี yield → แสดง revenue แทน */}
-          {advice.estimatedDaysToTarget == null && advice.estimatedRevenue != null && (
-            <StatPill
-              icon={<Banknote className="w-3.5 h-3.5" />}
-              label="รายได้ประมาณ"
-              value={`${(advice.estimatedRevenue.min / 1000).toFixed(1)}–${(advice.estimatedRevenue.max / 1000).toFixed(1)}`}
-              unit="พันบาท"
-              gradient="from-[#1e40af] to-[#0ea5e9]"
-            />
-          )}
-        </div>
-
         {/* กำไร/ขาดทุน — แสดงเฉพาะ MARKET และเมื่อปลาพร้อมจับ */}
         {farmType === 'MARKET' &&
           (advice.readiness === "ready-general" ||
@@ -300,16 +233,16 @@ export default function HarvestAdvisor({ assessment, farmType }: Props) {
           advice.estimatedProfit != null && (
             <div className="bg-white/80 rounded-xl border border-white px-4 py-3">
               <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="w-4 h-4 text-gray-500" />
-                <span className="text-xs font-bold text-gray-600">ประมาณการกำไร (ถ้าจับตอนนี้)</span>
+                <TrendingUp className="w-4 h-4 text-gray-600" />
+                <span className="text-sm font-bold text-gray-700">ประมาณการกำไร (ถ้าจับตอนนี้)</span>
               </div>
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div>
-                  <p className="text-[10px] text-gray-400 font-semibold">ต้นทุนรวม</p>
+                  <p className="text-xs text-gray-500 font-bold">ต้นทุนรวม</p>
                   <p className="text-sm font-bold text-gray-700">{assessment.totalCost.toLocaleString()} ฿</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-400 font-semibold">รายได้ประมาณ</p>
+                  <p className="text-xs text-gray-500 font-bold">รายได้ประมาณ</p>
                   <p className="text-sm font-bold text-emerald-600">
                     {advice.estimatedRevenue
                       ? `${(advice.estimatedRevenue.min / 1000).toFixed(0)}–${(advice.estimatedRevenue.max / 1000).toFixed(0)}k`
@@ -317,7 +250,7 @@ export default function HarvestAdvisor({ assessment, farmType }: Props) {
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-gray-400 font-semibold">กำไรประมาณ</p>
+                  <p className="text-xs text-gray-500 font-bold">กำไรประมาณ</p>
                   <p
                     className={`text-sm font-bold ${
                       advice.estimatedProfit.min >= 0 ? "text-emerald-600" : "text-red-500"
@@ -330,7 +263,7 @@ export default function HarvestAdvisor({ assessment, farmType }: Props) {
                   </p>
                 </div>
               </div>
-              <p className="text-[10px] text-gray-400 text-center mt-2">
+              <p className="text-xs text-gray-500 text-center mt-2">
                 * คำนวณจากราคาปลาดุกสด 40–60 บาท/กก. (ราคาอาจเปลี่ยนแปลง)
               </p>
             </div>
