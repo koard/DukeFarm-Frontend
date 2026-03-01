@@ -129,7 +129,7 @@ export default function QualitySummaryCards({ assessment }: Props) {
         <IndexCard
           title="อัตราการเจริญเติบโตเฉลี่ยต่อวัน"
           abbr="ADG"
-          value={assessment.totalDays === 0 ? null : actualADG.toFixed(2)}
+          value={actualADG.toFixed(2)}
           ratingLabel="กรัม/วัน"
           ratingColor="#0d9488"
           bgColor="#f0fdfa"

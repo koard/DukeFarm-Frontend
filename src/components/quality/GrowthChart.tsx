@@ -74,12 +74,22 @@ export default function GrowthChart({ data }: Props) {
   // สุ่มเฉพาะจุดที่มีข้อมูลจริง เพื่อแสดงเป็น Scatter
   const actualPoints = data.filter((d) => d.actual != null);
 
-  // กำหนดช่วง Y-axis ที่เหมาะสม
+  // กำหนดช่วง Y-axis ที่เหมาะสม — flexible ตามขนาดข้อมูล
   const maxWeight = Math.max(
     ...data.map((d) => d.upperBound),
     ...actualPoints.map((d) => d.actual ?? 0),
   );
-  const yMax = Math.ceil(maxWeight / 50) * 50 + 50;
+
+  // เลือก step ที่เหมาะสมตามขนาดข้อมูลจริง
+  const getYStep = (max: number) => {
+    if (max <= 20) return 5;
+    if (max <= 50) return 10;
+    if (max <= 150) return 25;
+    if (max <= 500) return 50;
+    return 100;
+  };
+  const yStep = getYStep(maxWeight);
+  const yMax = Math.ceil(maxWeight / yStep) * yStep + yStep;
 
   // ลดจำนวนจุดบน X-axis ถ้ามีข้อมูลเยอะเกิน
   const totalDays = data[data.length - 1]?.day ?? 0;
@@ -132,6 +142,7 @@ export default function GrowthChart({ data }: Props) {
 
           <YAxis
             domain={[0, yMax]}
+            tickCount={Math.min(8, Math.floor(yMax / yStep) + 1)}
             tick={{ fontSize: 12, fill: "#6b7280" }}
             tickLine={false}
             axisLine={{ stroke: "#e5e7eb" }}
