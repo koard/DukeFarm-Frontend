@@ -166,23 +166,6 @@ function ProgressSection({
 export default function HarvestAdvisor({ input, farmType }: Props) {
   const advice = computeHarvestAdvice(input, farmType);
 
-  const statusIcon = (() => {
-    switch (advice.readiness) {
-      case "optimal-sell":
-        return "🔔";
-      case "ready-premium":
-        return "🏆";
-      case "ready-general":
-        return "✅";
-      case "ready-transfer":
-        return "🚚";
-      case "approaching":
-        return "⏳";
-      default:
-        return "🐟";
-    }
-  })();
-
   const cardTitle =
     farmType === "MARKET" ? "คำแนะนำการจับปลา" : "คำแนะนำการส่งต่อปลา";
 
@@ -196,7 +179,6 @@ export default function HarvestAdvisor({ input, farmType }: Props) {
         }}
       >
         <div className="flex items-start gap-3">
-          <span className="text-2xl leading-none mt-0.5">{statusIcon}</span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="text-[15px] font-extrabold text-[#093832]">
