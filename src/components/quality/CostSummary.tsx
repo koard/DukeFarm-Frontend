@@ -108,8 +108,8 @@ function CostRow({
         <span className="text-sm text-gray-500 font-medium">{label}</span>
         <span className="text-sm font-bold text-gray-800">
           {value.toLocaleString()}
-          <span className="text-xs font-normal text-gray-400 ml-1">บาท</span>
-          <span className="text-xs font-normal text-gray-400 ml-1">({pct}%)</span>
+          <span className="text-xs font-normal text-gray-500 ml-1">บาท</span>
+          <span className="text-xs font-normal text-gray-500 ml-1">({pct}%)</span>
         </span>
       </div>
       <div className="h-1.5 w-full rounded-full" style={{ backgroundColor: trackColor }}>
@@ -173,7 +173,7 @@ export default function CostSummary({ assessment }: Props) {
           />
           {/* Food kg — separate info row, no bar */}
           <div className="flex justify-between items-baseline pt-0.5 border-t border-dashed border-gray-100">
-            <span className="text-sm text-gray-400">ปริมาณอาหารที่ใช้</span>
+            <span className="text-sm text-gray-500">ปริมาณอาหารที่ใช้</span>
             <span className="text-sm font-semibold text-gray-600">
               {totalFoodKg.toFixed(1)} กก.
             </span>

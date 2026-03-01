@@ -17,7 +17,6 @@ interface Props {
 
 export default function QualitySummaryCards({ assessment }: Props) {
   const {
-    daysSinceRelease,
     gpi,
     gpiRating,
     actualADG,
@@ -84,7 +83,7 @@ export default function QualitySummaryCards({ assessment }: Props) {
         {/* Stats row */}
         <div className="relative grid grid-cols-3 gap-2">
           {[
-            { label: "เลี้ยงมาแล้ว", value: `${daysSinceRelease}`, unit: "วัน", icon: <Calendar className="w-3.5 h-3.5" /> },
+            { label: "เลี้ยงมาแล้ว", value: `${assessment.totalDays}`, unit: "วัน", icon: <Calendar className="w-3.5 h-3.5" /> },
             { label: "น้ำหนักเพิ่ม", value: `+${weightGain.toFixed(1)}`, unit: "กรัม", icon: <TrendingUp className="w-3.5 h-3.5" /> },
             { label: "น้ำหนักล่าสุด", value: latestWeightGr.toFixed(1), unit: "กรัม", icon: <Scale className="w-3.5 h-3.5" /> },
           ].map((s, i) => (
