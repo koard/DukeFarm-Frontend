@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronDown, Calculator, Fish } from "lucide-react";
+import { ChevronLeft, ChevronDown, Fish } from "lucide-react";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
 import { API_BASE_URL } from "@/config/api";
@@ -57,18 +57,7 @@ interface FeedingViewProps {
     backHref: string;
 }
 
-// FCR และอัตราให้อาหารตามขนาดปลา (จากกรมประมง)
-const getFeedingParams = (fishWeightGr: number): { fcr: number; feedingRate: number; feedingRateLabel: string } => {
-    if (fishWeightGr < 5) {
-        return { fcr: 1.8, feedingRate: 0.12, feedingRateLabel: "10-15%" };
-    } else if (fishWeightGr < 20) {
-        return { fcr: 1.6, feedingRate: 0.07, feedingRateLabel: "6-8%" };
-    } else if (fishWeightGr < 100) {
-        return { fcr: 1.5, feedingRate: 0.05, feedingRateLabel: "4-6%" };
-    } else {
-        return { fcr: 1.3, feedingRate: 0.032, feedingRateLabel: "3-3.2%" };
-    }
-};
+
 
 const FARM_TYPE_LABELS: Record<FarmType, string> = {
     SMALL: "ปลาตุ่ม",
@@ -97,28 +86,13 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
     const [showResult, setShowResult] = useState(false);
     const [expandedFoodTypes, setExpandedFoodTypes] = useState<Set<FoodType>>(new Set());
 
-    // Calculator states
-    const [fishWeight, setFishWeight] = useState<number>(50);
-    const [fishCount, setFishCount] = useState<number>(1000);
-    const [showCalculator, setShowCalculator] = useState(false);
+
 
     const { data: dashboardData, loading, error } = useDashboardData<DashboardData>(farmType);
     const [feedingInfo, setFeedingInfo] = useState<FeedingInfo | null>(null);
     const [feedFormulas, setFeedFormulas] = useState<FeedFormula[]>([]);
 
-    // Calculator result
-    const calculatorResult = useMemo(() => {
-        const totalWeightKg = (fishWeight * fishCount) / 1000;
-        const params = getFeedingParams(fishWeight);
-        const dailyFeedKg = totalWeightKg * params.feedingRate;
 
-        return {
-            totalWeightKg: totalWeightKg.toFixed(2),
-            fcr: params.fcr,
-            feedingRate: params.feedingRateLabel,
-            dailyFeedKg: dailyFeedKg.toFixed(2)
-        };
-    }, [fishWeight, fishCount]);
 
     useEffect(() => {
         const fetchFeedFormulas = async () => {
@@ -357,96 +331,7 @@ export const FeedingView = ({ farmType, backHref }: FeedingViewProps) => {
                                 </div>
                             )}
 
-                            {/* FCR Calculator Toggle */}
-                            <button
-                                onClick={() => setShowCalculator(!showCalculator)}
-                                className="w-full bg-[#093832] text-white rounded-xl p-4 flex items-center justify-center gap-4 hover:bg-[#0a4a42] transition-colors"
-                            >
-                                <span className="font-medium">
-                                    {showCalculator ? "ซ่อนเครื่องคำนวณ" : "คำนวณปริมาณอาหาร"}
-                                </span>
-                            </button>
 
-                            {/* FCR Calculator */}
-                            {showCalculator && (
-                                <div className="bg-[#D8EFFF] rounded-xl p-5 w-full shadow-sm border border-blue-100">
-                                    <h3 className="text-base font-bold text-black mb-4 flex items-center gap-2">
-                                        <Calculator className="w-5 h-5" />
-                                        คำนวณปริมาณอาหาร
-                                    </h3>
-
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            น้ำหนักปลาเฉลี่ย (กรัม)
-                                        </label>
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <input
-                                                type="number"
-                                                min="0.1"
-                                                max="500"
-                                                step="0.1"
-                                                value={fishWeight}
-                                                onChange={(e) => setFishWeight(Math.max(0.1, Number(e.target.value) || 0.1))}
-                                                className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-center font-bold focus:outline-none focus:ring-2 focus:ring-[#093832]"
-                                            />
-                                            <span className="text-sm text-gray-600">กรัม</span>
-                                        </div>
-                                        <input
-                                            type="range"
-                                            min="0.1"
-                                            max="500"
-                                            step="0.1"
-                                            value={fishWeight}
-                                            onChange={(e) => setFishWeight(Number(e.target.value))}
-                                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#093832]"
-                                        />
-                                        <div className="flex justify-between text-xs text-gray-500 mt-1">
-                                            <span>0.1 กรัม</span>
-                                            <span>500 กรัม</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            จำนวนปลา (ตัว)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            max="100000"
-                                            value={fishCount}
-                                            onChange={(e) => setFishCount(Number(e.target.value) || 1)}
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-lg text-center font-bold focus:outline-none focus:ring-2 focus:ring-[#093832]"
-                                        />
-                                    </div>
-
-                                    <div className="bg-white rounded-xl p-4 space-y-3">
-                                        <h4 className="font-bold text-gray-700 flex items-center gap-2">
-                                            📊 ผลการคำนวณ
-                                        </h4>
-
-                                        <div className="grid grid-cols-2 gap-3 text-sm">
-                                            <div className="bg-gray-50 rounded-lg p-3">
-                                                <p className="text-gray-500">น้ำหนักปลารวม</p>
-                                                <p className="font-bold text-black">{calculatorResult.totalWeightKg} กก.</p>
-                                            </div>
-                                            <div className="bg-gray-50 rounded-lg p-3">
-                                                <p className="text-gray-500">FCR</p>
-                                                <p className="font-bold text-black">{calculatorResult.fcr}</p>
-                                            </div>
-                                            <div className="bg-gray-50 rounded-lg p-3 col-span-2">
-                                                <p className="text-gray-500">อัตราให้อาหาร</p>
-                                                <p className="font-bold text-black">{calculatorResult.feedingRate} ต่อวัน</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="bg-[#093832] text-white rounded-xl p-4 text-center">
-                                            <p className="text-sm opacity-80">🎯 ปริมาณอาหารต่อวัน</p>
-                                            <p className="text-3xl font-bold">{calculatorResult.dailyFeedKg} กก.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
 
                         </div>
 
