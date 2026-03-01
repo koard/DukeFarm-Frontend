@@ -529,11 +529,26 @@ export function computeQualityAssessment(
 }
 
 // ---------------------------------------------------------------------------
-// คำแนะนำการจับปลา (Harvest Advisor)
+// คำแนะนำการจับ/ส่งต่อปลา (Harvest Advisor)
 // ---------------------------------------------------------------------------
 
+export type FarmType = 'SMALL' | 'LARGE' | 'MARKET';
+
 /**
- * ขนาดตลาดสำหรับปลาดุกบิ๊กอุย
+ * ช่วงน้ำหนักของปลาแต่ละระยะ (กรัม)
+ *
+ * ปลาตุ้ม (SMALL)  : 0.5 - 5 กรัม   → เลี้ยง 7-10 วัน แล้วส่งต่อเป็นปลานิ้ว
+ * ปลานิ้ว (LARGE)  : 5 - 30 กรัม    → เลี้ยง 11-30 วัน แล้วส่งต่อเป็นปลาตลาด
+ * ปลาตลาด (MARKET) : >30 กรัม       → เลี้ยง 31-180 วัน จนถึงขนาดจับขาย
+ */
+export const STAGE_WEIGHT_RANGES = {
+  SMALL: { minGr: 0.5, maxGr: 5, label: 'ปลาตุ้ม', nextStage: 'ปลานิ้ว', nextFarmType: 'LARGE' as FarmType },
+  LARGE: { minGr: 5, maxGr: 30, label: 'ปลานิ้ว', nextStage: 'ปลาตลาด', nextFarmType: 'MARKET' as FarmType },
+  MARKET: { minGr: 30, maxGr: null, label: 'ปลาตลาด', nextStage: null, nextFarmType: null },
+} as const;
+
+/**
+ * ขนาดตลาดสำหรับปลาดุกบิ๊กอุย (เฉพาะ MARKET)
  */
 export const MARKET_SIZES = {
   /** ขนาดส่งตลาดทั่วไป (กรัม/ตัว) */
@@ -544,7 +559,13 @@ export const MARKET_SIZES = {
   PREMIUM_MAX: 1000,
 } as const;
 
-export type HarvestReadiness = 'not-ready' | 'approaching' | 'ready-general' | 'ready-premium' | 'optimal-sell';
+export type HarvestReadiness =
+  | 'not-ready'
+  | 'approaching'
+  | 'ready-transfer'     // สำหรับ SMALL/LARGE → พร้อมส่งต่อ
+  | 'ready-general'      // สำหรับ MARKET → ถึงขนาดตลาดทั่วไป
+  | 'ready-premium'      // สำหรับ MARKET → ถึงขนาดพรีเมียม
+  | 'optimal-sell';      // แนะนำจับ/ส่งต่อเลย
 
 export interface HarvestSignal {
   key: string;
@@ -554,7 +575,9 @@ export interface HarvestSignal {
 }
 
 export interface HarvestAdvice {
-  /** ความพร้อมในการจับ */
+  /** ประเภทฟาร์ม */
+  farmType: FarmType;
+  /** ความพร้อมในการจับ/ส่งต่อ */
   readiness: HarvestReadiness;
   /** label สำหรับแสดง */
   readinessLabel: string;
@@ -563,13 +586,13 @@ export interface HarvestAdvice {
   /** สีหลัก */
   color: string;
   bgColor: string;
-  /** เปอร์เซ็นต์เข้าใกล้ขนาดตลาด (0-100+) */
+  /** เปอร์เซ็นต์เข้าใกล้เป้าหมาย (0-100+) */
   marketProgressPct: number;
   /** สัญญาณต่างๆ ที่ตรวจพบ */
   signals: HarvestSignal[];
-  /** ขนาดตลาดเป้าหมายถัดไป */
+  /** เป้าหมายถัดไป */
   nextTarget: { label: string; weightGr: number } | null;
-  /** จำนวนวันที่คาดว่าจะถึงตลาดถัดไป (ประมาณ) */
+  /** จำนวนวันที่คาดว่าจะถึงเป้าหมาย (ประมาณ) */
   estimatedDaysToTarget: number | null;
   /** ผลผลิตรวมโดยประมาณ (กก.) */
   estimatedYieldKg: number | null;
@@ -577,12 +600,22 @@ export interface HarvestAdvice {
   estimatedRevenue: { min: number; max: number } | null;
   /** กำไรขาดทุนโดยประมาณ */
   estimatedProfit: { min: number; max: number } | null;
+  /** ข้อมูล progress bar */
+  progressBar: {
+    /** markers บน progress bar */
+    markers: { label: string; weightGr: number; color: string }[];
+    /** ขอบเขตสูงสุดของ bar */
+    scaleMaxGr: number;
+  };
 }
 
 /**
- * คำนวณคำแนะนำการจับปลาจาก QualityAssessment
+ * คำนวณคำแนะนำการจับ/ส่งต่อปลาจาก QualityAssessment + farmType
  */
-export function computeHarvestAdvice(assessment: QualityAssessment): HarvestAdvice {
+export function computeHarvestAdvice(
+  assessment: QualityAssessment,
+  farmType: FarmType,
+): HarvestAdvice {
   const {
     latestWeightGr,
     totalDays,
@@ -592,9 +625,116 @@ export function computeHarvestAdvice(assessment: QualityAssessment): HarvestAdvi
     totalCost,
   } = assessment;
 
+  const stage = STAGE_WEIGHT_RANGES[farmType];
   const signals: HarvestSignal[] = [];
 
-  // ── 1. ตรวจน้ำหนักเทียบตลาด ──
+  // ────────────────────────────────────────────────────────────
+  // SMALL / LARGE — เป้าหมายคือ "ส่งต่อ" ไม่ใช่ "ขาย"
+  // ────────────────────────────────────────────────────────────
+  if (farmType === 'SMALL' || farmType === 'LARGE') {
+    const targetWeight = stage.maxGr!; // SMALL=5, LARGE=30 — always defined for these types
+    const progressPct = Math.min(100, (latestWeightGr / targetWeight) * 100);
+    const isReady = latestWeightGr >= targetWeight;
+    const isApproaching = progressPct >= 70;
+
+    // สัญญาณน้ำหนัก
+    if (isReady) {
+      signals.push({
+        key: 'weight-ready',
+        type: 'positive',
+        title: `ถึงขนาด${stage.nextStage}แล้ว`,
+        detail: `น้ำหนัก ${latestWeightGr.toFixed(1)} ก. ≥ ${targetWeight} ก. พร้อมส่งต่อไปเลี้ยงเป็น${stage.nextStage}`,
+      });
+    } else if (isApproaching) {
+      signals.push({
+        key: 'weight-approaching',
+        type: 'info',
+        title: `ใกล้ถึงขนาด${stage.nextStage}`,
+        detail: `น้ำหนัก ${latestWeightGr.toFixed(1)} ก. อีก ${(targetWeight - latestWeightGr).toFixed(1)} ก. จะถึงเป้า`,
+      });
+    }
+
+    // สัญญาณจำนวนวัน (สำหรับ SMALL: 7-10 วัน, LARGE: 11-30 วัน)
+    const maxDays = farmType === 'SMALL' ? 10 : 30;
+    if (totalDays >= maxDays && !isReady) {
+      signals.push({
+        key: 'days-exceeded',
+        type: 'warning',
+        title: 'เลี้ยงเกินระยะเวลาปกติ',
+        detail: `เลี้ยงมาแล้ว ${totalDays} วัน (ปกติ ${stage.label} ≤${maxDays} วัน) ปลาอาจโตช้ากว่าที่ควร`,
+      });
+    }
+
+    // เป้าหมาย
+    let nextTarget: { label: string; weightGr: number } | null = null;
+    let estimatedDaysToTarget: number | null = null;
+
+    if (!isReady) {
+      nextTarget = { label: `ส่งต่อเป็น${stage.nextStage}`, weightGr: targetWeight };
+      if (actualADG > 0) {
+        estimatedDaysToTarget = Math.ceil((targetWeight - latestWeightGr) / actualADG);
+      }
+    }
+
+    // สรุปสถานะ
+    let readiness: HarvestReadiness;
+    let readinessLabel: string;
+    let description: string;
+    let color: string;
+    let bgColor: string;
+
+    if (isReady && totalDays >= maxDays) {
+      readiness = 'optimal-sell';
+      readinessLabel = `แนะนำส่งต่อเป็น${stage.nextStage}`;
+      description = `ปลาถึงขนาด${stage.nextStage}แล้ว และเลี้ยงมาครบระยะ ควรส่งต่อไปฟาร์ม${stage.nextStage}`;
+      color = '#dc2626';
+      bgColor = '#fef2f2';
+    } else if (isReady) {
+      readiness = 'ready-transfer';
+      readinessLabel = `พร้อมส่งต่อเป็น${stage.nextStage}`;
+      description = `ปลาถึงน้ำหนัก ${targetWeight} ก. แล้ว สามารถส่งต่อไปเลี้ยงเป็น${stage.nextStage}ได้`;
+      color = '#22c55e';
+      bgColor = '#f0fdf4';
+    } else if (isApproaching) {
+      readiness = 'approaching';
+      readinessLabel = `ใกล้ถึงขนาด${stage.nextStage}`;
+      description = `ปลากำลังใกล้ขนาด${stage.nextStage} เลี้ยงต่ออีกนิด`;
+      color = '#f59e0b';
+      bgColor = '#fffbeb';
+    } else {
+      readiness = 'not-ready';
+      readinessLabel = `กำลังเลี้ยง${stage.label}`;
+      description = `ปลายังอยู่ในระยะ${stage.label} ต้องเลี้ยงต่อให้ถึงขนาด${stage.nextStage}`;
+      color = '#6b7280';
+      bgColor = '#f9fafb';
+    }
+
+    return {
+      farmType,
+      readiness,
+      readinessLabel,
+      description,
+      color,
+      bgColor,
+      marketProgressPct: progressPct,
+      signals,
+      nextTarget,
+      estimatedDaysToTarget,
+      estimatedYieldKg: fishRemaining != null ? (latestWeightGr * fishRemaining) / 1000 : null,
+      estimatedRevenue: null, // ไม่ขายตรง
+      estimatedProfit: null,
+      progressBar: {
+        markers: [
+          { label: `${stage.nextStage} (${targetWeight} ก.)`, weightGr: targetWeight, color: '#22c55e' },
+        ],
+        scaleMaxGr: Math.max(targetWeight * 1.3, latestWeightGr * 1.15),
+      },
+    };
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // MARKET — เป้าหมายคือ "จับขาย"
+  // ────────────────────────────────────────────────────────────
   const generalPct = Math.min(100, (latestWeightGr / MARKET_SIZES.GENERAL_MIN) * 100);
   const premiumPct = Math.min(100, (latestWeightGr / MARKET_SIZES.PREMIUM_MIN) * 100);
 
@@ -624,7 +764,7 @@ export function computeHarvestAdvice(assessment: QualityAssessment): HarvestAdvi
     });
   }
 
-  // ── 2. ตรวจ FCR ──
+  // FCR
   if (fcr != null) {
     if (fcr > 2.5) {
       signals.push({
@@ -650,7 +790,7 @@ export function computeHarvestAdvice(assessment: QualityAssessment): HarvestAdvi
     }
   }
 
-  // ── 3. ตรวจ ADG ──
+  // ADG
   if (totalDays > 0 && actualADG > 0) {
     if (actualADG < 1.0 && totalDays >= 60) {
       signals.push({
@@ -662,7 +802,7 @@ export function computeHarvestAdvice(assessment: QualityAssessment): HarvestAdvi
     }
   }
 
-  // ── 4. ตรวจจำนวนวันที่เลี้ยง ──
+  // จำนวนวัน
   if (totalDays >= 150) {
     signals.push({
       key: 'days-long',
@@ -672,14 +812,13 @@ export function computeHarvestAdvice(assessment: QualityAssessment): HarvestAdvi
     });
   }
 
-  // ── 5. คำนวณผลผลิตและมูลค่าประมาณ ──
+  // ผลผลิตและมูลค่า
   let estimatedYieldKg: number | null = null;
   let estimatedRevenue: { min: number; max: number } | null = null;
   let estimatedProfit: { min: number; max: number } | null = null;
 
   if (fishRemaining != null && fishRemaining > 0) {
     estimatedYieldKg = (latestWeightGr * fishRemaining) / 1000;
-    // ราคาปลาดุกสด ~40-60 บาท/กก.
     estimatedRevenue = {
       min: estimatedYieldKg * 40,
       max: estimatedYieldKg * 60,
@@ -690,7 +829,7 @@ export function computeHarvestAdvice(assessment: QualityAssessment): HarvestAdvi
     };
   }
 
-  // ── 6. คำนวณเป้าหมายถัดไป ──
+  // เป้าหมาย
   let nextTarget: { label: string; weightGr: number } | null = null;
   let estimatedDaysToTarget: number | null = null;
 
@@ -705,14 +844,13 @@ export function computeHarvestAdvice(assessment: QualityAssessment): HarvestAdvi
     estimatedDaysToTarget = Math.ceil(remainGr / actualADG);
   }
 
-  // ── 7. สรุปความพร้อม ──
+  // สรุปสถานะ
   let readiness: HarvestReadiness;
   let readinessLabel: string;
   let description: string;
   let color: string;
   let bgColor: string;
 
-  // ถ้า FCR สูงมากและถึงขนาดตลาดแล้ว → ควรจับเลย
   const shouldSellNow = isGeneralReady && fcr != null && fcr > 2.0;
 
   if (shouldSellNow) {
@@ -748,6 +886,7 @@ export function computeHarvestAdvice(assessment: QualityAssessment): HarvestAdvi
   }
 
   return {
+    farmType,
     readiness,
     readinessLabel,
     description,
@@ -760,5 +899,12 @@ export function computeHarvestAdvice(assessment: QualityAssessment): HarvestAdvi
     estimatedYieldKg,
     estimatedRevenue,
     estimatedProfit,
+    progressBar: {
+      markers: [
+        { label: `ตลาดทั่วไป (${MARKET_SIZES.GENERAL_MIN} ก.)`, weightGr: MARKET_SIZES.GENERAL_MIN, color: '#22c55e' },
+        { label: `พรีเมียม (${MARKET_SIZES.PREMIUM_MIN} ก.)`, weightGr: MARKET_SIZES.PREMIUM_MIN, color: '#7c3aed' },
+      ],
+      scaleMaxGr: Math.max(MARKET_SIZES.PREMIUM_MIN, latestWeightGr * 1.15),
+    },
   };
 }

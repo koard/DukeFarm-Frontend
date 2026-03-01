@@ -1,16 +1,15 @@
 /**
- * HarvestAdvisor — การ์ดคำแนะนำจับปลาขาย
+ * HarvestAdvisor — การ์ดคำแนะนำจับ/ส่งต่อปลา
  *
- * วิเคราะห์ข้อมูลจาก QualityAssessment แล้วแนะนำว่า:
- * - ปลาพร้อมจับหรือยัง? (เทียบขนาดตลาด)
- * - ถ้ายังไม่พร้อม อีกกี่วันถึง?
- * - FCR คุ้มค่าไหม?
- * - ผลผลิตและกำไรประมาณเท่าไหร่?
+ * รองรับ 3 ระยะ:
+ * - SMALL (ปลาตุ้ม) → เป้าหมาย: ส่งต่อเป็นปลานิ้ว (≥5 ก.)
+ * - LARGE (ปลานิ้ว) → เป้าหมาย: ส่งต่อเป็นปลาตลาด (≥30 ก.)
+ * - MARKET (ปลาตลาด) → เป้าหมาย: จับขาย (≥150 ก. ตลาดทั่วไป / ≥500 ก. พรีเมียม)
  */
 "use client";
 
-import type { QualityAssessment, HarvestAdvice, HarvestSignal } from "@/utils/catfishGrowth";
-import { computeHarvestAdvice, MARKET_SIZES } from "@/utils/catfishGrowth";
+import type { QualityAssessment, HarvestAdvice, HarvestSignal, FarmType } from "@/utils/catfishGrowth";
+import { computeHarvestAdvice } from "@/utils/catfishGrowth";
 import {
   TrendingUp,
   AlertTriangle,
@@ -24,6 +23,7 @@ import {
 
 interface Props {
   assessment: QualityAssessment;
+  farmType: FarmType;
 }
 
 /* ── Signal Icon ────────────────────────────────────────────── */
@@ -54,74 +54,76 @@ function signalBg(type: HarvestSignal["type"]) {
   }
 }
 
-/* ── Progress bar (ขนาดปลา vs ขนาดตลาด) ───────────────────── */
+/* ── Progress bar (ขนาดปลา vs เป้าหมาย) ────────────────────── */
 
-function MarketProgressBar({
+function StageProgressBar({
   currentWeight,
+  advice,
 }: {
   currentWeight: number;
   advice: HarvestAdvice;
 }) {
-  const generalMin = MARKET_SIZES.GENERAL_MIN;
-  const premiumMin = MARKET_SIZES.PREMIUM_MIN;
+  const { markers, scaleMaxGr } = advice.progressBar;
 
-  // ปรับ scale ให้เหมาะกับช่วงน้ำหนักจริง
-  const scaleMax = Math.max(premiumMin, currentWeight * 1.15);
+  const currentPct = Math.min(100, (currentWeight / scaleMaxGr) * 100);
 
-  const currentPct = Math.min(100, (currentWeight / scaleMax) * 100);
-  const generalPct = Math.min(100, (generalMin / scaleMax) * 100);
-  const premiumPct = Math.min(100, (premiumMin / scaleMax) * 100);
+  // เลือกสี fill bar ตาม readiness
+  const fillGradient = (() => {
+    switch (advice.readiness) {
+      case "optimal-sell":
+      case "ready-premium":
+        return "linear-gradient(90deg, #22c55e, #15803d)";
+      case "ready-general":
+      case "ready-transfer":
+        return "linear-gradient(90deg, #22c55e, #86efac)";
+      case "approaching":
+        return "linear-gradient(90deg, #f59e0b, #fbbf24)";
+      default:
+        return "linear-gradient(90deg, #94a3b8, #cbd5e1)";
+    }
+  })();
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-xs text-gray-500">
         <span>0 ก.</span>
-        <span>{scaleMax.toFixed(0)} ก.</span>
+        <span>{scaleMaxGr.toFixed(0)} ก.</span>
       </div>
       <div className="relative h-5 bg-gray-100 rounded-full overflow-hidden">
         {/* Fill bar */}
         <div
           className="absolute inset-y-0 left-0 rounded-full transition-all duration-700"
-          style={{
-            width: `${currentPct}%`,
-            background: currentWeight >= premiumMin
-              ? "linear-gradient(90deg, #22c55e, #15803d)"
-              : currentWeight >= generalMin
-                ? "linear-gradient(90deg, #22c55e, #86efac)"
-                : "linear-gradient(90deg, #f59e0b, #fbbf24)",
-          }}
+          style={{ width: `${currentPct}%`, background: fillGradient }}
         />
 
-        {/* ตลาดทั่วไป marker */}
-        <div
-          className="absolute top-0 bottom-0 w-0.5 bg-emerald-600/50"
-          style={{ left: `${generalPct}%` }}
-        />
-
-        {/* พรีเมียม marker */}
-        <div
-          className="absolute top-0 bottom-0 w-0.5 bg-purple-500/50"
-          style={{ left: `${premiumPct}%` }}
-        />
+        {/* Markers */}
+        {markers.map((m, i) => {
+          const markerPct = Math.min(100, (m.weightGr / scaleMaxGr) * 100);
+          return (
+            <div
+              key={i}
+              className="absolute top-0 bottom-0 w-0.5"
+              style={{ left: `${markerPct}%`, backgroundColor: `${m.color}80` }}
+            />
+          );
+        })}
 
         {/* Current weight label */}
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="text-[10px] font-black text-white drop-shadow-sm">
-            {currentWeight.toFixed(0)} ก.
+            {currentWeight < 10 ? currentWeight.toFixed(1) : currentWeight.toFixed(0)} ก.
           </span>
         </div>
       </div>
 
       {/* Markers legend */}
-      <div className="flex items-center justify-between text-[10px] font-semibold">
-        <div className="flex items-center gap-1 text-emerald-600">
-          <div className="w-2 h-2 rounded-full bg-emerald-600/50" />
-          ตลาดทั่วไป ({generalMin} ก.)
-        </div>
-        <div className="flex items-center gap-1 text-purple-600">
-          <div className="w-2 h-2 rounded-full bg-purple-500/50" />
-          พรีเมียม ({premiumMin} ก.)
-        </div>
+      <div className={`flex items-center ${markers.length > 1 ? "justify-between" : "justify-center"} text-[10px] font-semibold`}>
+        {markers.map((m, i) => (
+          <div key={i} className="flex items-center gap-1" style={{ color: m.color }}>
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: `${m.color}80` }} />
+            {m.label}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -158,8 +160,8 @@ function StatPill({
 
 /* ── Main Component ────────────────────────────────────────── */
 
-export default function HarvestAdvisor({ assessment }: Props) {
-  const advice = computeHarvestAdvice(assessment);
+export default function HarvestAdvisor({ assessment, farmType }: Props) {
+  const advice = computeHarvestAdvice(assessment, farmType);
 
   // ไอคอนตามสถานะ
   const statusIcon = (() => {
@@ -170,12 +172,19 @@ export default function HarvestAdvisor({ assessment }: Props) {
         return "🏆";
       case "ready-general":
         return "✅";
+      case "ready-transfer":
+        return "🚚";
       case "approaching":
         return "⏳";
       default:
         return "🐟";
     }
   })();
+
+  // หัวข้อการ์ดตาม farmType
+  const cardTitle = farmType === 'MARKET'
+    ? 'คำแนะนำการจับปลา'
+    : 'คำแนะนำการส่งต่อปลา';
 
   return (
     <div
@@ -187,7 +196,7 @@ export default function HarvestAdvisor({ assessment }: Props) {
         <div className="flex items-center gap-2.5 mb-2">
           <span className="text-2xl">{statusIcon}</span>
           <div className="flex-1">
-            <h3 className="text-sm font-bold text-[#093832]">คำแนะนำการจับปลา</h3>
+            <h3 className="text-sm font-bold text-[#093832]">{cardTitle}</h3>
             <span
               className="inline-block text-xs font-bold px-2 py-0.5 rounded-full mt-1"
               style={{ color: advice.color, backgroundColor: `${advice.color}15` }}
@@ -201,7 +210,7 @@ export default function HarvestAdvisor({ assessment }: Props) {
 
       {/* Progress bar */}
       <div className="px-5 py-3">
-        <MarketProgressBar
+        <StageProgressBar
           currentWeight={assessment.latestWeightGr}
           advice={advice}
         />
@@ -283,10 +292,11 @@ export default function HarvestAdvisor({ assessment }: Props) {
           )}
         </div>
 
-        {/* กำไร/ขาดทุน — แสดงเฉพาะเมื่อปลาพร้อมจับ */}
-        {(advice.readiness === "ready-general" ||
-          advice.readiness === "ready-premium" ||
-          advice.readiness === "optimal-sell") &&
+        {/* กำไร/ขาดทุน — แสดงเฉพาะ MARKET และเมื่อปลาพร้อมจับ */}
+        {farmType === 'MARKET' &&
+          (advice.readiness === "ready-general" ||
+            advice.readiness === "ready-premium" ||
+            advice.readiness === "optimal-sell") &&
           advice.estimatedProfit != null && (
             <div className="bg-white/80 rounded-xl border border-white px-4 py-3">
               <div className="flex items-center gap-2 mb-2">

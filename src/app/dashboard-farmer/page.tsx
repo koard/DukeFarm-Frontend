@@ -517,14 +517,6 @@ function DashboardContent() {
   const remainingCount = summary?.currentCount ? summary.currentCount.toLocaleString() : "-";
   const survivalRate = summary?.survivalRatePct ?? null;
 
-  // Market size mapping (Mock/Approximation based on type)
-  const marketSizeMap: Record<string, string> = {
-    SMALL: "2-5",
-    LARGE: "15-25",
-    MARKET: "800-1000"
-  };
-  const marketSize = marketSizeMap[farmType] || "-";
-
   // const stars = useMemo(
   //   () =>
   //     Array.from({ length: 25 }).map(() => ({
@@ -1009,21 +1001,8 @@ function DashboardContent() {
           })()}
 
           {/* -------------------------------------------------------------------------
-            9. MARKET SIZE 
+            9. MARKET SIZE — removed (moved to HarvestAdvisor in quality report)
             ------------------------------------------------------------------------- */}
-            <div className="bg-[#F1DFFF] rounded-2xl p-4 flex flex-col shadow-sm border border-purple-100/30">
-              <div className="flex items-center gap-2 mb-2">
-                <Image src="/dashboard/weight.svg" alt="weight" width={20} height={20} />
-                <span className="text-base font-bold text-gray-700">ขนาดที่เหมาะสำหรับการขาย</span>
-              </div>
-              
-              <div className="flex justify-center items-baseline gap-1">
-                <p className="text-2xl font-black text-black">
-                  {loading ? "..." : marketSize}
-                </p>
-                <span className="text-lg font-bold text-black">กรัม</span>
-              </div>
-            </div>
           </div> 
 
           {/* -------------------------------------------------------------------------

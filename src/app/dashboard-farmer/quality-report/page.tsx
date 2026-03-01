@@ -327,8 +327,8 @@ function QualityReportContent() {
             {/* ส่วน B: กราฟเทียบน้ำหนักจริง vs มาตรฐาน */}
             <GrowthChart data={chartData} />
 
-            {/* ส่วน C: คำแนะนำการจับปลา */}
-            <HarvestAdvisor assessment={assessment} />
+            {/* ส่วน C: คำแนะนำการจับ/ส่งต่อปลา */}
+            <HarvestAdvisor assessment={assessment} farmType={farmType as "SMALL" | "LARGE" | "MARKET"} />
 
             {/* ส่วน D: สรุปค่าใช้จ่าย */}
             <CostSummary assessment={assessment} />
