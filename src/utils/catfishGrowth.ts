@@ -527,3 +527,238 @@ export function computeQualityAssessment(
     fishRemaining,
   };
 }
+
+// ---------------------------------------------------------------------------
+// คำแนะนำการจับปลา (Harvest Advisor)
+// ---------------------------------------------------------------------------
+
+/**
+ * ขนาดตลาดสำหรับปลาดุกบิ๊กอุย
+ */
+export const MARKET_SIZES = {
+  /** ขนาดส่งตลาดทั่วไป (กรัม/ตัว) */
+  GENERAL_MIN: 150,
+  GENERAL_MAX: 200,
+  /** ขนาดพรีเมียม (กรัม/ตัว) */
+  PREMIUM_MIN: 500,
+  PREMIUM_MAX: 1000,
+} as const;
+
+export type HarvestReadiness = 'not-ready' | 'approaching' | 'ready-general' | 'ready-premium' | 'optimal-sell';
+
+export interface HarvestSignal {
+  key: string;
+  type: 'positive' | 'warning' | 'critical' | 'info';
+  title: string;
+  detail: string;
+}
+
+export interface HarvestAdvice {
+  /** ความพร้อมในการจับ */
+  readiness: HarvestReadiness;
+  /** label สำหรับแสดง */
+  readinessLabel: string;
+  /** คำอธิบายสถานะ */
+  description: string;
+  /** สีหลัก */
+  color: string;
+  bgColor: string;
+  /** เปอร์เซ็นต์เข้าใกล้ขนาดตลาด (0-100+) */
+  marketProgressPct: number;
+  /** สัญญาณต่างๆ ที่ตรวจพบ */
+  signals: HarvestSignal[];
+  /** ขนาดตลาดเป้าหมายถัดไป */
+  nextTarget: { label: string; weightGr: number } | null;
+  /** จำนวนวันที่คาดว่าจะถึงตลาดถัดไป (ประมาณ) */
+  estimatedDaysToTarget: number | null;
+  /** ผลผลิตรวมโดยประมาณ (กก.) */
+  estimatedYieldKg: number | null;
+  /** มูลค่าโดยประมาณ (บาท) — ราคาปลาดุก ~40-60 บาท/กก. */
+  estimatedRevenue: { min: number; max: number } | null;
+  /** กำไรขาดทุนโดยประมาณ */
+  estimatedProfit: { min: number; max: number } | null;
+}
+
+/**
+ * คำนวณคำแนะนำการจับปลาจาก QualityAssessment
+ */
+export function computeHarvestAdvice(assessment: QualityAssessment): HarvestAdvice {
+  const {
+    latestWeightGr,
+    totalDays,
+    actualADG,
+    fcr,
+    fishRemaining,
+    totalCost,
+  } = assessment;
+
+  const signals: HarvestSignal[] = [];
+
+  // ── 1. ตรวจน้ำหนักเทียบตลาด ──
+  const generalPct = Math.min(100, (latestWeightGr / MARKET_SIZES.GENERAL_MIN) * 100);
+  const premiumPct = Math.min(100, (latestWeightGr / MARKET_SIZES.PREMIUM_MIN) * 100);
+
+  const isGeneralReady = latestWeightGr >= MARKET_SIZES.GENERAL_MIN;
+  const isPremiumReady = latestWeightGr >= MARKET_SIZES.PREMIUM_MIN;
+
+  if (isPremiumReady) {
+    signals.push({
+      key: 'weight-premium',
+      type: 'positive',
+      title: 'ถึงขนาดพรีเมียม',
+      detail: `น้ำหนัก ${latestWeightGr.toFixed(0)} ก. ≥ ${MARKET_SIZES.PREMIUM_MIN} ก. เหมาะขายราคาพิเศษ`,
+    });
+  } else if (isGeneralReady) {
+    signals.push({
+      key: 'weight-general',
+      type: 'positive',
+      title: 'ถึงขนาดตลาดทั่วไป',
+      detail: `น้ำหนัก ${latestWeightGr.toFixed(0)} ก. พร้อมส่งตลาดได้`,
+    });
+  } else if (generalPct >= 70) {
+    signals.push({
+      key: 'weight-approaching',
+      type: 'info',
+      title: 'ใกล้ถึงขนาดตลาด',
+      detail: `น้ำหนัก ${latestWeightGr.toFixed(0)} ก. อีก ${(MARKET_SIZES.GENERAL_MIN - latestWeightGr).toFixed(0)} ก. จะถึงขนาดตลาด`,
+    });
+  }
+
+  // ── 2. ตรวจ FCR ──
+  if (fcr != null) {
+    if (fcr > 2.5) {
+      signals.push({
+        key: 'fcr-high',
+        type: 'critical',
+        title: 'FCR สูงมาก — สิ้นเปลืองอาหาร',
+        detail: `FCR ${fcr.toFixed(2)} หมายถึงใช้อาหาร ${fcr.toFixed(1)} กก. ต่อเนื้อปลา 1 กก. ยิ่งเลี้ยงต่อยิ่งไม่คุ้ม`,
+      });
+    } else if (fcr > 2.0) {
+      signals.push({
+        key: 'fcr-warning',
+        type: 'warning',
+        title: 'FCR เริ่มสูง — ต้นทุนเพิ่มขึ้น',
+        detail: `FCR ${fcr.toFixed(2)} สูงกว่าปกติ ควรพิจารณาจับหรือปรับอาหาร`,
+      });
+    } else if (fcr <= 1.5) {
+      signals.push({
+        key: 'fcr-good',
+        type: 'positive',
+        title: 'FCR ดี — ยังคุ้มค่าอาหาร',
+        detail: `FCR ${fcr.toFixed(2)} ปลาแปลงอาหารเป็นเนื้อได้ดี ยังเลี้ยงต่อได้`,
+      });
+    }
+  }
+
+  // ── 3. ตรวจ ADG ──
+  if (totalDays > 0 && actualADG > 0) {
+    if (actualADG < 1.0 && totalDays >= 60) {
+      signals.push({
+        key: 'adg-slow',
+        type: 'warning',
+        title: 'ปลาโตช้า — ADG ต่ำ',
+        detail: `ADG ${actualADG.toFixed(2)} ก./วัน เลี้ยงต่อจะนาน ต้นทุนเพิ่ม`,
+      });
+    }
+  }
+
+  // ── 4. ตรวจจำนวนวันที่เลี้ยง ──
+  if (totalDays >= 150) {
+    signals.push({
+      key: 'days-long',
+      type: 'warning',
+      title: 'เลี้ยงมานาน',
+      detail: `เลี้ยงมาแล้ว ${totalDays} วัน ปลาดุกทั่วไปเลี้ยง 90-150 วัน ยิ่งนานยิ่งเปลืองต้นทุน`,
+    });
+  }
+
+  // ── 5. คำนวณผลผลิตและมูลค่าประมาณ ──
+  let estimatedYieldKg: number | null = null;
+  let estimatedRevenue: { min: number; max: number } | null = null;
+  let estimatedProfit: { min: number; max: number } | null = null;
+
+  if (fishRemaining != null && fishRemaining > 0) {
+    estimatedYieldKg = (latestWeightGr * fishRemaining) / 1000;
+    // ราคาปลาดุกสด ~40-60 บาท/กก.
+    estimatedRevenue = {
+      min: estimatedYieldKg * 40,
+      max: estimatedYieldKg * 60,
+    };
+    estimatedProfit = {
+      min: estimatedRevenue.min - totalCost,
+      max: estimatedRevenue.max - totalCost,
+    };
+  }
+
+  // ── 6. คำนวณเป้าหมายถัดไป ──
+  let nextTarget: { label: string; weightGr: number } | null = null;
+  let estimatedDaysToTarget: number | null = null;
+
+  if (!isGeneralReady) {
+    nextTarget = { label: 'ตลาดทั่วไป', weightGr: MARKET_SIZES.GENERAL_MIN };
+  } else if (!isPremiumReady) {
+    nextTarget = { label: 'ขนาดพรีเมียม', weightGr: MARKET_SIZES.PREMIUM_MIN };
+  }
+
+  if (nextTarget && actualADG > 0) {
+    const remainGr = nextTarget.weightGr - latestWeightGr;
+    estimatedDaysToTarget = Math.ceil(remainGr / actualADG);
+  }
+
+  // ── 7. สรุปความพร้อม ──
+  let readiness: HarvestReadiness;
+  let readinessLabel: string;
+  let description: string;
+  let color: string;
+  let bgColor: string;
+
+  // ถ้า FCR สูงมากและถึงขนาดตลาดแล้ว → ควรจับเลย
+  const shouldSellNow = isGeneralReady && fcr != null && fcr > 2.0;
+
+  if (shouldSellNow) {
+    readiness = 'optimal-sell';
+    readinessLabel = 'แนะนำจับขาย';
+    description = 'ปลาถึงขนาดตลาดแล้ว และ FCR สูงขึ้น ยิ่งเลี้ยงต่อยิ่งเปลืองอาหาร ควรจับขายช่วงนี้';
+    color = '#dc2626';
+    bgColor = '#fef2f2';
+  } else if (isPremiumReady) {
+    readiness = 'ready-premium';
+    readinessLabel = 'พร้อมจับ (พรีเมียม)';
+    description = 'ปลาถึงขนาดพรีเมียม สามารถขายได้ราคาดี หรือเลี้ยงต่อให้ใหญ่ขึ้นได้ถ้า FCR ยังดี';
+    color = '#15803d';
+    bgColor = '#f0fdf4';
+  } else if (isGeneralReady) {
+    readiness = 'ready-general';
+    readinessLabel = 'พร้อมจับ (ตลาดทั่วไป)';
+    description = 'ปลาถึงขนาดส่งตลาดทั่วไปแล้ว จับขายได้เลย หรือเลี้ยงต่อเพื่อขนาดพรีเมียม';
+    color = '#22c55e';
+    bgColor = '#f0fdf4';
+  } else if (generalPct >= 70) {
+    readiness = 'approaching';
+    readinessLabel = 'ใกล้ถึงขนาดตลาด';
+    description = 'ปลากำลังใกล้ถึงขนาดตลาด เลี้ยงต่ออีกไม่นาน';
+    color = '#f59e0b';
+    bgColor = '#fffbeb';
+  } else {
+    readiness = 'not-ready';
+    readinessLabel = 'ยังไม่ถึงขนาดตลาด';
+    description = 'ปลายังเล็กอยู่ ต้องเลี้ยงต่อให้ถึงขนาดตลาด';
+    color = '#6b7280';
+    bgColor = '#f9fafb';
+  }
+
+  return {
+    readiness,
+    readinessLabel,
+    description,
+    color,
+    bgColor,
+    marketProgressPct: isGeneralReady ? premiumPct : generalPct,
+    signals,
+    nextTarget,
+    estimatedDaysToTarget,
+    estimatedYieldKg,
+    estimatedRevenue,
+    estimatedProfit,
+  };
+}

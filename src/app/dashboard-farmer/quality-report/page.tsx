@@ -13,6 +13,7 @@ import {
 } from "@/utils/catfishGrowth";
 import QualitySummaryCards from "@/components/quality/QualitySummaryCards";
 import GrowthChart from "@/components/quality/GrowthChart";
+import HarvestAdvisor from "@/components/quality/HarvestAdvisor";
 import CostSummary from "@/components/quality/CostSummary";
 
 // ---------------------------------------------------------------------------
@@ -326,7 +327,10 @@ function QualityReportContent() {
             {/* ส่วน B: กราฟเทียบน้ำหนักจริง vs มาตรฐาน */}
             <GrowthChart data={chartData} />
 
-            {/* ส่วน C: สรุปค่าใช้จ่าย */}
+            {/* ส่วน C: คำแนะนำการจับปลา */}
+            <HarvestAdvisor assessment={assessment} />
+
+            {/* ส่วน D: สรุปค่าใช้จ่าย */}
             <CostSummary assessment={assessment} />
           </>
         )}
