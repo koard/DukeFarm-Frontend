@@ -9,6 +9,8 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { ProfileDropdownMenu } from "@/components/common/ProfileDropdownMenu";
 import FarmNavigation from "@/components/navigation/FarmNavigation";
 import { FarmTypeOption } from "@/utils/farmTypes";
+import HarvestAdvisor from "@/components/quality/HarvestAdvisor";
+import type { HarvestInput, FarmType } from "@/utils/catfishGrowth";
 
 // ----------------------------------------------------------------------
 // Types & Interfaces
@@ -517,6 +519,26 @@ function DashboardContent() {
   const remainingCount = summary?.currentCount ? summary.currentCount.toLocaleString() : "-";
   const survivalRate = summary?.survivalRatePct ?? null;
 
+  // ── Harvest advisor input (built from dashboard summary) ──
+  const harvestInput: HarvestInput | null = (() => {
+    const weight = summary?.averageFishWeight;
+    if (weight == null || weight <= 0) return null;
+    const releaseDateStr = summary?.releaseDate;
+    const days = releaseDateStr
+      ? Math.max(0, Math.floor((Date.now() - new Date(releaseDateStr).getTime()) / 86_400_000))
+      : 0;
+    const adg = days > 0 ? weight / days : 0;
+    const cost = (summary?.pelletFoodCost ?? 0) + (summary?.freshFoodCost ?? 0);
+    return {
+      latestWeightGr: weight,
+      totalDays: days,
+      actualADG: adg,
+      fcr: null,
+      fishRemaining: summary?.currentCount ?? null,
+      totalCost: cost,
+    };
+  })();
+
   // const stars = useMemo(
   //   () =>
   //     Array.from({ length: 25 }).map(() => ({
@@ -1001,9 +1023,18 @@ function DashboardContent() {
           })()}
 
           {/* -------------------------------------------------------------------------
-            9. MARKET SIZE — removed (moved to HarvestAdvisor in quality report)
+            9. MARKET SIZE — removed
             ------------------------------------------------------------------------- */}
           </div> 
+
+          {/* -------------------------------------------------------------------------
+              HARVEST ADVISOR 
+              ------------------------------------------------------------------------- */}
+          {!loading && harvestInput && (
+            <div className="px-5 max-w-7xl mx-auto mt-4">
+              <HarvestAdvisor input={harvestInput} farmType={farmType as FarmType} />
+            </div>
+          )}
 
           {/* -------------------------------------------------------------------------
               ACTION BUTTONS 

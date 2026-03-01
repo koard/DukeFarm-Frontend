@@ -610,10 +610,23 @@ export interface HarvestAdvice {
 }
 
 /**
- * คำนวณคำแนะนำการจับ/ส่งต่อปลาจาก QualityAssessment + farmType
+ * ข้อมูลขั้นต่ำที่ต้องใช้ในการคำนวณคำแนะนำการจับ/ส่งต่อปลา
+ * ใช้ได้ทั้งจาก QualityAssessment (มีครบ) และจาก dashboard summary (มีบางส่วน)
+ */
+export interface HarvestInput {
+  latestWeightGr: number;
+  totalDays: number;
+  actualADG: number;
+  fcr: number | null;
+  fishRemaining: number | null;
+  totalCost: number;
+}
+
+/**
+ * คำนวณคำแนะนำการจับ/ส่งต่อปลาจาก HarvestInput + farmType
  */
 export function computeHarvestAdvice(
-  assessment: QualityAssessment,
+  input: HarvestInput,
   farmType: FarmType,
 ): HarvestAdvice {
   const {
@@ -623,7 +636,7 @@ export function computeHarvestAdvice(
     fcr,
     fishRemaining,
     totalCost,
-  } = assessment;
+  } = input;
 
   const stage = STAGE_WEIGHT_RANGES[farmType];
   const signals: HarvestSignal[] = [];

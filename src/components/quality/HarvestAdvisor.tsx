@@ -9,7 +9,7 @@
 "use client";
 
 import type {
-  QualityAssessment,
+  HarvestInput,
   HarvestAdvice,
   HarvestSignal,
   FarmType,
@@ -23,7 +23,7 @@ import {
 } from "lucide-react";
 
 interface Props {
-  assessment: QualityAssessment;
+  input: HarvestInput;
   farmType: FarmType;
 }
 
@@ -163,8 +163,8 @@ function ProgressSection({
 
 /* ── Main ─────────────────────────────────────────────────── */
 
-export default function HarvestAdvisor({ assessment, farmType }: Props) {
-  const advice = computeHarvestAdvice(assessment, farmType);
+export default function HarvestAdvisor({ input, farmType }: Props) {
+  const advice = computeHarvestAdvice(input, farmType);
 
   const statusIcon = (() => {
     switch (advice.readiness) {
@@ -223,7 +223,7 @@ export default function HarvestAdvisor({ assessment, farmType }: Props) {
       {/* ── progress + target ── */}
       <div className="px-5 pb-4">
         <ProgressSection
-          currentWeight={assessment.latestWeightGr}
+          currentWeight={input.latestWeightGr}
           advice={advice}
         />
       </div>
